@@ -1,0 +1,266 @@
+{
+  "status": "G2_REVIEW_INPUT_BASELINE",
+  "original_research_list_sha256": "c8e12ff2afb1f70c092c472b5cd3d169b47ade5424bd06c484d74a9418a0024a",
+  "count": 14,
+  "counting_rules": {
+    "main": 12,
+    "NATS_existing": 1,
+    "Daytona_historical": 1,
+    "DBOS_Python_TS": "one project",
+    "OpenHands_SDK_automation": "one project",
+    "Grok_candidates": "identity unknown optional candidates, not claimed resolved"
+  },
+  "projects": [
+    {
+      "id": "codex",
+      "required_scope": "main",
+      "checkout": "research/repos/codex",
+      "checkout_commit": "ee6814bfa4889fe9b2b3dcc9cc8bdd91effa8ab8",
+      "assets": {
+        "identity.json": "research/codex/identity.json",
+        "analysis.md": "research/codex/analysis.md"
+      },
+      "protocols": [
+        "research/codex/protocol.json"
+      ],
+      "independent_review": "research/reviews/agent-frameworks.md",
+      "current_runtime_pass": false
+    },
+    {
+      "id": "pi",
+      "required_scope": "main",
+      "checkout": "research/repos/pi",
+      "checkout_commit": "71dca871bc80b6bc97be37f0ca3189399d651fff",
+      "assets": {
+        "identity.json": "research/pi/identity.json",
+        "analysis.md": "research/pi/analysis.md"
+      },
+      "protocols": [
+        "research/pi/protocol-step-002.json",
+        "research/pi/protocol.json"
+      ],
+      "independent_review": "research/reviews/session-frameworks.md",
+      "current_runtime_pass": false,
+      "supplemental_independent_reviews": [
+        "research/reviews/pi-step-boundary.md"
+      ]
+    },
+    {
+      "id": "deepseek-harness",
+      "required_scope": "main",
+      "checkout": "research/repos/deepseek-harness",
+      "checkout_commit": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+      "assets": {
+        "identity.json": "research/deepseek-harness/identity.json",
+        "analysis.md": "research/deepseek-harness/analysis.md"
+      },
+      "protocols": [
+        "research/deepseek-harness/protocol-supplement.json",
+        "research/deepseek-harness/protocol.json"
+      ],
+      "independent_review": "research/reviews/session-frameworks.md",
+      "current_runtime_pass": false
+    },
+    {
+      "id": "mini-swe-agent",
+      "required_scope": "main",
+      "checkout": "research/repos/mini-swe-agent",
+      "checkout_commit": "04d809ceab9df28f9adaed044884180159172930",
+      "assets": {
+        "identity.json": "research/mini-swe-agent/identity.json",
+        "analysis.md": "research/mini-swe-agent/analysis.md"
+      },
+      "protocols": [
+        "research/mini-swe-agent/protocol.json"
+      ],
+      "independent_review": "research/reviews/session-frameworks.md",
+      "current_runtime_pass": false
+    },
+    {
+      "id": "sol-pi",
+      "required_scope": "main",
+      "checkout": "research/repos/sol-pi",
+      "checkout_commit": "d7ecfc089944f0d04b80122a0a9a6ca0d786f3d0",
+      "assets": {
+        "identity.json": "research/sol-pi/identity.json",
+        "analysis.md": "research/sol-pi/analysis.md"
+      },
+      "protocols": [
+        "research/sol-pi/protocol.json"
+      ],
+      "independent_review": "research/reviews/session-frameworks.md",
+      "current_runtime_pass": false
+    },
+    {
+      "id": "openhands",
+      "required_scope": "main",
+      "checkout": "research/repos/openhands-sdk",
+      "checkout_commit": "9c3571a694547734002518bd94b3cb41a187f9b6",
+      "assets": {
+        "identity.json": "research/openhands/identity.json",
+        "analysis.md": "research/openhands/analysis.md"
+      },
+      "protocols": [
+        "research/openhands/automation-protocol.json",
+        "research/openhands/gap-protocol.json",
+        "research/openhands/protocol.json"
+      ],
+      "independent_review": "research/reviews/agent-frameworks.md",
+      "current_runtime_pass": false,
+      "associated": {
+        "checkout": "research/repos/openhands-automation",
+        "commit": "645f20470168e25dcb5cf3dcf3ec5a10109e731b",
+        "scope": "actual scheduler experiment"
+      }
+    },
+    {
+      "id": "openclaw",
+      "required_scope": "main",
+      "checkout": "research/repos/openclaw",
+      "checkout_commit": "a023ff811043cbf8110009e218fa29dc7133eee1",
+      "assets": {
+        "identity.json": "research/openclaw/identity.json",
+        "analysis.md": "research/openclaw/analysis.md"
+      },
+      "protocols": [
+        "research/openclaw/protocol.json"
+      ],
+      "independent_review": "research/reviews/agent-frameworks.md",
+      "current_runtime_pass": false
+    },
+    {
+      "id": "opensandbox",
+      "required_scope": "main",
+      "checkout": "research/repos/opensandbox",
+      "checkout_commit": "60bca638497d9c50e948928b8b15fe22328afee3",
+      "assets": {
+        "identity.json": "research/opensandbox/identity.json",
+        "analysis.md": "research/opensandbox/analysis.md"
+      },
+      "protocols": [
+        "research/opensandbox/protocol.json"
+      ],
+      "independent_review": "research/reviews/boundary-mechanisms.md",
+      "current_runtime_pass": false
+    },
+    {
+      "id": "sandbox-runtime",
+      "required_scope": "main",
+      "checkout": "research/repos/sandbox-runtime",
+      "checkout_commit": "c392e6cf9f8df957c66d9ab1461e2cfa99b1ab5d",
+      "assets": {
+        "identity.json": "research/sandbox-runtime/identity.json",
+        "analysis.md": "research/sandbox-runtime/analysis.md"
+      },
+      "protocols": [
+        "research/sandbox-runtime/protocol-read-002.json",
+        "research/sandbox-runtime/protocol.json"
+      ],
+      "independent_review": "research/reviews/boundary-mechanisms.md",
+      "current_runtime_pass": false
+    },
+    {
+      "id": "agentfs",
+      "required_scope": "main",
+      "checkout": "research/repos/agentfs",
+      "checkout_commit": "0a014ebd4918615baff589ed17486e557e7c6a23",
+      "assets": {
+        "identity.json": "research/agentfs/identity.json",
+        "analysis.md": "research/agentfs/analysis.md"
+      },
+      "protocols": [
+        "research/agentfs/protocol.json"
+      ],
+      "independent_review": "research/reviews/boundary-mechanisms.md",
+      "current_runtime_pass": false
+    },
+    {
+      "id": "dbos-py",
+      "required_scope": "main",
+      "checkout": "research/repos/dbos-py",
+      "checkout_commit": "83805fd84494c85ea09105443884a2786152d921",
+      "assets": {
+        "identity.json": "research/dbos-py/identity.json",
+        "analysis.md": "research/dbos-py/analysis.md"
+      },
+      "protocols": [
+        "research/dbos-py/protocol-001.json"
+      ],
+      "independent_review": "research/reviews/nats-dbos.md",
+      "current_runtime_pass": false,
+      "associated": {
+        "checkout": "research/repos/dbos-ts",
+        "commit": "594da805891e37bc3bc42aa0976379bbcd4350bf",
+        "scope": "source comparison; Python supplies actual experiment"
+      }
+    },
+    {
+      "id": "harbor",
+      "required_scope": "main",
+      "checkout": "research/repos/harbor",
+      "checkout_commit": "1b50bd025832d6c69f85a4d91cd8a99eaebc661a",
+      "assets": {
+        "identity.json": "research/harbor/identity.json",
+        "analysis.md": "research/harbor/analysis.md"
+      },
+      "protocols": [
+        "research/harbor/protocol.json"
+      ],
+      "independent_review": "research/reviews/agent-frameworks.md",
+      "current_runtime_pass": false
+    },
+    {
+      "id": "nats-server",
+      "required_scope": "existing_topic",
+      "checkout": "research/repos/nats-server",
+      "checkout_commit": "3c80d8f89eac613bdbae473efb59ec76f8d4ed09",
+      "assets": {
+        "identity.json": "research/nats-server/identity.json",
+        "analysis.md": "research/nats-server/analysis.md"
+      },
+      "protocols": [
+        "research/nats-server/protocol-001.json"
+      ],
+      "independent_review": "research/reviews/nats-dbos.md",
+      "current_runtime_pass": false
+    },
+    {
+      "id": "daytona",
+      "required_scope": "historical_public",
+      "checkout": "research/repos/daytona",
+      "checkout_commit": "01c502bb1f1ff8f2885d0cd490e043736083dca8",
+      "assets": {
+        "identity.json": "research/daytona/identity.json",
+        "analysis.md": "research/daytona/analysis.md"
+      },
+      "protocols": [
+        "research/daytona/protocol.json"
+      ],
+      "independent_review": "research/reviews/boundary-mechanisms.md",
+      "current_runtime_pass": false
+    }
+  ],
+  "additional_topics": [
+    {
+      "id": "git-files",
+      "reason": "H06 ordinary-file semantics and ignored state vs AgentFS SDK",
+      "report": "research/git-files/analysis.md",
+      "review": "research/reviews/git-files.md"
+    },
+    {
+      "id": "docker-linux",
+      "reason": "H04/H05 actual complete-container stop and resource enforcement gap",
+      "report": "research/docker-linux/analysis.md",
+      "review": "research/reviews/docker-linux.md"
+    }
+  ],
+  "synthesis": "design/g2/synthesis.md",
+  "hypotheses": "research/hypotheses-evidence.json",
+  "licensing_boundaries": [
+    "research/reuse/nats-licenses.json",
+    "research/reuse/pi-license-boundary.json",
+    "research/reuse/linux-tools-licenses.json"
+  ],
+  "requirement_assignment": "design/g2/requirements-boundary-candidates.json",
+  "gate_record": "design/g2/g2-gate.json"
+}

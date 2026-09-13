@@ -1,0 +1,49 @@
+{
+  "status": "DRAFT_G3",
+  "bindings": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "f0e201d0a2e471a29d594818257b3a0e2fb9336be237cd4ed961e70417eeb672"
+    },
+    {
+      "path": "governance/checklists.md",
+      "sha256": "0c77c06a4a5792dee146938ef63c600d37df2694d1724e9862241f054f822a41"
+    },
+    {
+      "path": "design/g1/top-level-contracts.md",
+      "sha256": "5644cd02f5d6625690ba8ff9e90e7e4085606eba44eb532eb4c2de34314adeb4"
+    },
+    {
+      "path": "design/g2/g2-gate.json",
+      "sha256": "6e83746bc7c36621f01ad4a670daac93b18f8baf4cf2a6a218dd1cfc2398ca11"
+    },
+    {
+      "path": "design/g2/synthesis.md",
+      "sha256": "4491154cf0a0335530affd3b792f14fcf506bd3fb5fc5cb81e8a04ed2fc2e932"
+    },
+    {
+      "path": "design/g2/requirements-boundary-candidates.json",
+      "sha256": "57aea8e0ae238533e8ae34155ce215375c275c47c9fd05d7c423e46dd0ce5600"
+    },
+    {
+      "path": "research/pi/identity.json",
+      "sha256": "403ac56699168b0c2edf03f7365177ffdc518297ea92ebea529faf7a84a670b1"
+    },
+    {
+      "path": "research/pi/protocol-step-002.json",
+      "sha256": "90f431c3072a2387bc50b61a2fe54929be0ab5fda32c34d26bc5c8747fa2347b"
+    },
+    {
+      "path": "research/pi/step-boundary-analysis.md",
+      "sha256": "7fc1bf86191d6816313ea4de658224d1a7bc54eea95e269a67d31dfd89b31616"
+    },
+    {
+      "path": "research/reviews/pi-step-boundary.md",
+      "sha256": "5f5e933fd755de76261be7350a806200f5a568bf738f53680445477592fce9c6"
+    },
+    {
+      "path": "research/reuse/pi-license-boundary.json",
+      "sha256": "531e6428ed2ff7bae06be62500dcb4d9f0fab99b8ce292105fe026c35f2556ec"
+    }
+  ]
+}

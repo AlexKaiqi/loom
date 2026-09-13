@@ -1,0 +1,28 @@
+{
+  "scope": "Nine original real Node/Pi/S/X responses; only current read-only Engine GET. Derived fault closures explicitly marked; no new execution, provider or publication.",
+  "source": "/path/to/loom/validation/session_service/evidence/live-local-author-001/actual/invocations.json",
+  "source_sha256": "249f241b73e6245c4dd09f4289388990778f33f1940a1c999ced34cf19a5309e",
+  "execution_root": "/path/to/loom/validation/session_service/evidence/live-local-author-001/actual/fixture/peer-state/live-plans/X-state",
+  "snapshot_root": "/path/to/loom/validation/session_service/evidence/live-local-author-001/actual/fixture/peer-state/live-plans/S-originals",
+  "namespace": "s-original-component-001",
+  "global_budget_bytes": 21474836480,
+  "cases": [
+    {
+      "id": "SF01-original-nine",
+      "expected": "All nine exact original frames and bundle/binding, unmodified stopped/released responses; zero writes, only original CID/volume GET absence."
+    },
+    {
+      "id": "SF02-binding-controls",
+      "expected": "Wrong execution/namespace/operation/source/action/confirmation/rawresult/frame hash rejected with reference_invalid; missing ID creates no directory; no current mutable slot comparison."
+    },
+    {
+      "id": "SF03-physical-controls",
+      "expected": "Declared present CID or volume rejected; actual original GETs prove absent; unrelated engine exception cannot be treated as a valid fact."
+    },
+    {
+      "id": "SF04-original-cross-check-controls",
+      "expected": "Derived normal owner with original saved pi.result but missing boundary cannot return a decision; original paused frame may retain result with no decision. Derived modified raw stdout vs original boundary rejects. Quarantine fails normal query. Wrong stopped proof exact fulltuple rejects. Derived closures are not live execution proof."
+    }
+  ],
+  "rejection_code": "reference_invalid"
+}

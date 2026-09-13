@@ -1,0 +1,643 @@
+{
+  "suite_id": "G1-DURABILITY-SUPPLEMENT-v1",
+  "status": "PREREGISTERED_DRAFT_NOT_FROZEN",
+  "artifact_kind": "finite_model_case_protocol_not_runtime_api",
+  "purpose": "补充独立实现审查发现的完整决定关联冲突缺口；不改既有冻结用例与预期。",
+  "extends": {
+    "path": "design/g1/cases-durability.json",
+    "sha256": "fcd8f28d3e9eb245cef55f5716a404e458fff0d9ec3f5f7c75906e2490f3f861"
+  },
+  "source_snapshots": {
+    "design/g1/top-level-contracts.md": "5644cd02f5d6625690ba8ff9e90e7e4085606eba44eb532eb4c2de34314adeb4",
+    "design/g1/freeze-001.json": "cdaa1ce39f246aa750105af7dcaf3f853b82be73073493c4c4cc7acb06b30115"
+  },
+  "finite_domain": {
+    "scope": "每例独立初始化，只包含用例列明的有限身份和值；本模型不代表无限输入或任意故障。",
+    "max_surfaces": 2,
+    "max_waits": 1,
+    "max_events": 2,
+    "max_steps": 2,
+    "max_request_identities": 2,
+    "max_operation_identities": 3,
+    "counter_domain": [
+      0,
+      1,
+      2,
+      "overflow"
+    ],
+    "time_domain": [
+      "promise_active",
+      "promise_expired"
+    ],
+    "opaque_tokens": "R1/M1/S1/W1/E1/I1/C1 等是固定独立内容/版本标签，不是由实现生成预期；恢复内容或授权不匹配时不得计入对应可解析集合。",
+    "scheduler": {
+      "fair": true,
+      "max_enabled_transitions_per_settle": 8,
+      "budget_is": "有限探索界限，非服务时限/SLA",
+      "bound_exhausted": "INCONCLUSIVE_NOT_PASS",
+      "fair_stall_or_cycle_with_accepted_work": "MODEL_FAIL",
+      "note": "冻结前若抽象阶段合法需要更多步，应依模型结构修订界限并保留版本，不以未跑到目标就算成功。"
+    },
+    "supplement_tokens": {
+      "decisions": [
+        "d1"
+      ],
+      "payloads": [
+        "continue:step2"
+      ],
+      "execution_identities": [
+        "op2"
+      ],
+      "source_results": [
+        "R1",
+        "R2"
+      ],
+      "harness_versions": [
+        "h1v1",
+        "h1v2"
+      ]
+    }
+  },
+  "observer_defaults": {
+    "request": {},
+    "registration": {
+      "s1": true,
+      "s2": true
+    },
+    "decision": {},
+    "logical_request_count": 0,
+    "launch_count": 0,
+    "step2_launch_count": 0,
+    "next_step_accepted": 0,
+    "saved_result": null,
+    "volatile_result": null,
+    "confirmed_refs": [],
+    "resolvable_refs": [],
+    "pending_responsibility": [],
+    "recoverable_responsibility": false,
+    "completion_claim": false,
+    "answer_saved": false,
+    "recovery_status": "not_requested",
+    "model_call_count": 0,
+    "external_effect_count": 0,
+    "blind_retry_count": 0,
+    "execution_status": "absent",
+    "external_operation_identity": null,
+    "active_operation_identity": null,
+    "query_status": "not_requested",
+    "old_operation_may_still_run": false,
+    "events": [],
+    "event_bindings": {},
+    "delivery_responsibility_count": 0,
+    "delivered_payloads": [],
+    "replayed_event_ids": [],
+    "input_view": [],
+    "event_processing_completed": false,
+    "wait": {
+      "phase": "absent",
+      "origin": 0,
+      "match": "E",
+      "target": "s2"
+    },
+    "required_state_saved": true,
+    "persistence_ack_available": true,
+    "resources": {
+      "agent": 0,
+      "connection": 0,
+      "sandbox": 0,
+      "shared_service": 1
+    },
+    "promise_active": true,
+    "record_locations": {},
+    "cancel_requested": false,
+    "observed_process_alive": false,
+    "observed_child_alive": false,
+    "conflict_reported": false,
+    "harness_policy": "no_automatic_continuation",
+    "harness_candidate": null,
+    "requested_historical_ref": null
+  },
+  "observer_rules": {
+    "state_is": "归一化观测视图，不规定生产存储字段；对任一实现的观察适配须事先定义且不能从 expected 复制。",
+    "at": "aN 指该动作及其直接转移完成后的检查点；all 包含初始状态和每个动作后的状态。",
+    "path": "点分对象路径。已声明 request/decision/registration/event_bindings 映射内不存在身份返回 null；未知字段路径为协议错误，不能静默返回 null。",
+    "comparators": {
+      "eq": "类型敏感相等",
+      "ne": "类型敏感不相等",
+      "contains": "数组含指定元素",
+      "set_eq": "数组内容按集合相等；源数组重复身份是否允许由独立计数/关系约束另验"
+    },
+    "confirmed_refs": "观察器从 fixture 确认历史得到曾确认的内容身份，不由恢复器成功声明构造。",
+    "resolvable_refs": "仅当对应权威 fixture 在当前授权/版本下能返回该固定原内容时包含该身份；仅有路径/摘要/ID 不够。",
+    "recoverable_responsibility": "观察器检查存在持久依据覆盖当前未决决定或后续安排；不能由模型自由赋 true。",
+    "counts": "logical_request_count 和 delivery_responsibility_count 从实际接受的不同逻辑身份/关系计数；external_effect_count/model_call_count 从独立环境轨迹计数，不从 Runtime 日志声称计数。",
+    "runtime_reports": "request.caller_view、recovery_status、execution_status、completion_claim 是待对照实际环境的报告，不作为它们自身正确性的证据。",
+    "case_success": "全部 expected 成立且轨迹没有未解析动作、界限耗尽或公平停滞；必须另跑 known_bad_variant 并观测至少一个 must_violate 项失败。",
+    "mutation": "known_bad_variant 改变通用转移/观察来源，而不按 case ID 硬编码错误；不修改 expected。"
+  },
+  "action_semantics": {
+    "accept_decision": "持久接受外部定义给出的决定身份、内容、源结果、版本及执行身份；一般解释代码不假定恒定。",
+    "crash": "清除 args.domain 指定的易失进程/连接/缓存/沙箱；保留故障范围承诺持久的依赖事实。cut 为插入位置注释，不改变阶段转移规则。",
+    "restart": "重新建立共享运行机制；不能凭启动本身伪造任务完成、模型结果或受理责任。",
+    "settle_enabled_recovery": "公平驱动该用例已启用的恢复、外部解释、交付或启动转移，直到有限目标的稳定状态；不得按 case ID/expected 写状态。参见调度与界限规则。"
+  },
+  "preregistered_clarification": "accept_decision 的既有身份比较包括 payload、execution_id、source_result、harness_version 的已接受值；任何字段不同均冲突，保持原记录及责任；全部相同则复用。",
+  "cases": [
+    {
+      "id": "DUR-S001",
+      "title": "同一已接受决定的 source_result 变化须冲突且保留原关联",
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A084",
+        "V5-B027",
+        "V5-B028",
+        "V5-B085"
+      ],
+      "source_contracts": [
+        {
+          "path": "design/g1/top-level-contracts.md",
+          "lines": [
+            64,
+            66
+          ],
+          "claim": "稳定决定身份与输入/策略版本/阶段关联；同身份不同决定内容冲突，不得覆盖或换新身份"
+        },
+        {
+          "path": "design/g1/cases-durability.json",
+          "pointer": "/action_semantics/accept_decision",
+          "claim": "持久接受外部定义给出的决定身份、内容、源结果、版本及执行身份"
+        }
+      ],
+      "properties": [
+        "P07",
+        "P09",
+        "P10",
+        "P11"
+      ],
+      "initial_state": {
+        "saved_result": "R1",
+        "confirmed_refs": [
+          "R1",
+          "R2"
+        ],
+        "resolvable_refs": [
+          "R1",
+          "R2"
+        ],
+        "decision": {
+          "d1": {
+            "phase": "absent",
+            "payload": null,
+            "execution_id": null
+          }
+        },
+        "harness_candidate": "continue:step2",
+        "pending_responsibility": [
+          "step1:decide"
+        ],
+        "next_step_accepted": 0,
+        "step2_launch_count": 0,
+        "active_operation_identity": null,
+        "conflict_reported": false,
+        "external_effect_count": 1
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "accept_decision",
+          "args": {
+            "decision": "d1",
+            "payload": "continue:step2",
+            "execution_id": "op2",
+            "source_result": "R1",
+            "harness_version": "h1v1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "accept_decision",
+          "args": {
+            "decision": "d1",
+            "payload": "continue:step2",
+            "execution_id": "op2",
+            "source_result": "R1",
+            "harness_version": "h1v1"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "accept_decision",
+          "args": {
+            "decision": "d1",
+            "payload": "continue:step2",
+            "execution_id": "op2",
+            "source_result": "R2",
+            "harness_version": "h1v1"
+          }
+        },
+        {
+          "id": "a4",
+          "op": "crash",
+          "args": {
+            "domain": "task_and_runtime_volatile",
+            "cut": "after_association_conflict_before_execution"
+          }
+        },
+        {
+          "id": "a5",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a6",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a2",
+          "path": "conflict_reported",
+          "op": "eq",
+          "value": false,
+          "why": "原完整元组的同身份重交复用原受理，不拒绝所有重交"
+        },
+        {
+          "id": "E2",
+          "at": "a2",
+          "path": "step2_launch_count",
+          "op": "eq",
+          "value": 0,
+          "why": "决定受理与真正启动分开"
+        },
+        {
+          "id": "E3",
+          "at": "a3",
+          "path": "conflict_reported",
+          "op": "eq",
+          "value": true,
+          "why": "源结果和策略版本均为已接受决定关联的一部分，不能静默忽略变化"
+        },
+        {
+          "id": "E4",
+          "at": "a3",
+          "path": "decision.d1.source_result",
+          "op": "eq",
+          "value": "R1",
+          "why": "关联变化被拒绝，原源结果引用不变"
+        },
+        {
+          "id": "E5",
+          "at": "a3",
+          "path": "decision.d1.harness_version",
+          "op": "eq",
+          "value": "h1v1",
+          "why": "关联变化被拒绝，原策略版本不变"
+        },
+        {
+          "id": "E6",
+          "at": "a3",
+          "path": "decision.d1.payload",
+          "op": "eq",
+          "value": "continue:step2",
+          "why": "拒绝冲突不替换原决定内容"
+        },
+        {
+          "id": "E7",
+          "at": "a3",
+          "path": "decision.d1.execution_id",
+          "op": "eq",
+          "value": "op2",
+          "why": "拒绝冲突不更换原执行身份"
+        },
+        {
+          "id": "E8",
+          "at": "a6",
+          "path": "active_operation_identity",
+          "op": "eq",
+          "value": "op2",
+          "why": "崩溃恢复仍实施已接受的原执行身份"
+        },
+        {
+          "id": "E9",
+          "at": "a6",
+          "path": "step2_launch_count",
+          "op": "eq",
+          "value": 1,
+          "why": "同内容重交和冲突提议不增加或删除后续执行责任"
+        },
+        {
+          "id": "E10",
+          "at": "a6",
+          "path": "decision.d1.source_result",
+          "op": "eq",
+          "value": "R1",
+          "why": "重启后仍保留原源结果关联"
+        },
+        {
+          "id": "E11",
+          "at": "a6",
+          "path": "decision.d1.harness_version",
+          "op": "eq",
+          "value": "h1v1",
+          "why": "重启后仍保留原策略版本关联"
+        },
+        {
+          "id": "E12",
+          "at": "all",
+          "path": "saved_result",
+          "op": "eq",
+          "value": "R1",
+          "why": "原已确认结果在全过程保持可取"
+        },
+        {
+          "id": "E13",
+          "at": "all",
+          "path": "external_effect_count",
+          "op": "eq",
+          "value": 1,
+          "why": "受理、冲突和恢复不重做旧操作效果"
+        },
+        {
+          "id": "E14",
+          "at": "all",
+          "path": "resolvable_refs",
+          "op": "set_eq",
+          "value": [
+            "R1",
+            "R2"
+          ],
+          "why": "所有已确认源内容仍可取得，不以抹去冲突来源逃避核对"
+        }
+      ],
+      "known_bad_variant": {
+        "name": "ignore_decision_association_conflict",
+        "change": "共用已接受决定重交分支只比较 payload 和 execution_id，忽略 source_result 与 harness_version 的差异并按相同请求返回",
+        "should_fail_because": "不同来源或策略版本的提议未经冲突拒绝，违反稳定决定身份与完整关联契约；即使旧记录未被改写仍不能静默视作同一提交",
+        "must_violate": [
+          "E3"
+        ]
+      },
+      "assumptions": [
+        "这是独立新轨迹；每例从 observer_defaults 与本例初态递归合并开始，不沿用原 DUR-028 的终态。",
+        "除刻意的已接受身份关联冲突外，源引用存在且授权有效；R2 是源结果变化例中独立预置、可读取的另一内容身份。",
+        "执行身份和 payload 在关联冲突时保持相同，避免已有 payload/execution_id 检查掩盖遗漏。",
+        "g1-001 未包含本补充轨迹；既有 28 条 DUR 正向与负向通过结果不等于本补充通过。"
+      ],
+      "gap": [
+        "本模型仍不证明真实序列化/规范化、版本真实性、持久写入或任意回调效果；组件阶段需以实际原始身份/内容验证。"
+      ],
+      "status": "PREREGISTERED_DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-S002",
+      "title": "同一已接受决定的 harness_version 变化须冲突且保留原关联",
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A084",
+        "V5-B027",
+        "V5-B028",
+        "V5-B085"
+      ],
+      "source_contracts": [
+        {
+          "path": "design/g1/top-level-contracts.md",
+          "lines": [
+            64,
+            66
+          ],
+          "claim": "稳定决定身份与输入/策略版本/阶段关联；同身份不同决定内容冲突，不得覆盖或换新身份"
+        },
+        {
+          "path": "design/g1/cases-durability.json",
+          "pointer": "/action_semantics/accept_decision",
+          "claim": "持久接受外部定义给出的决定身份、内容、源结果、版本及执行身份"
+        }
+      ],
+      "properties": [
+        "P07",
+        "P09",
+        "P10",
+        "P11"
+      ],
+      "initial_state": {
+        "saved_result": "R1",
+        "confirmed_refs": [
+          "R1"
+        ],
+        "resolvable_refs": [
+          "R1"
+        ],
+        "decision": {
+          "d1": {
+            "phase": "absent",
+            "payload": null,
+            "execution_id": null
+          }
+        },
+        "harness_candidate": "continue:step2",
+        "pending_responsibility": [
+          "step1:decide"
+        ],
+        "next_step_accepted": 0,
+        "step2_launch_count": 0,
+        "active_operation_identity": null,
+        "conflict_reported": false,
+        "external_effect_count": 1
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "accept_decision",
+          "args": {
+            "decision": "d1",
+            "payload": "continue:step2",
+            "execution_id": "op2",
+            "source_result": "R1",
+            "harness_version": "h1v1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "accept_decision",
+          "args": {
+            "decision": "d1",
+            "payload": "continue:step2",
+            "execution_id": "op2",
+            "source_result": "R1",
+            "harness_version": "h1v1"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "accept_decision",
+          "args": {
+            "decision": "d1",
+            "payload": "continue:step2",
+            "execution_id": "op2",
+            "source_result": "R1",
+            "harness_version": "h1v2"
+          }
+        },
+        {
+          "id": "a4",
+          "op": "crash",
+          "args": {
+            "domain": "task_and_runtime_volatile",
+            "cut": "after_association_conflict_before_execution"
+          }
+        },
+        {
+          "id": "a5",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a6",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a2",
+          "path": "conflict_reported",
+          "op": "eq",
+          "value": false,
+          "why": "原完整元组的同身份重交复用原受理，不拒绝所有重交"
+        },
+        {
+          "id": "E2",
+          "at": "a2",
+          "path": "step2_launch_count",
+          "op": "eq",
+          "value": 0,
+          "why": "决定受理与真正启动分开"
+        },
+        {
+          "id": "E3",
+          "at": "a3",
+          "path": "conflict_reported",
+          "op": "eq",
+          "value": true,
+          "why": "源结果和策略版本均为已接受决定关联的一部分，不能静默忽略变化"
+        },
+        {
+          "id": "E4",
+          "at": "a3",
+          "path": "decision.d1.source_result",
+          "op": "eq",
+          "value": "R1",
+          "why": "关联变化被拒绝，原源结果引用不变"
+        },
+        {
+          "id": "E5",
+          "at": "a3",
+          "path": "decision.d1.harness_version",
+          "op": "eq",
+          "value": "h1v1",
+          "why": "关联变化被拒绝，原策略版本不变"
+        },
+        {
+          "id": "E6",
+          "at": "a3",
+          "path": "decision.d1.payload",
+          "op": "eq",
+          "value": "continue:step2",
+          "why": "拒绝冲突不替换原决定内容"
+        },
+        {
+          "id": "E7",
+          "at": "a3",
+          "path": "decision.d1.execution_id",
+          "op": "eq",
+          "value": "op2",
+          "why": "拒绝冲突不更换原执行身份"
+        },
+        {
+          "id": "E8",
+          "at": "a6",
+          "path": "active_operation_identity",
+          "op": "eq",
+          "value": "op2",
+          "why": "崩溃恢复仍实施已接受的原执行身份"
+        },
+        {
+          "id": "E9",
+          "at": "a6",
+          "path": "step2_launch_count",
+          "op": "eq",
+          "value": 1,
+          "why": "同内容重交和冲突提议不增加或删除后续执行责任"
+        },
+        {
+          "id": "E10",
+          "at": "a6",
+          "path": "decision.d1.source_result",
+          "op": "eq",
+          "value": "R1",
+          "why": "重启后仍保留原源结果关联"
+        },
+        {
+          "id": "E11",
+          "at": "a6",
+          "path": "decision.d1.harness_version",
+          "op": "eq",
+          "value": "h1v1",
+          "why": "重启后仍保留原策略版本关联"
+        },
+        {
+          "id": "E12",
+          "at": "all",
+          "path": "saved_result",
+          "op": "eq",
+          "value": "R1",
+          "why": "原已确认结果在全过程保持可取"
+        },
+        {
+          "id": "E13",
+          "at": "all",
+          "path": "external_effect_count",
+          "op": "eq",
+          "value": 1,
+          "why": "受理、冲突和恢复不重做旧操作效果"
+        },
+        {
+          "id": "E14",
+          "at": "all",
+          "path": "resolvable_refs",
+          "op": "set_eq",
+          "value": [
+            "R1"
+          ],
+          "why": "所有已确认源内容仍可取得，不以抹去冲突来源逃避核对"
+        }
+      ],
+      "known_bad_variant": {
+        "name": "ignore_decision_association_conflict",
+        "change": "共用已接受决定重交分支只比较 payload 和 execution_id，忽略 source_result 与 harness_version 的差异并按相同请求返回",
+        "should_fail_because": "不同来源或策略版本的提议未经冲突拒绝，违反稳定决定身份与完整关联契约；即使旧记录未被改写仍不能静默视作同一提交",
+        "must_violate": [
+          "E3"
+        ]
+      },
+      "assumptions": [
+        "这是独立新轨迹；每例从 observer_defaults 与本例初态递归合并开始，不沿用原 DUR-028 的终态。",
+        "除刻意的已接受身份关联冲突外，源引用存在且授权有效；R2 是源结果变化例中独立预置、可读取的另一内容身份。",
+        "执行身份和 payload 在关联冲突时保持相同，避免已有 payload/execution_id 检查掩盖遗漏。",
+        "g1-001 未包含本补充轨迹；既有 28 条 DUR 正向与负向通过结果不等于本补充通过。"
+      ],
+      "gap": [
+        "本模型仍不证明真实序列化/规范化、版本真实性、持久写入或任意回调效果；组件阶段需以实际原始身份/内容验证。"
+      ],
+      "status": "PREREGISTERED_DRAFT_NOT_FROZEN"
+    }
+  ],
+  "acceptance_gate": "本文件独立预注册审查及冻结后，才授权实现者修复相应通用分支并执行新正式批次。"
+}

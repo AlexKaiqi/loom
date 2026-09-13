@@ -1,0 +1,74 @@
+{
+  "project": "deepseek-harness",
+  "official_repository": "https://github.com/deepseek-ai/deepseek-harness",
+  "discovery_path": [
+    "user main research list",
+    "maintainer GitHub repository page",
+    "public git clone"
+  ],
+  "retrieved_utc": "2026-09-12T18:13:18.140042+00:00",
+  "commit": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "commit_subject": "Merge pull request #3977 from deepseek-harness/worktree/release-0.1.5-sync-master",
+  "commit_time": "2026-09-10T22:17:09+08:00",
+  "checkout": "/path/to/loom/research/repos/deepseek-harness",
+  "declared_license": "MIT",
+  "license_sources": [
+    {
+      "file": "LICENSE",
+      "sha256": "ebb4f09972aee8608be255debaf78451a68e95c290f55c240dec2ecfa16ea6be"
+    },
+    {
+      "file": "native/system/LICENSE",
+      "sha256": "fed2134d7f6af959ff9fbf2c0a35ea747db10e21d1b5d2d1ac58be88ce43ad90",
+      "declared_license": "BSD-3-Clause",
+      "scope": "actual native flock source"
+    }
+  ],
+  "dependency_manifests": [
+    {
+      "file": "package.json",
+      "sha256": "766b5a990aca5d203457c11937f543256725d4a11487a85df5976c2e55a8e967"
+    },
+    {
+      "file": "pnpm-lock.yaml",
+      "sha256": "66d87ed26fe3205172560351e13fe4aa736b66c15a29f7dd873c629fc80906de"
+    }
+  ],
+  "properties": [
+    "P01",
+    "P07",
+    "P12"
+  ],
+  "hypotheses": [
+    "H02",
+    "H10"
+  ],
+  "verification_state": "SOURCE_AND_ACTUAL_SCOPED_MECHANISM_OBSERVED_PENDING_INDEPENDENT_REVIEW",
+  "credential_mode": "Fixed shipped responses; white-listed experiment environment; no provider calls or credential files",
+  "research_scope": "P01/P07/P12 and H02/H10; exploratory candidate boundary, not component/system acceptance",
+  "runtime": {
+    "os": "WSL Ubuntu Linux",
+    "node": "24.21.0"
+  },
+  "installed_dependency_inventory": "installed-dependencies.json",
+  "analysis": "analysis.md",
+  "protocol": "protocol.json",
+  "evidence_index": "evidence-index.json",
+  "mechanism_batches": [
+    "mechanism-001",
+    "mechanism-002",
+    "supplement-001"
+  ],
+  "limitations": [
+    "Native flock built from exact source; JSONL compression=none.",
+    "Constructed durable interrupted prefixes test actual cold repair, not arbitrary crash cuts.",
+    "Primary exploratory predicates include two preserved failures; narrower supplement does not erase them."
+  ],
+  "native_build": {
+    "source": "native/system/packages/entry/src/flock.c",
+    "artifact": "native/system/packages/linux-x64/bin/glibc/system.node",
+    "artifact_sha256": "52fbfc99b0801571d657c78c43f1b3011aced2740bb2c7a60af06dfabc4174fd",
+    "evidence": "evidence/build-002"
+  },
+  "source_tree_status": ""
+}

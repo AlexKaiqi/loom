@@ -1,0 +1,19 @@
+{
+  "status": "CURRENT_CANDIDATE_FOR_INDEPENDENT_REVIEW",
+  "inputs": {
+    "lore_runtime/session_plans.py": "ca3ed19d0be6d88823b1f98e075b35300a2cf16eb77adfa951c75bd4a4d7e56e",
+    "lore_runtime/session_plan_files.py": "108a29c2fb93d6ce636b591a9b3f86d6057622b52f2cd0fe8f6f568b4c8ca9d7",
+    "validation/session_plans_probe.py": "7910533f5670f94ab8770ae29453ed0f0130c25bbc02adb240f3b2907adbc0c2",
+    "design/g3/session-plans/contract.md": "ceca93c001ec9c3481ad93b536690b12755d380c4da290720fb6bc5aa2150081",
+    "design/g3/x-node-profile/profile.json": "15479a8b6027d6cd7db9d920c0b4ba36bea6a7517ec096abdcb80622d8f135b6",
+    "design/g3/x-node-profile/request-template.json": "4cf9505da4813f7e60121c1c4f8cb304a6c8dbf60c9f1f1dcf3988572397c85a"
+  },
+  "prior": [
+    "freeze-001.json",
+    "freeze-002.json"
+  ],
+  "preimplementation_failures": [
+    "validation/session-plan-evidence/same-op-before-fix-001/result.json",
+    "validation/session-plan-evidence/source-selection-before-fix-001/result.json"
+  ]
+}

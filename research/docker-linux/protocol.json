@@ -1,0 +1,38 @@
+{
+  "id": "DOCKER-LINUX-G2-001",
+  "status": "PREREGISTERED_EXPLORATORY_NOT_COMPONENT_ACCEPTANCE",
+  "utc": "2026-09-12T18:46:53.348470+00:00",
+  "why": "OpenSandbox/Daytona ordinary command cancellation leaves escaped FD writers; SRT process wrapper lacks resource control and explicit old-wrapper revocation. Existing Docker/Linux topic compares actual namespace lifecycle and configured limits, not another required OSS project.",
+  "source": [
+    "v5 4.1-4.2,5.3",
+    "G1 H04/H05",
+    "research/reviews/boundary-mechanisms.md"
+  ],
+  "environment": "Linux Docker Engine28.0.1 behind current WSL DockerDesktop; product target Linux Engine API, no Windows path or host bindings accepted.",
+  "image": "python@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea",
+  "cases": [
+    {
+      "id": "K1",
+      "question": "Can a known Linux ext4 fixture be bind-mounted, preserving host byte identity and uid1000 writes? Fail if daemon does not see source; no silent copy fallback for this property."
+    },
+    {
+      "id": "K2",
+      "question": "With read-only rootfs, cap-drop ALL, no-new-privileges, network none and one RW domain: own writes succeed, other/host-canary/control-socket absent, symlink cannot reach host fixture; actual uid/capabilities/proc/net recorded."
+    },
+    {
+      "id": "K3",
+      "question": "Real setsid orphan child preopens RW FD; external driver records readiness then kills entire container by full ID, waits for actual exited status and process absence; trigger after stop must not write. Negative control same child before kill must write."
+    },
+    {
+      "id": "K4",
+      "question": "Actual cgroup files show memory128MiB, pids32 and cpu0.5 limits; bounded fork attempts <=48 hit EAGAIN and bounded memoryallocation<=192MiB produces OOM/rejection. These are exploratory probe limits, not final workload SLA."
+    },
+    {
+      "id": "K5",
+      "question": "Explicit upstream engine-version seccomp profile is applied and /proc/Seccomp confirms mode2; current daemon default unconfined does not count. Failure to load actual profile remains failure."
+    }
+  ],
+  "oracles": "Host fixture bytes, real process and cgroup observations and Docker inspect state, not candidate success labels. Each container has unique lore-g2 label/name; keep raw create/inspect/log/wait/remove outputs.",
+  "stop": "<=45sec each command; bounded<=8containers total and one concurrent, memory<=128MiB/cpu0.5/pids32/tmp16MiB; cleanup only exact created IDs in finally; no real credentials/network/provider calls or other user workloads touched.",
+  "limits": "Same-kernel nonprivileged container threat scope; no kernel-escape/host-admin/Docker daemon compromise proof, no powerloss/crosshost recovery or storage quota claim. Config alone is not resource enforcement evidence."
+}

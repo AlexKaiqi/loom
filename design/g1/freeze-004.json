@@ -1,0 +1,20 @@
+{
+  "id": "G1-FREEZE-004",
+  "status": "FROZEN_FOR_SIMULATION",
+  "time_utc": "2026-09-12T18:05:37.891278+00:00",
+  "source_commit": "af644eea57ddad0cf3a277d78ca523336fff710f",
+  "scope": [
+    "DUR-S001 source_result association conflict",
+    "DUR-S002 harness_version association conflict",
+    "2 positive and 2 causal negative trajectories; 28 static assertions, 64 comparisons per sign"
+  ],
+  "inputs_sha256": {
+    "design/g1/cases-durability-supplement.json": "b09e071a2adc9faeafc34deb94d7708f14ef582354cc7dc58eeda2f2c4b0f26a",
+    "design/g1/cases-durability.json": "fcd8f28d3e9eb245cef55f5716a404e458fff0d9ec3f5f7c75906e2490f3f861",
+    "design/g1/top-level-contracts.md": "5644cd02f5d6625690ba8ff9e90e7e4085606eba44eb532eb4c2de34314adeb4",
+    "design/g1/simulation-protocol.md": "ccc770ccc875b0764cc14b64ecb755441a093924b70c9805e73212131a79a350",
+    "design/g1/preregistration-review-supplement.md": "232ee77b5cbe07610cff0e5fb2709def2e0d469f8f994b4d417efa0642d66b18",
+    "design/g1/execution-inventory-supplement.json": "71c7162687ef97f1ea5ac85e0c33ece891fb685273c01f16f8a66eceec520ac0"
+  },
+  "rule": "Supplement only; preserve freeze001-003 and prior evidence. Model fix and loader extension may begin after these preregistered artifacts are saved. G1 remains pending until independent supplemental and affected regression verification."
+}

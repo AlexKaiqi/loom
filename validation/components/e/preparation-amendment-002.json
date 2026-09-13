@@ -1,0 +1,11 @@
+{
+  "id": "G3-E-PREPARATION-AMENDMENT-002",
+  "status": "PREREGISTERED_BEFORE_NATIVE_003",
+  "reason": "Independent negative receipt must be associated with the exact publish request, not any unrelated NATS API error.",
+  "changes": [
+    "proxy matches actual client reply inbox to subject and canonical original envelope identity/hash",
+    "native capacity attempts go through real proxy with full envelopes; verify actual bound negative ack",
+    "an unrelated actual get_msg NotFound response must not be mislabeled as publish receipt"
+  ],
+  "unchanged": "fixed server/client, no E/R component, resource/time bounds, prior runs and failures retained"
+}

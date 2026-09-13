@@ -1,0 +1,49 @@
+{
+  "id": "OPENCLAW-CRON-001",
+  "registered_at_utc": "2026-09-12T18:28:45.548071+00:00",
+  "question": "Does actual cron store preserve pending job runtime responsibility across process death, reject stale definition replacement, and preserve concurrent runtime state on definition repair?",
+  "hypotheses": [
+    "H02",
+    "H03",
+    "H08",
+    "H09"
+  ],
+  "properties": [
+    "P14",
+    "durable pending responsibility"
+  ],
+  "commit": "a023ff811043cbf8110009e218fa29dc7133eee1",
+  "real_code": "Unchanged src/cron/store.ts and transitive workspace TypeScript built with esbuild; actual Node24 built-in SQLite and Linux file IO",
+  "fixtures": "Fixed job records and sequential independent OS processes. No CronService execution/model/tools. No fake DB/storage/runtime authority.",
+  "cases": [
+    {
+      "id": "restart",
+      "input": "save pending job J1(state.queuedAtMs=2000,nextRunAtMs=3000), writer exits; new process load",
+      "expected": "exact job configuration/runtime state retained; legacy jobs.json not authority"
+    },
+    {
+      "id": "stale-replace",
+      "input": "load fingerprint F1; competing process changes definition; attempt saveCronJobsStore beforeWrite assertUnchanged(F1)",
+      "expected": "CronJobsStoreChangedError and competing definition remains"
+    },
+    {
+      "id": "runtime-preserve",
+      "input": "capture definition fingerprint; competing process updates runtime queued/running state; repair enabled=false using preserveRuntimeState=true and fingerprint guard",
+      "expected": "definition repair succeeds but queued/running state retained"
+    },
+    {
+      "id": "unsafe-replace-control",
+      "input": "same store, save stale full record without preserveRuntimeState/guard",
+      "expected": "observe whether pending metadata lost; demonstrates caller obligation, not candidate safety support"
+    }
+  ],
+  "oracle": "Direct SQLite rows and fresh-process candidate load compared against fixed input fields. Source upstream store.test.ts offers API construction but assertions derive from our G1 responsibility contract.",
+  "command": "python3 -B research/openclaw/run-experiment.py --batch cron-001",
+  "stop": "build resolves only actual needed dependencies; no replacement behavior. Candidate eachprocess30seconds. Preserve build/setup failures.",
+  "limits": "Persistence of cron metadata does not prove scheduler fairness/eventual wake/exactly-once execution/runtime authorization enforcement or full gateway Session rehydration.",
+  "build_amendment": {
+    "at_utc": "2026-09-12T18:31:41.320302+00:00",
+    "reason": "cron-001 failed at module import because esbuild does not copy import.meta.url SQL resource. Build now copies unchanged source openclaw-state-schema.sql adjacent bundle. No candidate source/oracle changes.",
+    "next_command": "python3 -B research/openclaw/run-experiment.py --batch cron-002"
+  }
+}

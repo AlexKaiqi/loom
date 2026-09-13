@@ -1,0 +1,59 @@
+{
+  "id": "E-RECEIPT-PREPARATION-004",
+  "status": "PREREGISTERED_BEFORE_DRIVER_REPAIR",
+  "scope": "Only reference authority with real NATS and explicit original-request SQLite fixture, not E/R component acceptance",
+  "inputs": {
+    "R_contract_sha256": "71d260c163fd90ea0dada1581e60c3be0d0240c003199abf0ef4f3ba8ca8e30c",
+    "binding_sha256": "44e8dd2b9b7c361041f9ef3d8a5939b00d6bb05608efbe4e104aa97c01b17f9b"
+  },
+  "limits": {
+    "nats_servers": 1,
+    "connections": 2,
+    "whole_seconds": 40,
+    "capacity_attempts": 8,
+    "capacity_stream_bytes": 1024,
+    "payload_text_bytes": 256
+  },
+  "required": [
+    "real positive accepted via fresh process NATS original byte observer",
+    "real capacity negative accepted through fresh authority without in-memory proxy",
+    "canonical wrapper alone without true facility rejected",
+    "wrong full request digest/source/namespace/owner/outcome/definite rejected",
+    "wrong facility hash/request/sequence or missing negative file rejected",
+    "unrelated NATS API error not a publish receipt",
+    "explicit SQLite fixture is not ControlStore state proof",
+    "formal actual components missing => 15 errors and exit2; no skips/empty success"
+  ],
+  "required_check_ids": [
+    "positive-probe-baseline-one-connection",
+    "positive-original-facility",
+    "bad-wrapper-request_digest",
+    "bad-wrapper-source",
+    "bad-wrapper-namespace",
+    "bad-wrapper-delivery_owner",
+    "bad-wrapper-outcome",
+    "bad-wrapper-definite",
+    "bad-facility-sha256",
+    "bad-facility-sequence",
+    "bad-facility-request_id",
+    "missing-wrapper",
+    "facility-alone-not-R-receipt",
+    "wrong-purpose",
+    "wrong-expected-binding",
+    "wrong-original-payload-bytes",
+    "positive-restored-original",
+    "actual-negative-single-associated-puback",
+    "actual-capacity-reached-with-existing-events",
+    "negative-fresh-process-original-PUB",
+    "capacity-retains-all-original",
+    "negative-missing-original-file",
+    "negative-changed-error",
+    "negative-wrong-original-PUB-bytes",
+    "negative-no-observer-evidence",
+    "negative-original-observation-restored",
+    "unrelated-query-error-not-publish-receipt",
+    "actual-server-reaped",
+    "capacity-two-live-connections"
+  ],
+  "clarification": "ER02 preserves original 2-connection limit; preparation004 and missing005 mechanism checks do not meet that complete limit. New run closes publisher before separate positive probes and observes actual 1/2 connz baselines; 27 original checks unchanged plus 2 budget witnesses."
+}

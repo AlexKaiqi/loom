@@ -1,0 +1,87 @@
+{
+  "id": "G3-V-INDEPENDENT-001",
+  "reviewer": "long_task_drift (independent of V author; R20/R21 author role separate)",
+  "utc": "2026-09-12T20:52:54.748276+00:00",
+  "scope": "V preparation and system M/X declared scope/budgets; not production/244 complete semantic coverage",
+  "status": "PASS_PREPARATION_SCOPE",
+  "findings": [
+    {
+      "id": "VR01",
+      "status": "OPEN",
+      "files": [
+        "validation/components/v/test_gate.py:12",
+        "validation/components/v/test_gate.py:38"
+      ],
+      "claim": "Complete actual runs/checks and output coverage",
+      "counterexample": "An auditor evaluates only runs[0]/checks[0], ignores later bad evidence and emits incomplete coverage/count records. Every current fixture has exactly one run/check; V01 checks only PASS/baseline digest/callback pair. Missing all later outcomes remains untested.",
+      "requested": "Add actual second run and multiple checks, correct full result coverage/counts and exact callback multiplicity; genuine non-first observation/check failure must fail. Keep existing cases. Include empty global baseline/run/check and duplicate identities within completeness controls."
+    },
+    {
+      "id": "VR02",
+      "status": "OPEN",
+      "files": [
+        "validation/components/v/run_contract.py:17",
+        "validation/components/v/run_contract.py:25"
+      ],
+      "claim": "Executed source version matches saved version",
+      "counterexample": "audit imported from sibling implementation helper; change helper during run or stale helper bytecode differs from captured source. Runner hashes/saves only module.__file__, after import, and source_unchanged can stay true.",
+      "requested": "Use bounded actual verifier package/source closure, capture before execution and load/verify captured source version; reject changed helper and stale code mismatch with narrow controls. Not a generic evidence platform."
+    }
+  ],
+  "system_scope_budget": "SUITABLE_PREREGISTRATION_SCOPE_PENDING_TWO_CLARIFICATIONS_AND_G5_DRIVER",
+  "system_notes": [
+    "M is explicitly intermediate; X01-X04 preserve multi-Surface, ordinary conditions, independent strategies/isolation, static wait residence and active throughput. Finite samples do not claim universal reliability.",
+    "8 slots * (512+128+128) MiB = 6 GiB, helper reserved, resources compatible with S slot and separate X fixture limits. 24 container max plus one shared observer is explicit; global CPU/RSS/storage remain formal requirements, no experimental result has lowered thresholds.",
+    "Correct input-association reference RE02 to RE03. Acceptance of a successor before old seal/publish must not make it eligible for conflicting writes or new input capture until original holder/base/install reconciliation completes.",
+    "G5-before-integration must freeze actual workload computation/source, exact run/check inventory, sampling ownership and collectors. This G3 review does not claim executable system readiness or 244 semantic completeness.",
+    "Current WSL scope is explicit. Non-Windows deployment compatibility requires documented environment prechecks, not inference of all Linux behavior."
+  ],
+  "evidence": "design/g3/reviews/v-independent-preparation-001/assessment.json",
+  "bindings": {
+    "GOAL.md": "cfbcb7af3d90b305b1248f9bbde5c9ddbd9f5b8a58a05b62e43b4363a5bd3889",
+    "governance/evidence-guide.md": "1dc9912d88fb7a4068d5fb6947c8f33cdca8525944366ae8183df8852c6c7c99",
+    "design/g3/v/contract.md": "db7f4351757c01ce89ddb384107a7ba4f2bbac31890ec535d020c7d9aadffcb6",
+    "design/g3/v/cases.json": "07fe3a0517561b8010731b7de8917b1f6b89f6fb7f4e08f140d3e605583e4722",
+    "validation/components/v/test_gate.py": "45d4269f31f232dbb2b4e3b3b17259c442baca61c21af745d8bcbf198f4d9139",
+    "validation/components/v/run_contract.py": "910fd50b96912f81f4f69bc16d3b7cd40b1093fec71f05e77c36080dd44d0156",
+    "design/g3/system/contract.md": "80f1238e0c8f997ffb00476475f03f97dc21c72a1ccaa249389584a945df9d85",
+    "design/g3/system/cases.json": "3f4e03d2249705f9e8e8c7a6d4f225ff5e09e51934803bf4e74d582556095e13",
+    "design/g3/system/inputs.json": "201b481285aca64dc81c301814eac229bdb9be3e592b8c30bf46d483673df1f0",
+    "design/g3/system/artifact-oracle-contract.md": "c2d8bef9c8ed00286e4161c1837df5bd3862ee46d575e91a3cb239e07a5ad098"
+  },
+  "prior_status": "CHANGES_REQUIRED",
+  "revision_review": {
+    "utc": "2026-09-12T20:56:36.693998+00:00",
+    "reviewed_from": "original VR01/02 counterexamples, source and fixed cases; no new functional tests",
+    "VR01": "CLOSED: two real directories/runs, three checker calls, exact complete returned raw observation/assertion/fact records, non-first missing/error/artifact/assertions, empty/duplicate controls. All original 14 cases retained.",
+    "VR02": "CLOSED: selected complete Python package captured before import, executed .py snapshot excludes old pyc, source and snapshot hashes checked; independently eight actual helper-change/old-pyc controls passed. Only stdlib plus selected package supported.",
+    "system_clarifications": "CLOSED: RE03 corrected; accepted successors await original holder/seal/F installation and R confirm/release before conflicting execution/input capture. Numeric thresholds unchanged.",
+    "independent_evidence": "design/g3/reviews/v-independent-preparation-002/assessment.json",
+    "independent_evidence_sha256": "c9033427ed38e581e226950bddfbb60f20617b8197b8318e9eb57ee9c71384da",
+    "actual_runs": {
+      "missing": "MISSING, Linux exit2, zero cases",
+      "always_green": "FAIL, Linux exit1, 14 cases attempted",
+      "source_snapshot_controls": "8/8 passed"
+    },
+    "limitations": [
+      "V production component remains absent; 14 formal capability cases not passed.",
+      "No Runtime/System function, actual workload capacity or global244 semantic completeness approved.",
+      "System executable collectors/workload computation and sampling details must freeze before G5 combination implementation.",
+      "Same writable workspace is role separation, not protection against malicious host rewriting all artifacts."
+    ],
+    "current_inputs": {
+      "design/g3/v/cases.json": "07fe3a0517561b8010731b7de8917b1f6b89f6fb7f4e08f140d3e605583e4722",
+      "design/g3/v/contract.md": "95ad1176031f5b8dc48817b22956f952f8075454d6e7d3c4bbcbcbb58ec0defe",
+      "validation/components/v/run_contract.py": "910fd50b96912f81f4f69bc16d3b7cd40b1093fec71f05e77c36080dd44d0156",
+      "validation/components/v/README.md": "14327ff2f47fc96127f55526d05a85c605f5de37d6352a4a1ffc056a743cfa0d",
+      "validation/components/v/always_green.py": "b475d8b536d659a25a7b480732cccbf47b8a59f8f9f43ba216429f4ff6f642f1",
+      "validation/components/v/test_gate.py": "c0feae948815fa5e4bc62e532ee4f73bee601e3786805169a0d65a0603e2ab40",
+      "validation/components/v/source_snapshot.py": "2554c6c302ba78aae32151b934b9ffde474c30a45582b14bc05688c18ef7f134",
+      "validation/components/v/snapshot_controls.py": "b9a492a9ec16060785ebe9552b4cf4bd0a16720c2b5569c0a236df6440fa4645",
+      "design/g3/system/inputs.json": "201b481285aca64dc81c301814eac229bdb9be3e592b8c30bf46d483673df1f0",
+      "design/g3/system/artifact-oracle-contract.md": "c2d8bef9c8ed00286e4161c1837df5bd3862ee46d575e91a3cb239e07a5ad098",
+      "design/g3/system/cases.json": "3f4e03d2249705f9e8e8c7a6d4f225ff5e09e51934803bf4e74d582556095e13",
+      "design/g3/system/contract.md": "705341ce446fce024eff481e9e5ba9e0c8b1c504eae3d5d90e6dfe5359b7fa9c"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "profile": "F-host-v1",
+  "platform": "Linux-only; WSL Ubuntu native ext4 /path/to/loom",
+  "python": "3.10.12",
+  "git": "git version 2.34.1",
+  "tar": "tar (GNU tar) 1.34",
+  "lease_break_time_seconds": 45,
+  "fixture_limits": {
+    "entries": 64,
+    "logical_bytes": 1048576,
+    "archive_bytes": 2097152,
+    "window_seconds": 10
+  },
+  "runtime_libraries": "Python3.10 stdlib ctypes/fcntl for existing Linux interfaces; GitCLI/GNUtar external tools, no new dependencies",
+  "license_basis": "research/reuse/linux-tools-licenses.json; host shared runtime LINUX-L09; Pi/Node not F runtime",
+  "capabilities_verified": [
+    "GNU pax tar exact same-owner ACL/xattr/link/mode/mtime roundtrip",
+    "Git rooted archive survives prune",
+    "Linux owner read lease excludes old FD/mmap",
+    "inotify regular/attribute/rename events",
+    "same-filesystem renameat2 exchange"
+  ],
+  "unsupported_or_not_proven": [
+    "mode000/foreign owner host reads without a separately tested helper",
+    "X tmpfs user xattr and ACL profile",
+    "arbitrary concurrent snapshot algorithm until G4",
+    "power loss/storage corruption/multi-node/network filesystems",
+    "physical X revocation and full R transaction until integration"
+  ],
+  "ready_entrypoints": {
+    "facilities": "python3 -B validation/components/f/facility_probe.py <fresh>",
+    "oracle": "python3 -B validation/components/f/controls.py <fresh>",
+    "component": "python3 -B validation/components/f/run_contract.py --module lore_files --batch <fresh>"
+  }
+}

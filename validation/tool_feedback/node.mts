@@ -1,0 +1,30 @@
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {dirname,join} from 'node:path';
+import assert from 'node:assert/strict';
+import {run} from '../../lore_session/node/adapter.mts';
+import {callbacks} from '../../lore_session/node/callbacks.mts';
+import {hash} from '../../lore_session/node/common.mts';
+const [inputPath,outputPath]=process.argv.slice(2),data=JSON.parse(readFileSync(inputPath,'utf8')),f=data.fixture,checks:any[]=[];
+const D=(x:any)=>JSON.parse(JSON.stringify(x));
+async function check(id:string,fn:()=>Promise<any>){try{checks.push({id,passed:true,observed:await fn()});}catch(error:any){checks.push({id,passed:false,error:String(error.stack??error)});}}
+async function physical(zero=false,legacy=false){
+ const home=join(dirname(outputPath),legacy?'pi-legacy':zero?'pi-zero':'pi-error');mkdirSync(home);const surface=join(home,'surface');mkdirSync(surface);writeFileSync(join(surface,'template.md'),'Tool feedback fixture.');writeFileSync(join(home,'events.jsonl'),'');writeFileSync(join(home,'feedback.txt'),'');
+ const config={pi_root:data.pi_root,work_root:join(home,'work'),session_scope:{namespace:'feedback',surface_id:'surface',session_id:'session',session_generation:1},model:data.original_model,harness_entry:join(process.cwd(),'harnesses/minimal/index.mts'),input:{paths:{surface,events:join(home,'events.jsonl'),feedback:join(home,'feedback.txt'),runtime:'/work',workspace:'/work'}}};
+ const request={protocol:'lore.s/1',action:'accept',session_ref:{owner:'S',session_id:'session'},operation_id:'op-feedback',harness_ref:{id:'h',sha256:'a'.repeat(64)},input_ref:{id:'i',sha256:'b'.repeat(64)},capability_ref:{id:'c',sha256:'c'.repeat(64)},source_result_ref:null};
+ Object.assign(config,{harness_ref:request.harness_ref,capability_ref:request.capability_ref});Object.assign(config.input,{ref:request.input_ref});
+ let providers=0,tools=0;const reply=D(data.error_reply);if(zero){reply.exit_code=0;reply.stdout=D(f.replies[1].stdout);reply.stderr={data_b64:'',bytes:0,sha256:hash(Buffer.alloc(0))};}if(legacy){delete reply.exit_code;delete reply.stderr;}
+ const transport={async ask(frame:any,type:string){if(type==='provider.reply'){providers++;const m=D(f.replies[0].message);m.content=m.content.map((v:any)=>v.type==='toolCall'?{...v,name:'shell',arguments:{target:'workspace',script:'ordinary fixture source, no shell executes'}}:v);return {type,effect_id:frame.effect_id,response_entry_id:frame.response_entry_id,message:m};}assert.equal(type,'tool.reply');tools++;return {...D(reply),type,effect_id:frame.effect_id,invocation_id:frame.invocation_id};}};
+ await run(config,request,transport);assert.equal(providers,0);assert.equal(tools,0);const result=await run(config,{...request,action:'drive'},transport);assert.equal(result.boundary_kind,'tool_feedback_saved');assert.equal(providers,1);assert.equal(tools,1);
+ const metadata=JSON.parse(readFileSync(join(config.work_root,'metadata.json'),'utf8'));const raw=readFileSync(metadata.path,'utf8');const rows=raw.trimEnd().split('\n').flatMap((l:string)=>{const v=JSON.parse(l);return Array.isArray(v)?v:[v];});const message=rows.findLast((v:any)=>v.kind==='entry'&&v.type==='message'&&v.message.role==='toolResult').message;writeFileSync(join(home,'observed.json'),JSON.stringify({message,result,providers,tools,metadata},null,2));
+ assert.equal(message.content[0].text,Buffer.from(reply.stdout.data_b64,'base64').toString('utf8'));assert.deepEqual(message.details.result_ref,reply.result_ref);assert.deepEqual(message.details.publication_ref,reply.publication_ref);
+ if(legacy){assert.ok(!('exit_code'in message.details));return {message,original_path:metadata.path};}
+ assert.equal(message.details.exit_code,reply.exit_code);assert.deepEqual(message.details.stderr,{bytes:reply.stderr.bytes,sha256:reply.stderr.sha256});assert.equal(message.isError,!zero);
+ if(!zero){const text=message.content.map((v:any)=>v.text??'').join('\n');assert.ok(text.includes(Buffer.from(reply.stderr.data_b64,'base64').toString('utf8')));assert.match(text,/exit[^\n]*1|exit_code[^\n]*1/i);}else assert.deepEqual(message.content,[{type:'text',text:Buffer.from(reply.stdout.data_b64,'base64').toString('utf8')},{type:'text',text:'Command exited with code 0'}]);
+ return {message,original_path:metadata.path};
+}
+async function bad(mode:string){
+ const reply=D(data.error_reply),binding=f.originals.tool.request.original_binding.binding,frame=f.frames[2];if(mode==='sha')reply.stderr.sha256='0'.repeat(64);if(mode==='bytes')reply.stderr.bytes++;if(mode==='exit')reply.exit_code=null;if(mode==='pair')delete reply.stderr;
+ const pi={createModels(){return {setProvider(){}};},createProvider(v:any){return v;}};const store={config:{model:{provider:'fixture'}},async value(){return {at:'tools',batch:{calls:[{resultEntryId:frame.invocation_id,status:'effect_pending'}]}};}};let signal:any;const paused=new Promise<any>(resolve=>{signal=resolve;});const before=JSON.stringify(reply);const ports=callbacks(pi,store,binding,{async ask(){return reply;}},(v:any)=>signal({paused:v}));const result=await Promise.race([ports.tool('call',frame.request,null,null,{invocationId:frame.invocation_id}).then(value=>({value})),paused]);assert.equal(JSON.stringify(reply),before);assert.equal(result.paused?.boundary_kind,'paused_unknown');assert.ok(!result.value);return result;
+}
+await check('TF05-node-Pi-error',()=>physical());await check('TF06-node-Pi-zero-legacy',async()=>{const results=await Promise.allSettled([physical(true),physical(false,true)]);writeFileSync(join(dirname(outputPath),'zero-legacy-results.json'),JSON.stringify(results,null,2));for(const v of results)if(v.status==='rejected')throw v.reason;return results;});await check('TF07-bad-stderr-sha',()=>bad('sha'));await check('TF08-bad-stderr-bytes',()=>bad('bytes'));await check('TF09-unknown-exit',()=>bad('exit'));await check('TF10-pair-required',()=>bad('pair'));
+writeFileSync(outputPath,JSON.stringify({checks},null,2)+'\n');process.exitCode=checks.every((v:any)=>v.passed)?0:1;

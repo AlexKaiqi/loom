@@ -1,0 +1,394 @@
+{
+  "description": "Product source snapshot; hashes bind published bytes, not proof that system acceptance passed.",
+  "date": "2026-09-13",
+  "product_files": [
+    {
+      "path": "harnesses/minimal/index.mts",
+      "sha256": "017f8b119bdd5df00b136f61f0c742b956501d4cd171c844f2fa9a91f143ae5f"
+    },
+    {
+      "path": "harnesses/minimal/projection.mts",
+      "sha256": "45a129d7999caadf6df7ec1ce331cded3d940c421f04840514042123248a8ae4"
+    },
+    {
+      "path": "harnesses/runtime/index.mts",
+      "sha256": "ae4a326e8bd0c6cd4531a5b071fc27b1f3effdc00611a88ebdc3b56e12157948"
+    },
+    {
+      "path": "lore_control/__init__.py",
+      "sha256": "237f89fd82dba869a473f6a2ec050230ef5564d61c4bf2747ee0bc36316d9a84"
+    },
+    {
+      "path": "lore_control/decisions.py",
+      "sha256": "289c71bee89aa1035b18280083f864bf23aceae1293fe01ce8904dd2296f2608"
+    },
+    {
+      "path": "lore_control/facilities.py",
+      "sha256": "4bc1774017192ad1f90bb4edd32981497e297fe5ae241584b45a712967ed8701"
+    },
+    {
+      "path": "lore_control/holders.py",
+      "sha256": "c2f06f09c2529d79780cedbe3af4059c055150c00fe1f6a0d0fa55b7718f2557"
+    },
+    {
+      "path": "lore_control/installations.py",
+      "sha256": "0d0e79f29b65a5c96e9583f0283312edb18913289b093ab0d5ee179a710bd081"
+    },
+    {
+      "path": "lore_control/registration.py",
+      "sha256": "5269959e70dc7dfbf92d5a5fbe99614749775216f60a3ec7a0bbee5185202fe2"
+    },
+    {
+      "path": "lore_control/responsibilities.py",
+      "sha256": "886385c17823fd3c623d2a2bef86051219d1fa280a156d596a1ea823be02d39b"
+    },
+    {
+      "path": "lore_control/restores.py",
+      "sha256": "01671085b567ed9030316cd7b0e2dcf13a107bc73846bfac44228213bda8d0f1"
+    },
+    {
+      "path": "lore_control/storage.py",
+      "sha256": "1d0b88919c4a280451c15eab417b05c6d420ab29c9c34634255bbd1a80e20c2e"
+    },
+    {
+      "path": "lore_control/values.py",
+      "sha256": "eece71a60fb68d3ea53ec641b2a6705935df29dcc3357d1d3dfca72b69d7aa4b"
+    },
+    {
+      "path": "lore_control/wait_barriers.py",
+      "sha256": "cfe5f2689d849d6c23afe13ac4c1c94fb57275b8b5751e4c34e7814ea4b41545"
+    },
+    {
+      "path": "lore_events/__init__.py",
+      "sha256": "9aca9417165362bcc6c6ebffe88660a8f58481d2369a230c6d922714da5feaf3"
+    },
+    {
+      "path": "lore_events/history.py",
+      "sha256": "b4dbbcaada8ea014ac9d99e20f4bee2296d16bc252bb6aba8ff6e0e0e62b7d29"
+    },
+    {
+      "path": "lore_events/input_files.py",
+      "sha256": "211c13faad00ba729b455d8f2fa9ce8693f0cf2728894f5a5ede3e1ba9c22bb8"
+    },
+    {
+      "path": "lore_events/inputs.py",
+      "sha256": "95f3b11aa4183a3f055d2efa4dd9a3a2a23610f7630e52a497bd44409e65e862"
+    },
+    {
+      "path": "lore_events/persistence.py",
+      "sha256": "1e03acbc0959a0696e523427ec59111470d7e9351af29ee582e49748a67187e9"
+    },
+    {
+      "path": "lore_events/publication.py",
+      "sha256": "1ed2cb0b98d70fe8e6e601c4cde6d5feba61e35a0a6c65262e4e5c9811ebe5ed"
+    },
+    {
+      "path": "lore_events/receipts.py",
+      "sha256": "93899588d9f399ccf473de379967cd29a5f83c1c2dc51ea9e5970e095f97c02c"
+    },
+    {
+      "path": "lore_events/service.py",
+      "sha256": "9f8953e563dec0bd975f0c788cc1ec3b1b4c0e1e399f1b5356fdc89e7e819180"
+    },
+    {
+      "path": "lore_events/values.py",
+      "sha256": "0702258b69068525a297572ac72e8cdd0ca20ba59344cc526dc3610f08f4c1c1"
+    },
+    {
+      "path": "lore_execution/LICENSE.moby",
+      "sha256": "7c87873291f289713ac5df48b1f2010eb6963752bbd6b530416ab99fc37914a8"
+    },
+    {
+      "path": "lore_execution/NOTICE.moby",
+      "sha256": "b40ec5b16182103ef1cd69d42a21c98369e35bd483b3973902da4807c0755446"
+    },
+    {
+      "path": "lore_execution/THIRD_PARTY.md",
+      "sha256": "67df2ea559f6230e628507f6a9112277d23c840bfc0b302c2c839c2c8e6762a2"
+    },
+    {
+      "path": "lore_execution/__init__.py",
+      "sha256": "4585f4181c0925f9958a7b9b6760672840f68e840a7681850241b4f9ea838c3a"
+    },
+    {
+      "path": "lore_execution/adapter.py",
+      "sha256": "af65b87a13a62e7a20ca85d916e6d0f3a171f8e566f1e71886557a4e4dfd19c5"
+    },
+    {
+      "path": "lore_execution/archives.py",
+      "sha256": "76a5c6170051f25978a1ed849fe6dc586df830cca05b861cf7649a7f53ca119d"
+    },
+    {
+      "path": "lore_execution/calls.py",
+      "sha256": "f2b09c19a4723c2df54a5f6ab47082d25fea05234e31af7cdd7d0a61ff959677"
+    },
+    {
+      "path": "lore_execution/channel.py",
+      "sha256": "099297b3ee4334ad8597486830227bcf5433ff542c2b847ac0acc4f1fec27f57"
+    },
+    {
+      "path": "lore_execution/engine.py",
+      "sha256": "64dc118828b603b15b32afcb0d23d1f7ddf2a8250f8b8664eacb5662f7854b27"
+    },
+    {
+      "path": "lore_execution/errors.py",
+      "sha256": "a339b5a093b6a44e6db6b233aa3df3f2c1901bdf953dc012fdf826f9c0f33f2e"
+    },
+    {
+      "path": "lore_execution/journal.py",
+      "sha256": "8a3fba201f3b958c064bca4732eadf0542911ccc0f45ba1e6b6321b06723ea98"
+    },
+    {
+      "path": "lore_execution/lifecycle.py",
+      "sha256": "6abb3298bcc6f0531ece3e388687bbb6b7a74f243c96b57ad69fe03ac5054b2f"
+    },
+    {
+      "path": "lore_execution/node_profile.py",
+      "sha256": "879f8f587af671ffd932001c51f8c7f700f81c0a65cfe1e7426e23152ee51d4b"
+    },
+    {
+      "path": "lore_execution/ordinary_sources.py",
+      "sha256": "122e691b3b8056714d81da6cd2c5bfdf445360ebfab16febacc8ebcdeb646161"
+    },
+    {
+      "path": "lore_execution/profile.json",
+      "sha256": "b9afaecca5f39e5a8c3ec002cb57671fe2972948c963c6f70addb3d661ed2e61"
+    },
+    {
+      "path": "lore_execution/requests.py",
+      "sha256": "a3edaf06dbf437756aad83ed8178faefcbbf5d14bdc852f2b4aa8855724f8b33"
+    },
+    {
+      "path": "lore_execution/retention.py",
+      "sha256": "d88e0bc217ba43fb566318baa210030b44e5f8353de3b7f0cfe27ffa3aad26a1"
+    },
+    {
+      "path": "lore_execution/seccomp.json",
+      "sha256": "9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294cae9c76"
+    },
+    {
+      "path": "lore_execution/slots.py",
+      "sha256": "6265a996d94d7f206338ce8f30881950c769f7d35e786099a274a4558e37bc9e"
+    },
+    {
+      "path": "lore_execution/store.py",
+      "sha256": "0d2d59d3f24b319ea68e9a3757e724d591a7b0635664e0db6bb5b16b8792fb4d"
+    },
+    {
+      "path": "lore_files/__init__.py",
+      "sha256": "3f84246f70863baa09fd46bcff8d4bebacc6012c5a8320bfe124699c55699c0b"
+    },
+    {
+      "path": "lore_files/archive.py",
+      "sha256": "10a387dca0f01e14bfc407619cb89021f30aa0f317690e5c28e69b9855e01780"
+    },
+    {
+      "path": "lore_files/authority.py",
+      "sha256": "94557fce72c078f6466d163b275f4df31fb9882a3fccbd198bdbe27144abc0c0"
+    },
+    {
+      "path": "lore_files/errors.py",
+      "sha256": "143aa29ac22773fdfc97d691a3538cbdabc4bfa990bbb53383bd69f437e524f6"
+    },
+    {
+      "path": "lore_files/history.py",
+      "sha256": "a4e10a62a4a47329223c05347d0ec61e86ba0b636dcd9af2409945e838f4e636"
+    },
+    {
+      "path": "lore_files/install.py",
+      "sha256": "2dd82e6e481d82efb27bedce89a1bafb88b2c4e5fe51d2981ebb1f5ce43c009e"
+    },
+    {
+      "path": "lore_files/metadata.py",
+      "sha256": "3f7fcbd42a618f79d3b901a4d92480fe2b05d6ec9449e47c303a737634e59ac8"
+    },
+    {
+      "path": "lore_files/store.py",
+      "sha256": "c37134892743c96ff44ef4bd1679cfb439df82c878011a062b2e9256ad24583c"
+    },
+    {
+      "path": "lore_files/util.py",
+      "sha256": "b14baf8fedb2d87dc53868bd2cbe27ed4c94d6f2c2845199133386758dd20284"
+    },
+    {
+      "path": "lore_files/versions.py",
+      "sha256": "ea58dccaf5008c005552c4bc2f96072677e2cea16a5d57287ca682b576ae57da"
+    },
+    {
+      "path": "lore_files/window.py",
+      "sha256": "c5995853e5e878d6fb7b3cedaee6484b114591ff223610b63282810165c13060"
+    },
+    {
+      "path": "lore_provider/__init__.py",
+      "sha256": "91dc3a0d858e231f65ed2f6db108a5372cf5bca6572319511e36e8307fb5fdbd"
+    },
+    {
+      "path": "lore_provider/client.py",
+      "sha256": "b0f2c015820c39754d0a521df31bbdfd2e2338eefd8a39ae105f819f83922c1d"
+    },
+    {
+      "path": "lore_provider/jsoncodec.py",
+      "sha256": "651828ee379006cab8ec26272e3bfd2c136ba18f7302dd5410fe193730d35df5"
+    },
+    {
+      "path": "lore_provider/persistence.py",
+      "sha256": "a018e17076f871249b5fb8f9d556a4b4afde2c038e2b6ead16ed1d2b1c0be81f"
+    },
+    {
+      "path": "lore_provider/request.py",
+      "sha256": "cde5bdf85c3c0a34b0c339e1d1603eca70ddc5bd6805cab4d46e1b6acac17842"
+    },
+    {
+      "path": "lore_provider/response.py",
+      "sha256": "0f3b728838f2c70b3e4a85b7737130f390a6092c6d5f8e2649af8a1c4d5527fc"
+    },
+    {
+      "path": "lore_provider/transport.py",
+      "sha256": "bde7c82c569b3924106db221107fc278c6ba6baf5b743967b0d3ec54fda727b2"
+    },
+    {
+      "path": "lore_runtime/__init__.py",
+      "sha256": "cfb249c38ee5b97ed485b351b81cc5be117894f71fac5797860c8e67a4c4ee30"
+    },
+    {
+      "path": "lore_runtime/bootstrap.py",
+      "sha256": "53675b8447c42a7a9b9406eeb73739881a39826482c1a366ca1194439cce0bd5"
+    },
+    {
+      "path": "lore_runtime/emissions.py",
+      "sha256": "d3a499a65fc0ac91307916fb5406a67566c973a02b0da98879247494c458b484"
+    },
+    {
+      "path": "lore_runtime/emit_cli.py",
+      "sha256": "93b53d35b443c5da4fa4dcd122c95877719a1576c9995ff97793ba75b875205a"
+    },
+    {
+      "path": "lore_runtime/event_authority.py",
+      "sha256": "f82beb16b8d99d21c018b46a08017b5243736b5c6d742afee9f50d31057e23c2"
+    },
+    {
+      "path": "lore_runtime/event_reader.py",
+      "sha256": "9797d8c6ecf0ce2953154bf6e063a69c381f83e7d30b41d9494419ad4032090e"
+    },
+    {
+      "path": "lore_runtime/file_publication.py",
+      "sha256": "b274d047cb396227c61ba178056f45fd60cc02010051fc479a0f34cb594bedc0"
+    },
+    {
+      "path": "lore_runtime/file_thread.py",
+      "sha256": "fd3f11080be756e8f1c4c5de166403a6921e05022ee35cf491e88280f7af02a8"
+    },
+    {
+      "path": "lore_runtime/flow.py",
+      "sha256": "1423575ffac1ebc93e7fa34aa95131a06a50bcca8c482bcc2bcf833818560bd7"
+    },
+    {
+      "path": "lore_runtime/host_files.py",
+      "sha256": "dff86eaa4491944ca3257d27149fe62e32eb31fb8a75eeccee77e02e13916f50"
+    },
+    {
+      "path": "lore_runtime/provider_owner.py",
+      "sha256": "7a10118029c215c04098db24b50ffa2dd9d6f762bef552d8dd8ceb324f73fcd4"
+    },
+    {
+      "path": "lore_runtime/runtime.py",
+      "sha256": "b36bea34914255cb626566eb7408448fbc4d103050c371f4fc11f1f107463f3b"
+    },
+    {
+      "path": "lore_runtime/session_delivery.py",
+      "sha256": "14f61348572063e08062a9ee9a464d9ee033986f61f19d60aeab88546dc38f8b"
+    },
+    {
+      "path": "lore_runtime/session_facts.py",
+      "sha256": "616b4c79f3d04b1d05b048e6c426beed0420368db68633eb317a70099824d687"
+    },
+    {
+      "path": "lore_runtime/session_plan_files.py",
+      "sha256": "41a49984a651bceb82fb8a692e2391e493f8bfadde7b1499e83697f5839846a1"
+    },
+    {
+      "path": "lore_runtime/session_plans.py",
+      "sha256": "56ba31840a36f83397580a433ee9d70ad99b31a011c7010130cc498c9092a01a"
+    },
+    {
+      "path": "lore_runtime/session_sources.py",
+      "sha256": "b115d2cd1ae8e373eac554e69d289e5ff7fae9cad34964122f7a118164ea8fea"
+    },
+    {
+      "path": "lore_runtime/startup_assets.py",
+      "sha256": "f191afdf4e86ed470d1280b02b85cd95c8446274ea5e542a6fdefdd35e25dfd8"
+    },
+    {
+      "path": "lore_runtime/startup_reentry.py",
+      "sha256": "9b5a91b1ec208acbd6986b73bdba2825a3288906b142ca4e50b5ddcd15776f8a"
+    },
+    {
+      "path": "lore_runtime/tool_facts.py",
+      "sha256": "283d9ca75b2941a81c61480782807a424cf3ee717ef8d2f94b4e8f4dbf963666"
+    },
+    {
+      "path": "lore_runtime/tool_plans.py",
+      "sha256": "522b4b5f1e1fa74c75b445d95c4727e7957396be7403d261674eb5dd730cd79a"
+    },
+    {
+      "path": "lore_runtime/tool_service.py",
+      "sha256": "4b970198aaaf7ad35d267b6eb1a9ef1e37101ec0ecd51ffcc497b068464a16de"
+    },
+    {
+      "path": "lore_session/execution.py",
+      "sha256": "0ad1b75f0417f2353660b3313434ddeb4437f807dc664c7987a5098d25a3f4c9"
+    },
+    {
+      "path": "lore_session/node/adapter.mts",
+      "sha256": "16e7306b3e9f5edded911641dfcebf8f62230b313037c142d7b50e6f60674eeb"
+    },
+    {
+      "path": "lore_session/node/callbacks.mts",
+      "sha256": "3f89cb269f9f5a90d00f6624793fc959692d3e196a363a37ef7592b2a47adaa9"
+    },
+    {
+      "path": "lore_session/node/common.mts",
+      "sha256": "17d47b3379279244d00b6c206d9164ee0d38989633fdc8fc7bf9b1c9ae826be6"
+    },
+    {
+      "path": "lore_session/node/entry.mts",
+      "sha256": "235f13f9d3c2dbc97d8e9affc2354b1a9ec99ff07f6d7c5a86dca1b4c9652c6a"
+    },
+    {
+      "path": "lore_session/node/session.mts",
+      "sha256": "36089217ad9ed9d61420324e8dd525c82cb3b060333da6fe5d2e7035c5d3fff3"
+    },
+    {
+      "path": "lore_session/node/stdio.mts",
+      "sha256": "2cd2e0cca07333c911c42310a99953fcffa5e25c411c4c6536c44b79317ae771"
+    },
+    {
+      "path": "lore_session/provider.py",
+      "sha256": "c42091839d1c6ca99d50af401a01167fe4cb09b9c720a591d996d9689d13048e"
+    },
+    {
+      "path": "lore_session/references.py",
+      "sha256": "991cda0c084d79afed4e5b1868c2ad18f5e9684f23a78f67c2551b8c1429f78a"
+    },
+    {
+      "path": "lore_session/service.py",
+      "sha256": "526f5554bb042be46f51373c2dedc5e65e1bab707d783f6d67222ca18c50a88b"
+    },
+    {
+      "path": "lore_session/snapshot_files.py",
+      "sha256": "aaa7712ea0d08ef1d277f462aefe52da492aa0dae1c23028cd7caff26787dff9"
+    },
+    {
+      "path": "lore_session/snapshots.py",
+      "sha256": "bc63addb7276bcef779bd9be7827cccb4cab821b2d285ed73c9bcec8a2a77ff9"
+    },
+    {
+      "path": "lore_session/tool_authority.py",
+      "sha256": "4fcf7a9d5ad348a016f95d8e366ed1950a0330d5b85328ef5cff27c0f32f0743"
+    },
+    {
+      "path": "lore_session/transport.py",
+      "sha256": "2bca4cda4adc59e717198742cf6e557389bb832cf76c0641cbb07ffd08b2b11c"
+    }
+  ]
+}

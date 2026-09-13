@@ -1,0 +1,28 @@
+# X 恢复补件001：合法版本正例与真实坏源负例
+
+状态：READY_FOR_INDEPENDENT_REVIEW；没有X产品或新增正式X通过。根已将原X G3门槛局部失效并保存history/rebuild-001的原index/gate；原20份直接源另存其sources/manifest.json。旧失败、原1254绑定及根原26项校准没有删改。
+
+原X024仅在live输入改变后断言恢复拒绝，没有合法恢复正例；既可能错误拒绝仍有效的checkpoint，也会放过“恢复永远拒绝”的实现。来源V5-A055/B021要求Workspace状态、环境版本、依赖、配置与必要输入在重建时可取得；A045要求实际依赖不局限于Git跟踪内容。
+
+先行restore-supplement-001.json和契约/预期保存后才补driver。当前28组/97次固定参数运行：X024两种源故障，X028两个域合法恢复。X028有33条原ID/物理对象/新执行/实际文件/原结果断言。全部UNVERIFIED。
+
+## 正式动作与来源
+
+原真实普通脚本只append一次effect，读取input-a、ordinary untracked-dependency及config，保存input-result并输出原receipt。fixture不依赖Git，dependency属于实际普通但未被Git跟踪的文件；不是只靠文件名宣称git status结果。候选checkpoint实际tar由独立reader读取，逐成员与可信RO helper从同一冻结卷归档的原metadata/bytes比对，不能自报manifest。外部fixture受保留version store保存并fsync该实际tar和完整来源描述后才seal/release。
+
+旧namespace及全部volume/container消失后，driver实际杀停adapter、清空显式物化cache、修改live输入/配置并移走live依赖，再冷启。权威execution记录与stdout/stderr不删除。restore以新完整request、execution ID、严格更高generation及所选原source_ref准备新keeper+CREATED exec，不start；新copy先完整导出比较，再显式dispatch新的只读脚本。该脚本读真实文件及effect，短暂停留供外部采集实际UID1000/cap0；新域仍network none/log none/无host RW。原文件effect仍一、全member metadata/hash不变；旧exec query/result及两流原hash前后相同。两代物理对象分别按实际container ID记namespace，避免第二代沿用旧namespace；内核namespace inode销毁后可以复用，不充当永久业务身份。
+
+resume只解除冻结；resume_dispatch沿用原X009已有测试包装，对明确CREATED且从未start的同一request显式execute/dispatch，不是新增模型命令或额外强制产品API。UNKNOWN不能由此盲重发旧效果。
+
+X024在adapter停止时，保留观察副本后实际删除/改坏所选retained tar及已登记原archive副本，并再次清cache再重启；测试不把不再可信的live目录当原版本。必须INPUT_VERSION_UNAVAILABLE且无新物理对象。若某原版本仍有可用的合法权威副本，不能仅因为旧live路径改变就声称不可恢复；本故障明确针对选择的原版本实体与已登记副本。原stdout/stderr与execution metadata未损坏，仍由它们的原owner保留。
+
+## 准备证据与限制
+
+- restore-preparation-001/002/003：11项实际普通Linux fixture与显式oracle/action校准成立。普通种子脚本、GNU tar复制、只读脚本运行在自建目录；/work仅在该fixture副本中明确替换为临时路径，不冒充实际X命令执行。原文件/归档/stdout/stderr/命令和错effect、缺依赖tar全保存。物理/API rows为明确人工校准样本；合法形状接受、永远拒绝/旧身份/二次effect/缺依赖/修改旧结果均拒绝，缺原blob只算缺失被拒绝。实际坏hash/移走源与cache清除分别直接操作自建文件。
+- oracle-restore-001：既有26项原raw/错误/缺失/真实假绿adapter校准回归成立。
+- collector-restore-001：修改后的同一collector实际固定Engine exec/UID/cap、namespace、volume archive、cgroup与实际停止preflight通过（9字段与2数值判据）。它只运行原设施检查，不代表X028冷恢复产品已执行。
+- restore-driver-missing-002：28组/97次动作/脚本静态发现完成，真正入口无组件MISSING_COMPONENT exit4。正式SUT执行数仍零。
+
+restore-preparation-003后仅把X028主known_bad名明确为restore_always_reject；actions/expected/initial等实际求值输入完全相同，机械复用检查保存在restore-driver-missing-001/calibration-reuse.json。其余错误机制仍单列供G4相同collector运行，不以校准代替真实生产变异。
+
+新测试代码集中在restore_actions.py与restore-selftest.py；run.py仅调动作，collector只增加按实际container分代的namespace存取。X产品实现、实际restore接口/缓存目录约束、所有源副本的归属及未知效果恢复边界仍需根独立审查并在G4真实验证。普通静态快照不是任意指令瞬时状态持久化，也不回滚外部事件、provider或F发布事实。预算保持每组2容器/256MiB，旧代释放后才造新代。

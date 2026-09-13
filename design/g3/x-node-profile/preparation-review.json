@@ -1,0 +1,90 @@
+{
+  "status": "INCREMENT_CONTRACT_AND_INPUT_PREPARATION_READY_FOR_ROOT_REVIEW",
+  "scope": "New internal Session Node/Pi profile only; not ready-to-enable product or full D02/G4",
+  "inputs": {
+    "design/g3/x-node-profile/observations.json": "58d8118cea4dd5a28869251b0825926c014a1b457656e5b535e8aba82cfd4b8a",
+    "design/g3/x-node-profile/preparation-protocol.json": "59c3ea505dc46b12d7905bea42dfc7d8c2c9dbf3d06039549e918ca39fce57b0",
+    "design/g3/x-node-profile/tsconfig.json": "91421972cdbb28bcb90e929b9d4efced05dc5653416c58ebf27c98efe3bbee90",
+    "design/g3/x-node-profile/cases.json": "5f299305d4bdc5e06f2dbeb04f5ac7a09e4de7d0a158922b68fbfd63d5cbdf61",
+    "design/g3/x-node-profile/source-bindings.json": "73fa91d834ec45634946df523e3cf53f3a19e214b79d82ea2ab1e6bc674cf776",
+    "design/g3/x-node-profile/profile.json": "2194963fee6fa89ffd884d1654900ba565776f188c2c0e29ca124f56faca284b",
+    "design/g3/x-node-profile/dependencies.json": "e0f03bbedca7b03fcc69d3db7dd9dbe0074d710c6586fafc0ab6ff9e191a5df1",
+    "design/g3/x-node-profile/driver-contract.md": "e684d00a32617b69be4e50ea1a0d37a2e584574c4fa3c51f04a84d146a2dd806",
+    "design/g3/x-node-profile/contract.md": "376ec6f87c441ba9cf9685ab711ee6070f411c058e5966db0c4ae45a3321514e",
+    "validation/components/x_node_profile/prepare.py": "2ae49886a86ed56f76390643d57538c1ae370bc2f2638a1c878a37831da78a00",
+    "validation/components/x_node_profile/probe_load.py": "b10846834ab7faa8eedf406013751b6b002d09f5acff2b7e3677ebf3f7be72f6"
+  },
+  "facts": [
+    "S already requires Node/Pi in X, original Python profile does not satisfy it",
+    "Internal session explicitly distinct from model two-domain Shell; owner S base snapshot exception documented",
+    "882 actual dependency files/four whitelisted links copied and checked;7 controls PASS; projected runtime load remains unverified",
+    "Resource .5/.25/.25 CPU and109.125MiB declared worst-case private allocation within original1CPU/128MiB per slot",
+    "JsonPort new-process calls need shared trusted holder of original duplex channel; restart uncertainty cannot silently replay"
+  ],
+  "open_before_enable": [
+    "Root profile/slot/source/bridge review and exact fixture interface",
+    "Executable full XN01-XN12 actual candidate driver/independent oracle preparation",
+    "Docker window for actual projected Node/Pi load with current quotas",
+    "Actual X increment and F larger-input preparation then independent G4 validation"
+  ],
+  "no_Docker_or_product_execution": true,
+  "deferred_prepared_probe": "validation/components/x_node_profile/probe_load.py is executable/syntax checked, deliberately not run during root X97 Docker window.",
+  "projected_load_001": {
+    "scope": "fixed narrow projection real Node/Pi; not X component or full Session validation",
+    "assessment": "validation/components/x_node_profile/evidence/projected-load-001/assessment.json",
+    "sha256": "c0fc7bfc24af125fa49b14ac56e133c96aba260e0268f19ca932d801ad805e84",
+    "cleanup": "validation/components/x_node_profile/evidence/projected-load-001/cleanup-check.json",
+    "cleanup_sha256": "f32165290c29fec7684a1dfd1a4844d0172925705e58187db03eea144d5280e6",
+    "runs": [
+      {
+        "mode": "single",
+        "checks": {
+          "actual_node_version": true,
+          "original_argv": true,
+          "actual_exit": true,
+          "provider_one": true,
+          "effects_original": true,
+          "original_session": true,
+          "actual_memory": true,
+          "actual_CPU": true,
+          "actual_ro_mounts": true
+        },
+        "archive_sha256": "adf8ff0e4346457f2f44182540c0eafd53c95f612d644e09957713674cc6cf60"
+      },
+      {
+        "mode": "multi",
+        "checks": {
+          "actual_node_version": true,
+          "original_argv": true,
+          "actual_exit": true,
+          "provider_one": true,
+          "effects_original": true,
+          "original_session": true,
+          "actual_memory": true,
+          "actual_CPU": true,
+          "actual_ro_mounts": true
+        },
+        "archive_sha256": "34599f5886c4ca0ec5d4448665c7252ebf3addcd8fe979923a77a9aeb5eaa5e2"
+      }
+    ],
+    "boundaries": [
+      "No real model/provider call; original public fake provider worker only",
+      "No X product loaded; no XN component gate",
+      "512 MiB/.5 CPU actual Node object plus 128 MiB/.25 CPU RO exporter, sequential single/multi",
+      "No shared tool overlap, bridge crash, full S/F input scale or production Linux proof"
+    ]
+  },
+  "current_inputs": {
+    "design/g3/x-node-profile/observations.json": "749f3b562927654a3fb328230e8bd39f4e1f183483a5fcb9909ab56c3f53f40f",
+    "design/g3/x-node-profile/driver-contract.md": "e684d00a32617b69be4e50ea1a0d37a2e584574c4fa3c51f04a84d146a2dd806",
+    "design/g3/x-node-profile/preparation-protocol.json": "59c3ea505dc46b12d7905bea42dfc7d8c2c9dbf3d06039549e918ca39fce57b0",
+    "design/g3/x-node-profile/tsconfig.json": "91421972cdbb28bcb90e929b9d4efced05dc5653416c58ebf27c98efe3bbee90",
+    "design/g3/x-node-profile/cases.json": "5f299305d4bdc5e06f2dbeb04f5ac7a09e4de7d0a158922b68fbfd63d5cbdf61",
+    "design/g3/x-node-profile/source-bindings.json": "73fa91d834ec45634946df523e3cf53f3a19e214b79d82ea2ab1e6bc674cf776",
+    "design/g3/x-node-profile/profile.json": "2194963fee6fa89ffd884d1654900ba565776f188c2c0e29ca124f56faca284b",
+    "design/g3/x-node-profile/contract.md": "376ec6f87c441ba9cf9685ab711ee6070f411c058e5966db0c4ae45a3321514e",
+    "design/g3/x-node-profile/dependencies.json": "e0f03bbedca7b03fcc69d3db7dd9dbe0074d710c6586fafc0ab6ff9e191a5df1",
+    "validation/components/x_node_profile/prepare.py": "2ae49886a86ed56f76390643d57538c1ae370bc2f2638a1c878a37831da78a00",
+    "validation/components/x_node_profile/probe_load.py": "b10846834ab7faa8eedf406013751b6b002d09f5acff2b7e3677ebf3f7be72f6"
+  }
+}

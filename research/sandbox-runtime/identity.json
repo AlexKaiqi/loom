@@ -1,0 +1,32 @@
+{
+  "slug": "sandbox-runtime",
+  "official_repository": "https://github.com/anthropics/sandbox-runtime",
+  "clone_origin": "https://github.com/anthropics/sandbox-runtime.git",
+  "commit": "c392e6cf9f8df957c66d9ab1461e2cfa99b1ab5d",
+  "commit_time": "2026-09-10T16:09:11-07:00",
+  "commit_subject": "Merge pull request #528 from anthropics/release/v0.0.76",
+  "retrieval_evidence": "evidence/discovery-001",
+  "recorded_utc": "2026-09-12T18:27:09.576302+00:00",
+  "license": {
+    "declaration": "Apache-2.0",
+    "source": "LICENSE",
+    "sha256": "1210bc93eb85dd786c33192d5bcb7153a93922fa99fbc1512af6a7199cb41080",
+    "scope": "Pinned candidate source and tested modules; not a blanket declaration for every third-party dependency"
+  },
+  "discovery_path": [
+    "原始主清单/根分派",
+    "G1 research-questions H04-H08",
+    "维护方 GitHub 仓库→固定提交→模块调用链→先行实验"
+  ],
+  "experiment_batch": "evidence/experiment-001",
+  "scope_status": "RESEARCH_ONLY_NOT_COMPONENT_PASS",
+  "candidate_dependencies": [
+    "Node v24.21.0",
+    "cloned package-lock.json npm ci --ignore-scripts then tsc",
+    "Ubuntu official jammy bubblewrap/socat/ripgrep/libwrap0 locally extracted only; exact versions and declared dependencies in evidence/setup-001/ubuntu-dependencies.json",
+    "official npm0.0.76 apply-seccomp binary separately hashed; no reproducible-source attestation"
+  ],
+  "dependency_lock_hashes": {
+    "package-lock.json": "d83ed42137879d2980a6c77ac68b7afd43d63e22deb313bbc7503e6b17ae95b2"
+  }
+}

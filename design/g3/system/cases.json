@@ -1,0 +1,177 @@
+{
+  "id": "G3-SYSTEM-PREREG-001",
+  "status": "DRAFT_AWAIT_INDEPENDENT_REVIEW_AND_G5_EXECUTABLE_DRIVER",
+  "contract": "design/g3/system/contract.md",
+  "cases": [
+    {
+      "id": "M01",
+      "properties": [
+        "P01",
+        "P02",
+        "P08",
+        "P12",
+        "P13"
+      ],
+      "name": "双域真实最简闭环与事件往返",
+      "sampling": "2输入×真实3次；另固定响应接线",
+      "independent_oracle": "实际输入独立求和/报告/notes版本引用；原provider/Pi/Engine/NATS事实",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "M02",
+      "properties": [
+        "P02",
+        "P05",
+        "P08",
+        "P09"
+      ],
+      "name": "组合权限/来源/身份伪造拒绝",
+      "sampling": "恶意目标、身份、FD、事件、stdout各固定场景",
+      "independent_oracle": "真实受保护目录/控制对象未变且指定操作被拒",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "M03",
+      "properties": [
+        "P07",
+        "P09",
+        "P11"
+      ],
+      "name": "跨设施保存与回执丢失",
+      "sampling": "accept/provider/tool/decision/install各指定切点3次",
+      "independent_oracle": "外部效果计数与原ID/query；不可确认时暂停不重做",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "M04",
+      "properties": [
+        "P06",
+        "P07"
+      ],
+      "name": "保存边界释放与新进程接续",
+      "sampling": "3次原容器销毁后新实例",
+      "independent_oracle": "原Pi结果字节/输入/未决责任；新增provider/tool=0",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "M05",
+      "properties": [
+        "P11",
+        "P12"
+      ],
+      "name": "长输出裁剪与完整原来源",
+      "sampling": "完整长输出及同长度损坏来源",
+      "independent_oracle": "前后段视图、原版本hash、获准完整取回且损坏拒绝",
+      "status": "UNVERIFIED",
+      "joint_fault_trajectory": "M03原真实X效果后失ACK→R未知责任→长反馈裁剪→旧环境全释放→新环境原ID查询/有据暂停；目标端效果仍1、原未决责任保留。"
+    },
+    {
+      "id": "M06",
+      "properties": [
+        "P04",
+        "P07"
+      ],
+      "name": "显式RestorePlan和外部效果保留",
+      "sampling": "仅S/仅W/两域3种组合各3次",
+      "independent_oracle": "完整目录恢复与旧Session/E/X/外部效果记录保留；首安装前持久原RestorePlan、逐原F安装关联、部分状态/失ACK查询且不重交换",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "M07",
+      "properties": [
+        "P03",
+        "P04"
+      ],
+      "name": "人工编辑与旧写者接管",
+      "sampling": "capture/install窗口及旧FD各3次",
+      "independent_oracle": "真实改变观察导致拒绝；不能覆盖人工文件或假停止",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "M08",
+      "properties": [
+        "P01",
+        "P09",
+        "P12"
+      ],
+      "name": "原受理绑定和版本变化",
+      "sampling": "Harness/input/ref变更和原查询",
+      "independent_oracle": "已受理原版本不变，新受理才采用新版本",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "M09",
+      "properties": [
+        "P01",
+        "P08"
+      ],
+      "name": "文本数据不取得控制权",
+      "sampling": "普通code fence/Surface/stdout/事件声明",
+      "independent_oracle": "模型合法native调用与普通文字区别；无额外执行/登记",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "M10",
+      "properties": [
+        "P07",
+        "P09",
+        "P10"
+      ],
+      "name": "读取/断连/重复通知不结清责任",
+      "sampling": "3次中断及历史重查",
+      "independent_oracle": "R实际原pending/decision，原输入范围和唯一后继",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "X01",
+      "properties": [
+        "P01",
+        "P03",
+        "P06",
+        "P07",
+        "P10"
+      ],
+      "name": "多Surface外部条件和版本化传递",
+      "sampling": "3时序×3次，通知丢失/Runtime重启",
+      "independent_oracle": "原seq/source/目标与不可变产物；每个waiting资源0",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "X02",
+      "properties": [
+        "P01",
+        "P05",
+        "P14"
+      ],
+      "name": "真实多策略并存和公平对比",
+      "sampling": "6输入×2策略×2重复，12并发对，交替AB/BA发起",
+      "independent_oracle": "24份实际产物/全部失败/token/time；不同写域/效果且同Runtime源；不同Harness原exec/namespace实际同时活动，跨写入/副作用无串扰",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "X03",
+      "properties": [
+        "P06",
+        "P10",
+        "P15"
+      ],
+      "name": "等待驻留阶梯与唤起",
+      "sampling": "1/100/1000/10000，30秒1Hz，重启，32原身份唤起",
+      "independent_oracle": "OS/Engine/NATS连接及实际R责任计数，资源预算和唤起时限",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "X04",
+      "properties": [
+        "P03",
+        "P05",
+        "P06",
+        "P15"
+      ],
+      "name": "活跃吞吐独立测量",
+      "sampling": "64任务×[1,4,2,8]并发×3批",
+      "independent_oracle": "原输出正确、完结数/延迟分布/资源、8并发中位吞吐≥单并发2倍",
+      "status": "UNVERIFIED"
+    }
+  ]
+}

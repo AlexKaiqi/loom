@@ -1,0 +1,3804 @@
+{
+  "schema": 1,
+  "id": "X-CONTRACT-001",
+  "created_utc": "2026-09-12T20:04:07.868287+00:00",
+  "status": "REVISED_RESTORE_SUPPLEMENT_UNVERIFIED",
+  "component_status": "UNIMPLEMENTED",
+  "contract": "design/g3/x/contract.md",
+  "environment": "design/g3/x/environment.json",
+  "test_adapter": {
+    "transport": "persistent stdin/stdout JSONL; one correlated response per request; no expected is sent",
+    "request": {
+      "request_id": "observer-generated",
+      "method": "execute/query/request_stop/checkpoint/resume/seal/release/await_exit/restore/validate_handoff",
+      "arguments": "fixture request + authority; no case id"
+    },
+    "response": "{request_id, binding, result, artifacts, error}; keys absent remain absent, never inferred success",
+    "fault_barrier": "Test adapter emits {test_barrier:name,binding}; collector records real Engine state then kills entire adapter process group; restart same external state_dir. execute receives test barrier only in trusted test context, never task env."
+  },
+  "comparison_ops": [
+    "eq",
+    "ne",
+    "gt",
+    "ge",
+    "le",
+    "length_gt",
+    "starts_with",
+    "one_of",
+    "absent"
+  ],
+  "discovery_policy": "all cases and Cartesian parameter combinations required; no silent skip, dependency absence nonzero MISSING_DEPENDENCY; no actual target nonzero MISSING_COMPONENT",
+  "negative_policy": "same observer must reject known_bad_variant for each family before G4 acceptance; missing artifacts/field/case/ref are failures",
+  "cases": [
+    {
+      "id": "X001",
+      "title": "同一普通入口落实 Runtime 与 Task 两域实际对象",
+      "source_requirement_ids": [
+        "V5-A024",
+        "V5-A025",
+        "V5-B001",
+        "V5-B003",
+        "V5-B004",
+        "V5-B012"
+      ],
+      "properties": [
+        "P02",
+        "P05"
+      ],
+      "initial": {
+        "script": "identity",
+        "parameters": {
+          "domain": [
+            "runtime",
+            "task"
+          ]
+        }
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "running"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "stopped"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "running.physical.task_uid",
+          "comparison": "eq",
+          "value": 1000
+        },
+        {
+          "path": "running.physical.cap_eff",
+          "comparison": "eq",
+          "value": 0
+        },
+        {
+          "path": "prepared.archive.files.identity.json.json.domain",
+          "comparison": "eq",
+          "value": "$parameter.domain"
+        },
+        {
+          "path": "stopped.physical.container_running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "stopped.physical.namespace_pids",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "trust_requested_identity",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X002",
+      "title": "正文身份与额外 Docker flags 不能提升",
+      "source_requirement_ids": [
+        "V5-B007",
+        "V5-B008",
+        "V5-A036"
+      ],
+      "properties": [
+        "P05"
+      ],
+      "initial": {
+        "script": "effect",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {
+                "user": "root",
+                "mounts": [
+                  "/"
+                ],
+                "privileged": true
+              }
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "rejected"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "rejected.api.error.code",
+          "comparison": "eq",
+          "value": "INVALID_REQUEST"
+        },
+        {
+          "path": "rejected.physical.owned_containers",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "rejected.host.canaries_unchanged",
+          "comparison": "eq",
+          "value": true
+        }
+      ],
+      "known_bad_variant": {
+        "name": "forward_unknown_flags",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X003",
+      "title": "无授权、未登记、歧义目标拒绝且无 host fallback",
+      "source_requirement_ids": [
+        "V5-B010",
+        "V5-B011",
+        "V5-A105",
+        "V5-A106"
+      ],
+      "properties": [
+        "P05"
+      ],
+      "initial": {
+        "script": "effect",
+        "parameters": {
+          "target_case": [
+            "unauthorized",
+            "unregistered",
+            "ambiguous"
+          ],
+          "error": [
+            "UNAUTHORIZED",
+            "UNREGISTERED",
+            "AMBIGUOUS"
+          ]
+        }
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "rejected"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "rejected.api.error.code",
+          "comparison": "eq",
+          "value": "$parameter.error"
+        },
+        {
+          "path": "rejected.physical.owned_containers",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "rejected.host.canaries_unchanged",
+          "comparison": "eq",
+          "value": true
+        }
+      ],
+      "known_bad_variant": {
+        "name": "host_fallback",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [
+          [
+            "target_case",
+            "error"
+          ]
+        ],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X004",
+      "title": "同位置显式获准对象及获准父目录新建可用",
+      "source_requirement_ids": [
+        "V5-B011",
+        "V5-A106",
+        "V5-A107"
+      ],
+      "properties": [
+        "P05"
+      ],
+      "initial": {
+        "script": "create_child",
+        "parameters": {
+          "target_case": [
+            "ambiguous_explicit",
+            "authorized_parent"
+          ]
+        }
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "stopped"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "prepared.archive.files.created/data.bin.sha256",
+          "comparison": "eq",
+          "value": "$fixture.created_sha256"
+        },
+        {
+          "path": "prepared.api.binding.target_id",
+          "comparison": "eq",
+          "value": "$fixture.target_id"
+        },
+        {
+          "path": "stopped.physical.container_running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "stopped.physical.namespace_pids",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "reject_authorized_parent",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X005",
+      "title": "前缀兄弟与树外软链接不可成为授权对象",
+      "source_requirement_ids": [
+        "V5-B010",
+        "V5-B013"
+      ],
+      "properties": [
+        "P05"
+      ],
+      "initial": {
+        "script": "effect",
+        "parameters": {
+          "target_case": [
+            "prefix_sibling",
+            "symlink_outside"
+          ]
+        }
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "rejected"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "rejected.api.error.code",
+          "comparison": "eq",
+          "value": "UNAUTHORIZED"
+        },
+        {
+          "path": "rejected.physical.owned_containers",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "rejected.host.canaries_unchanged",
+          "comparison": "eq",
+          "value": true
+        }
+      ],
+      "known_bad_variant": {
+        "name": "prefix_path_authorization",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X006",
+      "title": "树内别名保持绑定；cd与文本不改域",
+      "source_requirement_ids": [
+        "V5-B010",
+        "V5-B012"
+      ],
+      "properties": [
+        "P05"
+      ],
+      "initial": {
+        "script": "escape_paths",
+        "parameters": {
+          "domain": [
+            "runtime",
+            "task"
+          ],
+          "target_case": [
+            "symlink_inside"
+          ]
+        }
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "stopped"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "prepared.archive.files.escape.json.json.denied_all",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "prepared.host.canaries_unchanged",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "prepared.api.binding.domain",
+          "comparison": "eq",
+          "value": "$parameter.domain"
+        },
+        {
+          "path": "stopped.physical.container_running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "stopped.physical.namespace_pids",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "cd_switches_domain",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X007",
+      "title": "受理前路径对象替换不能沿用旧授权",
+      "source_requirement_ids": [
+        "V5-A108",
+        "V5-B007"
+      ],
+      "properties": [
+        "P05"
+      ],
+      "initial": {
+        "script": "effect",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "replace_target",
+          "args": {}
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "rejected"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "rejected.api.error.code",
+          "comparison": "eq",
+          "value": "STALE_BINDING"
+        },
+        {
+          "path": "rejected.physical.owned_containers",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "rejected.host.canaries_unchanged",
+          "comparison": "eq",
+          "value": true
+        }
+      ],
+      "known_bad_variant": {
+        "name": "reuse_stale_path_binding",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X008",
+      "title": "同 ID 完整绑定去重；冲突不得覆盖旧内容",
+      "source_requirement_ids": [
+        "V5-B014",
+        "V5-A010",
+        "V5-B078"
+      ],
+      "properties": [
+        "P03",
+        "P12"
+      ],
+      "initial": {
+        "script": "effect",
+        "parameters": {
+          "conflict_field": [
+            "script",
+            "stdin",
+            "source_result",
+            "harness_version",
+            "target_id",
+            "domain",
+            "base_version",
+            "environment",
+            "budgets",
+            "caller",
+            "input_manifest",
+            "cwd"
+          ]
+        }
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "query",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "original"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "retry"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute_conflicting",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "conflict"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "query",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "retained"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "retry.api.binding.container_id",
+          "comparison": "eq",
+          "value": {
+            "ref": "original.api.binding.container_id"
+          }
+        },
+        {
+          "path": "retry.archive.files.effect.count",
+          "comparison": "eq",
+          "value": 1
+        },
+        {
+          "path": "conflict.api.error.code",
+          "comparison": "one_of",
+          "value": [
+            "ID_CONFLICT",
+            "UNAUTHORIZED",
+            "INVALID_REQUEST"
+          ]
+        },
+        {
+          "path": "retained.archive.files.effect.count",
+          "comparison": "eq",
+          "value": 1
+        },
+        {
+          "path": "retained.api.binding.request_digest",
+          "comparison": "eq",
+          "value": {
+            "ref": "original.api.binding.request_digest"
+          }
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "compare_only_script",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X009",
+      "title": "原 exec ID 先于 start 外部保存，start 回执中断只查询原对象",
+      "source_requirement_ids": [
+        "V5-A010",
+        "V5-B014",
+        "V5-B015",
+        "V5-B079"
+      ],
+      "properties": [
+        "P03",
+        "P12"
+      ],
+      "initial": {
+        "script": "effect",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "fault_invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {},
+            "barrier": "after_exec_created_before_start"
+          }
+        },
+        {
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "query",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "created"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "resume_dispatch",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "created.api.binding.exec_id_present",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "created.physical.exec_running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "prepared.archive.files.effect.count",
+          "comparison": "eq",
+          "value": 1
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "dispatch_before_exec_binding",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X010",
+      "title": "启动已生效但回执丢失不得再次发效果",
+      "source_requirement_ids": [
+        "V5-B014",
+        "V5-B015",
+        "V5-B016",
+        "V5-B079"
+      ],
+      "properties": [
+        "P03",
+        "P12"
+      ],
+      "initial": {
+        "script": "effect",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "fault_invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {},
+            "barrier": "after_start_before_receipt"
+          }
+        },
+        {
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "query",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "retry"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "prepared.archive.files.effect.count",
+          "comparison": "eq",
+          "value": 1
+        },
+        {
+          "path": "retry.api.binding.exec_id",
+          "comparison": "eq",
+          "value": {
+            "ref": "prepared.api.binding.exec_id"
+          }
+        },
+        {
+          "path": "retry.archive.files.effect.count",
+          "comparison": "eq",
+          "value": 1
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "new_id_on_lost_start",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X011",
+      "title": "观察器中断不伪造完整输出/无效果，不自动重跑",
+      "source_requirement_ids": [
+        "V5-B015",
+        "V5-B016",
+        "V5-B059",
+        "V5-B079"
+      ],
+      "properties": [
+        "P03",
+        "P08",
+        "P12"
+      ],
+      "initial": {
+        "script": "binary_effect",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "fault_invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {},
+            "barrier": "after_effect_before_output_barrier"
+          }
+        },
+        {
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "query",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "query",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "final"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "prepared.archive.files.effect.count",
+          "comparison": "eq",
+          "value": 1
+        },
+        {
+          "path": "final.api.result.output_state",
+          "comparison": "eq",
+          "value": "INCOMPLETE_OBSERVATION"
+        },
+        {
+          "path": "final.api.binding.exec_id",
+          "comparison": "eq",
+          "value": {
+            "ref": "prepared.api.binding.exec_id"
+          }
+        }
+      ],
+      "known_bad_variant": {
+        "name": "invent_output_after_observer_loss",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X012",
+      "title": "全量二进制输出按原引用重读；视图裁剪不删原字节",
+      "source_requirement_ids": [
+        "V5-B056",
+        "V5-B061",
+        "V5-A071"
+      ],
+      "properties": [
+        "P03",
+        "P08"
+      ],
+      "initial": {
+        "script": "binary",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "saved"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "release",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "query",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "released"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "saved.blobs.stdout.sha256",
+          "comparison": "eq",
+          "value": "$fixture.stdout_sha256"
+        },
+        {
+          "path": "saved.blobs.stderr.sha256",
+          "comparison": "eq",
+          "value": "$fixture.stderr_sha256"
+        },
+        {
+          "path": "saved.api.result.output_state",
+          "comparison": "eq",
+          "value": "COMPLETE"
+        },
+        {
+          "path": "released.blobs.stdout.sha256",
+          "comparison": "eq",
+          "value": "$fixture.stdout_sha256"
+        },
+        {
+          "path": "released.physical.owned_containers",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "truncate_raw_to_view",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X013",
+      "title": "输出限额停止原对象并保留明确不完整前缀，日志无磁盘旁路",
+      "source_requirement_ids": [
+        "V5-A048",
+        "V5-A057",
+        "V5-B056",
+        "V5-B061"
+      ],
+      "properties": [
+        "P05",
+        "P08"
+      ],
+      "initial": {
+        "script": "output_flood",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "limited"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "limited.api.result.output_state",
+          "comparison": "eq",
+          "value": "INCOMPLETE_LIMIT"
+        },
+        {
+          "path": "limited.api.result.reason",
+          "comparison": "eq",
+          "value": "OUTPUT_LIMIT"
+        },
+        {
+          "path": "limited.blobs.total_bytes",
+          "comparison": "le",
+          "value": 98304
+        },
+        {
+          "path": "limited.physical.log_driver",
+          "comparison": "eq",
+          "value": "none"
+        },
+        {
+          "path": "limited.physical.container_running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "limited.physical.exec_running",
+          "comparison": "eq",
+          "value": false
+        }
+      ],
+      "known_bad_variant": {
+        "name": "unbounded_output_log",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X014",
+      "title": "取消已受理/父退出/setsid子进程均不能假作停止",
+      "source_requirement_ids": [
+        "V5-A038",
+        "V5-A057",
+        "V5-B017"
+      ],
+      "properties": [
+        "P02",
+        "P05"
+      ],
+      "initial": {
+        "script": "orphan",
+        "parameters": {
+          "repetitions": 3,
+          "domain": [
+            "runtime",
+            "task"
+          ]
+        }
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "request_stop",
+            "arguments": {
+              "test_hold_stop": true
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "cancelled"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "stopped"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "cancelled.api.result.stop_requested",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "cancelled.physical.namespace_pids",
+          "comparison": "length_gt",
+          "value": 0
+        },
+        {
+          "path": "cancelled.api.result.execution_state",
+          "comparison": "ne",
+          "value": "STOPPED"
+        },
+        {
+          "path": "prepared.archive.files.heartbeat.count",
+          "comparison": "gt",
+          "value": 0
+        },
+        {
+          "path": "stopped.physical.container_running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "stopped.physical.namespace_pids",
+          "comparison": "eq",
+          "value": []
+        }
+      ],
+      "known_bad_variant": {
+        "name": "stop_on_parent_exit",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X015",
+      "title": "冻结检查点只能恢复同对象，不能签发写者接管",
+      "source_requirement_ids": [
+        "V5-A038",
+        "V5-A037",
+        "V5-A047"
+      ],
+      "properties": [
+        "P02",
+        "P04"
+      ],
+      "initial": {
+        "script": "heartbeat",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "await_stdio",
+          "args": {
+            "marker": "heartbeat",
+            "minimum": 1,
+            "tag": "first_ready"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "first"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "resume",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "await_stdio",
+          "args": {
+            "marker": "heartbeat",
+            "greater_than_ref": "first.archive.files.heartbeat.count",
+            "tag": "resumed_ready"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "second"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "stopped"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "first.physical.paused",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "first.api.artifacts.checkpoint.state",
+          "comparison": "eq",
+          "value": "PREPARED"
+        },
+        {
+          "path": "second.api.binding.container_id",
+          "comparison": "eq",
+          "value": {
+            "ref": "first.api.binding.container_id"
+          }
+        },
+        {
+          "path": "second.archive.files.heartbeat.count",
+          "comparison": "gt",
+          "value": {
+            "ref": "first.archive.files.heartbeat.count"
+          }
+        },
+        {
+          "path": "stopped.physical.container_running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "stopped.physical.namespace_pids",
+          "comparison": "eq",
+          "value": []
+        }
+      ],
+      "known_bad_variant": {
+        "name": "pause_equals_revocation",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X016",
+      "title": "普通人工编辑/base generation 变化必须阻断 publish",
+      "source_requirement_ids": [
+        "V5-A037",
+        "V5-A047",
+        "V5-A108"
+      ],
+      "properties": [
+        "P02",
+        "P04"
+      ],
+      "initial": {
+        "script": "effect",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "host_edit",
+          "args": {}
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "sealed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "validate_handoff",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "handoff"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "sealed.physical.namespace_pids",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "handoff.api.error.code",
+          "comparison": "eq",
+          "value": "BASE_CONFLICT"
+        },
+        {
+          "path": "handoff.host.human_edit_preserved",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "ignore_external_edit",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter",
+        "F_handoff_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X017",
+      "title": "keeper不受任务kill，正常exec退出后必需mode000仍可导出",
+      "source_requirement_ids": [
+        "V5-A023",
+        "V5-A038",
+        "V5-A045"
+      ],
+      "properties": [
+        "P03",
+        "P04",
+        "P05"
+      ],
+      "initial": {
+        "script": "keeper_attack",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "returned"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "stopped"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "returned.physical.container_running",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "prepared.archive.files.locked.bin.sha256",
+          "comparison": "eq",
+          "value": "$fixture.locked_sha256"
+        },
+        {
+          "path": "prepared.archive.files.keeper.json.json.kill_errno",
+          "comparison": "eq",
+          "value": 1
+        },
+        {
+          "path": "prepared.archive.files.locked.bin.mode",
+          "comparison": "eq",
+          "value": 0
+        },
+        {
+          "path": "stopped.physical.container_running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "stopped.physical.namespace_pids",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "prepared.archive.files.keeper.json.json.ptrace_errno",
+          "comparison": "eq",
+          "value": 1
+        },
+        {
+          "path": "prepared.archive.files.keeper.json.json.setuid_errno",
+          "comparison": "eq",
+          "value": 1
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "task_exit_destroys_tmpfs",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X018",
+      "title": "既有FD/继承控制socket/模型凭据canary不得泄漏",
+      "source_requirement_ids": [
+        "V5-B006",
+        "V5-B013",
+        "V5-A056"
+      ],
+      "properties": [
+        "P05"
+      ],
+      "initial": {
+        "script": "leak",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "stopped"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "prepared.archive.files.leak.json.json.forbidden_successes",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "prepared.host.canaries_unchanged",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "prepared.archive.contains_credential_canary",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "prepared.host.control_socket_received",
+          "comparison": "eq",
+          "value": ""
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "inherit_control_fd",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X019",
+      "title": "网络缺省拒绝实际可达私有peer；窄通道不提供Engine能力",
+      "source_requirement_ids": [
+        "V5-A048",
+        "V5-A056",
+        "V5-B005",
+        "V5-B006"
+      ],
+      "properties": [
+        "P05"
+      ],
+      "initial": {
+        "script": "network",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "prepare_peer",
+          "args": {}
+        },
+        {
+          "op": "fault_invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {},
+            "barrier": "after_exec_created_before_start"
+          }
+        },
+        {
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "query",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "created"
+          }
+        },
+        {
+          "op": "start_peer",
+          "args": {}
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "resume_dispatch",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "observe_peer_completion",
+          "args": {
+            "tag": "peer_completion"
+          }
+        },
+        {
+          "op": "stop_peer",
+          "args": {}
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "stopped"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "prepared.archive.files.network.json.json.peer_connect_errno",
+          "comparison": "ne",
+          "value": 0
+        },
+        {
+          "path": "prepared.physical.network_mode",
+          "comparison": "eq",
+          "value": "none"
+        },
+        {
+          "path": "prepared.archive.files.network.json.json.engine_available",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        },
+        {
+          "path": "created.physical.exec_running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "peer_completion.request_unchanged",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "peer_completion.parameters_unchanged",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "peer_completion.peer.continuous",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "peer_completion.max_objects",
+          "comparison": "le",
+          "value": 2
+        },
+        {
+          "path": "peer_completion.max_memory_bytes",
+          "comparison": "le",
+          "value": 268435456
+        },
+        {
+          "path": "peer_completion.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "peer_completion.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        },
+        {
+          "path": "created.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": null
+        },
+        {
+          "path": "created.physical.exec.Pid",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "share_bridge_network",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X020",
+      "title": "多文件总分配、已unlink仍打开FD与inode耗尽受真实配额",
+      "source_requirement_ids": [
+        "V5-A048",
+        "V5-A057",
+        "V5-B017"
+      ],
+      "properties": [
+        "P05"
+      ],
+      "initial": {
+        "script": "quota",
+        "parameters": {
+          "quota_mode": [
+            "bytes",
+            "inodes",
+            "unlinked"
+          ],
+          "volume_bytes": [
+            2097152,
+            6291456
+          ],
+          "inode_limit": [
+            64,
+            128
+          ],
+          "repetitions": 3
+        }
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "channel_read",
+            "arguments": {
+              "stream": "stdout",
+              "max_bytes": 4096
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "full"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "channel_write",
+            "arguments": {
+              "data_base64": "cmVsZWFzZQo="
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "prepared.archive.files.quota.json.json.errno",
+          "comparison": "eq",
+          "value": 28
+        },
+        {
+          "path": "prepared.archive.files.quota.json.json.limit_matches",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "full.physical.host_rw_mounts",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "full.physical.volume_stat.bytes_total",
+          "comparison": "eq",
+          "value": "$parameter.volume_bytes"
+        },
+        {
+          "path": "full.physical.volume_stat.inodes_total",
+          "comparison": "eq",
+          "value": "$parameter.inode_limit"
+        },
+        {
+          "path": "full.physical.quota_exhausted",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "only_rlimit_single_file",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X021",
+      "title": "sparse逻辑超限/特殊成员/不支持metadata不能静默漏档确认",
+      "source_requirement_ids": [
+        "V5-A045",
+        "V5-A048",
+        "V5-A049"
+      ],
+      "properties": [
+        "P04",
+        "P05"
+      ],
+      "initial": {
+        "script": "unsupported_output",
+        "parameters": {
+          "unsupported": [
+            "sparse",
+            "fifo",
+            "socket"
+          ],
+          "error": [
+            "ARCHIVE_LIMIT",
+            "UNSUPPORTED",
+            "UNSUPPORTED"
+          ]
+        }
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "rejected"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "rejected.api.error.code",
+          "comparison": "eq",
+          "value": "$parameter.error"
+        },
+        {
+          "path": "rejected.api.artifacts.checkpoint",
+          "comparison": "absent",
+          "value": true
+        },
+        {
+          "path": "rejected.physical.invalid_output_observed",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "trust_tar_exit_zero",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [
+          [
+            "unsupported",
+            "error"
+          ]
+        ],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X022",
+      "title": "必需xattr/ACL不支持时执行前拒绝，不能运行后降级",
+      "source_requirement_ids": [
+        "V5-A039",
+        "V5-A045",
+        "V5-A049"
+      ],
+      "properties": [
+        "P04",
+        "P05"
+      ],
+      "initial": {
+        "script": "effect",
+        "parameters": {
+          "input_metadata": [
+            "user_xattr",
+            "posix_acl"
+          ]
+        }
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "rejected"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "rejected.api.error.code",
+          "comparison": "eq",
+          "value": "UNSUPPORTED"
+        },
+        {
+          "path": "rejected.physical.owned_containers",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "rejected.host.canaries_unchanged",
+          "comparison": "eq",
+          "value": true
+        }
+      ],
+      "known_bad_variant": {
+        "name": "strip_required_metadata",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X023",
+      "title": "真实memory/pids/CPU/时长约束覆盖子进程",
+      "source_requirement_ids": [
+        "V5-A048",
+        "V5-A057",
+        "V5-B017"
+      ],
+      "properties": [
+        "P05"
+      ],
+      "initial": {
+        "script": "resource",
+        "parameters": {
+          "resource": [
+            "memory",
+            "pids",
+            "cpu",
+            "timeout"
+          ],
+          "reason": [
+            "MEMORY_LIMIT",
+            "PIDS_LIMIT",
+            "DEADLINE",
+            "DEADLINE"
+          ],
+          "cpu": [
+            0.25,
+            0.5
+          ]
+        }
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "active",
+            "sample_resources_seconds": 1.1
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "limited"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "active.physical.resource_effect_observed",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "limited.api.result.reason",
+          "comparison": "eq",
+          "value": "$parameter.reason"
+        },
+        {
+          "path": "limited.physical.container_running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "limited.physical.namespace_pids",
+          "comparison": "eq",
+          "value": []
+        }
+      ],
+      "known_bad_variant": {
+        "name": "limits_config_only",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [
+          [
+            "resource",
+            "reason"
+          ]
+        ],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X024",
+      "title": "所选原checkpoint版本缺失或坏hash时拒绝，不以当前路径补空恢复",
+      "source_requirement_ids": [
+        "V5-A039",
+        "V5-A045",
+        "V5-B084",
+        "V5-A055",
+        "V5-B021"
+      ],
+      "properties": [
+        "P03",
+        "P04"
+      ],
+      "initial": {
+        "script": "restore_seed",
+        "parameters": {
+          "restore_fault": [
+            "missing",
+            "hash_mismatch"
+          ]
+        }
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "restore-source"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "retain_checkpoint",
+          "args": {
+            "from_tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "stopped"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "release",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "released"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "query",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "old_before"
+          }
+        },
+        {
+          "op": "cold_restore_boundary",
+          "args": {}
+        },
+        {
+          "op": "fault_restore_source",
+          "args": {}
+        },
+        {
+          "op": "prepare_restore_request",
+          "args": {}
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "restore",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "restored"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "prepared.archive.files.effect.count",
+          "comparison": "eq",
+          "value": 1
+        },
+        {
+          "path": "restored.api.error.code",
+          "comparison": "eq",
+          "value": "INPUT_VERSION_UNAVAILABLE"
+        },
+        {
+          "path": "restored.physical.owned_containers",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "restored.physical.owned_volumes",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "restore_from_live_path",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      },
+      "revision_note": "旧live input变化即拒绝的歧义已纠正：实际破坏/移走选定受保留版本与其已登记原archive副本，保留原失败意图及历史。"
+    },
+    {
+      "id": "X025",
+      "title": "旧namespace停止、所有helper回收后release仍保留确认结果",
+      "source_requirement_ids": [
+        "V5-A023",
+        "V5-A071",
+        "V5-B084"
+      ],
+      "properties": [
+        "P03",
+        "P05"
+      ],
+      "initial": {
+        "script": "binary",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "release",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "query",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "released"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "released.physical.owned_containers",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "released.physical.owned_volumes",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "released.blobs.stdout.sha256",
+          "comparison": "eq",
+          "value": "$fixture.stdout_sha256"
+        },
+        {
+          "path": "released.api.binding.exec_id",
+          "comparison": "eq",
+          "value": {
+            "ref": "prepared.api.binding.exec_id"
+          }
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "cleanup_deletes_confirmed_result",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X026",
+      "title": "S原JSONL字节检查点重复查询一致，继续追加不改已确认前缀",
+      "source_requirement_ids": [
+        "V5-A031",
+        "V5-A010",
+        "V5-B084"
+      ],
+      "properties": [
+        "P03",
+        "P08"
+      ],
+      "initial": {
+        "script": "session_prefix",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {
+              "request_overrides": {}
+            }
+          }
+        },
+        {
+          "op": "await_stdio",
+          "args": {
+            "marker": "session_prefix",
+            "minimum": 1,
+            "tag": "first_ready"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "first"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "resume",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "await_stdio",
+          "args": {
+            "marker": "session_prefix",
+            "greater_than_ref": "first.archive.files.session.jsonl.byte_length",
+            "tag": "resumed_ready"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "formal-test"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "second"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "first.archive.files.session.jsonl.text",
+          "comparison": "starts_with",
+          "value": "$fixture.session_prefix"
+        },
+        {
+          "path": "second.archive.files.session.jsonl.text",
+          "comparison": "starts_with",
+          "value": "$fixture.session_prefix"
+        },
+        {
+          "path": "second.archive.files.session.jsonl.byte_length",
+          "comparison": "ge",
+          "value": {
+            "ref": "first.archive.files.session.jsonl.byte_length"
+          }
+        },
+        {
+          "path": "second.api.binding.container_id",
+          "comparison": "eq",
+          "value": {
+            "ref": "first.api.binding.container_id"
+          }
+        }
+      ],
+      "known_bad_variant": {
+        "name": "rebuild_session_from_events",
+        "failure": "违反本例指定 API 判据或外部实际对象/字节/资源观察；使用相同 collector，不能替换 expected。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X027",
+      "title": "同一exec双向标准流、检查点暂停后恢复与EOF",
+      "source_requirement_ids": [
+        "V5-A031",
+        "V5-B014",
+        "V5-B015",
+        "V5-B084"
+      ],
+      "properties": [
+        "P03",
+        "P05"
+      ],
+      "initial": {
+        "script": "duplex",
+        "parameters": {}
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "channel_read",
+            "arguments": {
+              "stream": "stdout",
+              "max_bytes": 4096
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "request"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "before-bridge"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "resume",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "channel_write",
+            "arguments": {
+              "data_base64": "cmVzcG9uc2Utb25lCg=="
+            }
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "close_stdin",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "after-bridge"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "result"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "request.api.channel.data_base64",
+          "comparison": "eq",
+          "value": "aW50ZW50LW9uZQo="
+        },
+        {
+          "path": "prepared.archive.files.session.jsonl.text",
+          "comparison": "starts_with",
+          "value": "intent-one\n"
+        },
+        {
+          "path": "result.archive.files.session.jsonl.text",
+          "comparison": "starts_with",
+          "value": "intent-one\nresponse-one\n"
+        },
+        {
+          "path": "result.api.binding.exec_id",
+          "comparison": "eq",
+          "value": {
+            "ref": "prepared.api.binding.exec_id"
+          }
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "static_stdin_for_interactive_exec",
+        "failure": "真实等待输入的同一进程无法得到后续响应或原会话前缀未保存"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      }
+    },
+    {
+      "id": "X028",
+      "title": "原checkpoint合法冷恢复成功，新generation不重发原effect",
+      "source_requirement_ids": [
+        "V5-A055",
+        "V5-B021",
+        "V5-A039",
+        "V5-A045",
+        "V5-B084"
+      ],
+      "properties": [
+        "P03",
+        "P04"
+      ],
+      "initial": {
+        "script": "restore_seed",
+        "parameters": {
+          "domain": [
+            "runtime",
+            "task"
+          ]
+        }
+      },
+      "actions": [
+        {
+          "op": "invoke",
+          "args": {
+            "method": "execute",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "restore-source"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "prepared"
+          }
+        },
+        {
+          "op": "retain_checkpoint",
+          "args": {
+            "from_tag": "prepared"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "stopped"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "release",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "released"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "query",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "old_before"
+          }
+        },
+        {
+          "op": "cold_restore_boundary",
+          "args": {}
+        },
+        {
+          "op": "prepare_restore_request",
+          "args": {}
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "restore",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "rebuilt"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "verify-restored-before-start"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "restored_source"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "resume",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "resume_dispatch",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "verify_running"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "await_exit",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "completed2"
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "read_verified"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "checkpoint",
+            "arguments": {
+              "purpose": "verify-read-only"
+            }
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "verified_archive"
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "seal",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "invoke",
+          "args": {
+            "method": "release",
+            "arguments": {}
+          }
+        },
+        {
+          "op": "collect",
+          "args": {
+            "tag": "new_released"
+          }
+        },
+        {
+          "op": "query_saved_execution",
+          "args": {
+            "tag": "old_after"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "path": "prepared.archive.files.effect.count",
+          "comparison": "eq",
+          "value": 1
+        },
+        {
+          "path": "prepared.archive.files.input-result.sha256",
+          "comparison": "eq",
+          "value": "$fixture.restore_input_result_sha256"
+        },
+        {
+          "path": "released.physical.namespace_pids",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "released.physical.owned_containers",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "released.physical.owned_volumes",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "cold_boundary.cache_empty",
+          "comparison": "eq",
+          "value": true
+        },
+        {
+          "path": "rebuilt.api.error",
+          "comparison": "absent",
+          "value": null
+        },
+        {
+          "path": "rebuilt.physical.exec_running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "rebuilt.api.binding.container_id",
+          "comparison": "ne",
+          "value": {
+            "ref": "prepared.api.binding.container_id"
+          }
+        },
+        {
+          "path": "rebuilt.api.binding.volume_id",
+          "comparison": "ne",
+          "value": {
+            "ref": "prepared.api.binding.volume_id"
+          }
+        },
+        {
+          "path": "rebuilt.api.binding.exec_id",
+          "comparison": "ne",
+          "value": {
+            "ref": "prepared.api.binding.exec_id"
+          }
+        },
+        {
+          "path": "rebuilt.api.binding.object_generation",
+          "comparison": "gt",
+          "value": {
+            "ref": "prepared.api.binding.object_generation"
+          }
+        },
+        {
+          "path": "restored_source.archive.files",
+          "comparison": "eq",
+          "value": {
+            "ref": "prepared.archive.files"
+          }
+        },
+        {
+          "path": "restored_source.archive.files.effect.count",
+          "comparison": "eq",
+          "value": 1
+        },
+        {
+          "path": "read_verified.blobs.stdout.sha256",
+          "comparison": "eq",
+          "value": "$fixture.restore_verify_stdout_sha256"
+        },
+        {
+          "path": "verified_archive.archive.files",
+          "comparison": "eq",
+          "value": {
+            "ref": "prepared.archive.files"
+          }
+        },
+        {
+          "path": "verified_archive.archive.files.effect.count",
+          "comparison": "eq",
+          "value": 1
+        },
+        {
+          "path": "new_released.physical.namespace_pids",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "new_released.physical.owned_containers",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "new_released.physical.owned_volumes",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "old_after.api.binding",
+          "comparison": "eq",
+          "value": {
+            "ref": "old_before.api.binding"
+          }
+        },
+        {
+          "path": "old_after.api.result",
+          "comparison": "eq",
+          "value": {
+            "ref": "old_before.api.result"
+          }
+        },
+        {
+          "path": "old_after.blobs.stdout.sha256",
+          "comparison": "eq",
+          "value": {
+            "ref": "old_before.blobs.stdout.sha256"
+          }
+        },
+        {
+          "path": "old_after.blobs.stderr.sha256",
+          "comparison": "eq",
+          "value": {
+            "ref": "old_before.blobs.stderr.sha256"
+          }
+        },
+        {
+          "path": "old_before.api.result.output_state",
+          "comparison": "eq",
+          "value": "COMPLETE"
+        },
+        {
+          "path": "old_before.blobs.stdout.sha256",
+          "comparison": "eq",
+          "value": "$fixture.restore_original_stdout_sha256"
+        },
+        {
+          "path": "rebuilt.physical.namespace",
+          "comparison": "starts_with",
+          "value": "pid:["
+        },
+        {
+          "path": "rebuilt.physical.namespace_pids",
+          "comparison": "length_gt",
+          "value": 0
+        },
+        {
+          "path": "verify_running.physical.task_uid",
+          "comparison": "eq",
+          "value": 1000
+        },
+        {
+          "path": "verify_running.physical.cap_eff",
+          "comparison": "eq",
+          "value": 0
+        },
+        {
+          "path": "rebuilt.physical.host_rw_mounts",
+          "comparison": "eq",
+          "value": []
+        },
+        {
+          "path": "rebuilt.physical.network_mode",
+          "comparison": "eq",
+          "value": "none"
+        },
+        {
+          "path": "rebuilt.physical.log_driver",
+          "comparison": "eq",
+          "value": "none"
+        },
+        {
+          "path": "completed.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        },
+        {
+          "path": "completed2.physical.exec.Running",
+          "comparison": "eq",
+          "value": false
+        },
+        {
+          "path": "completed2.physical.exec.ExitCode",
+          "comparison": "eq",
+          "value": 0
+        }
+      ],
+      "known_bad_variant": {
+        "name": "restore_always_reject",
+        "failure": "合法版本拒绝、重用旧身份、丢未跟踪依赖/配置/元数据、执行旧脚本增加effect或修改原结果均被真实同源observer反驳。"
+      },
+      "dependencies": [
+        "real_docker",
+        "X_test_adapter"
+      ],
+      "status": "UNVERIFIED",
+      "parameter_rules": {
+        "zip_groups": [],
+        "repetitions_are_fixed": true
+      },
+      "revision_note": "有限两个域正例；只证明当前固定profile下所选完整checkpoint恢复，不声称外部效果回滚。",
+      "known_bad_variants": [
+        "restore_always_reject",
+        "restore_from_live_path",
+        "restore_reuses_generation",
+        "restore_replay_original",
+        "restore_drops_dependency",
+        "restore_mutates_original_result"
+      ]
+    }
+  ],
+  "restore_supplement": "restore-supplement-001.json"
+}

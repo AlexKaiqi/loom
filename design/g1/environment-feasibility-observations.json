@@ -1,0 +1,82 @@
+{
+  "scope": "read-only local Linux experiment feasibility, not isolation acceptance",
+  "time_utc": "2026-09-12T17:27:30.248589+00:00",
+  "cwd": "/path/to/loom",
+  "protocol_sha256": "9f491128028488bb901cf4cf1ac69e1bfc822e87ca01ac5909719bf5598cff35",
+  "tools": {
+    "unshare": "/usr/bin/unshare",
+    "nsenter": "/usr/bin/nsenter",
+    "bwrap": null,
+    "prlimit": "/usr/bin/prlimit",
+    "timeout": "/usr/bin/timeout",
+    "docker": "/usr/bin/docker",
+    "rg": null
+  },
+  "files": {
+    "/proc/sys/user/max_user_namespaces": "128157\n",
+    "/proc/sys/kernel/unprivileged_userns_clone": "ABSENT",
+    "/proc/self/cgroup": "15:name=systemd:/\n14:misc:/\n13:rdma:/\n12:pids:/\n11:hugetlb:/\n10:net_prio:/\n9:perf_event:/\n8:net_cls:/\n7:freezer:/\n6:devices:/\n5:memory:/\n4:blkio:/\n3:cpuacct:/\n2:cpu:/\n1:cpuset:/\n0::/\n",
+    "/sys/fs/cgroup/cgroup.controllers": "ABSENT"
+  },
+  "runs": [
+    {
+      "command": [
+        "uname",
+        "-a"
+      ],
+      "exit_code": 0,
+      "stdout": "Linux DESKTOP-KAIQIDONG 5.15.167.4-microsoft-standard-WSL2 #1 SMP Tue Nov 5 00:21:55 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "id"
+      ],
+      "exit_code": 0,
+      "stdout": "uid=1000(alex) gid=1000(alex) groups=1000(alex),4(adm),20(dialout),24(cdrom),25(floppy),27(sudo),29(audio),30(dip),44(video),46(plugdev),116(netdev),1001(docker)\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python3",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "Python 3.10.12\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "unshare",
+        "--user",
+        "--map-root-user",
+        "id"
+      ],
+      "exit_code": 0,
+      "stdout": "uid=0(root) gid=0(root) groups=0(root),65534(nogroup)\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "docker",
+        "version",
+        "--format",
+        "{{json .Server}}"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"Platform\":{\"Name\":\"Docker Desktop 4.0.0 ()\"},\"Components\":[{\"Name\":\"Engine\",\"Version\":\"28.0.1\",\"Details\":{\"ApiVersion\":\"1.48\",\"Arch\":\"amd64\",\"BuildTime\":\"Wed Feb 26 10:41:16 2025\",\"Experimental\":\"false\",\"GitCommit\":\"bbd0a17\",\"GoVersion\":\"go1.23.6\",\"KernelVersion\":\"5.15.167.4-microsoft-standard-WSL2\",\"MinAPIVersion\":\"1.24\",\"Os\":\"linux\"}},{\"Name\":\"containerd\",\"Version\":\"1.7.25\",\"Details\":{\"GitCommit\":\"bcc810d6b9066471b0b6fa75f557a15a1cbf31bb\"}},{\"Name\":\"runc\",\"Version\":\"1.2.4\",\"Details\":{\"GitCommit\":\"v1.2.4-0-g6c52b3f\"}},{\"Name\":\"docker-init\",\"Version\":\"0.19.0\",\"Details\":{\"GitCommit\":\"de40ad0\"}}],\"Version\":\"28.0.1\",\"ApiVersion\":\"1.48\",\"MinAPIVersion\":\"1.24\",\"GitCommit\":\"bbd0a17\",\"GoVersion\":\"go1.23.6\",\"Os\":\"linux\",\"Arch\":\"amd64\",\"KernelVersion\":\"5.15.167.4-microsoft-standard-WSL2\",\"BuildTime\":\"2025-02-26T10:41:16.000000000+00:00\"}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "docker",
+        "info",
+        "--format",
+        "{{json .SecurityOptions}} {{.CgroupVersion}} {{.KernelVersion}}"
+      ],
+      "exit_code": 0,
+      "stdout": "[\"name=seccomp,profile=unconfined\"] 1 5.15.167.4-microsoft-standard-WSL2\n",
+      "stderr": ""
+    }
+  ]
+}

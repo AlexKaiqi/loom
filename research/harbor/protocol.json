@@ -1,0 +1,66 @@
+{
+  "id": "HARBOR-ARTIFACT-001",
+  "registered_at_utc": "2026-09-12T18:24:28.041430+00:00",
+  "question": "Does actual Harbor OracleAgent -> Docker -> separate Verifier evaluate collected file content and retain negative outputs rather than trust agent text/exit status?",
+  "hypotheses": [
+    "H10",
+    "external verifier"
+  ],
+  "properties": [
+    "P14"
+  ],
+  "commit": "1b50bd025832d6c69f85a4d91cd8a99eaebc661a",
+  "real_code": "Installed editable pinned Harbor Job/Trial, OracleAgent, DockerEnvironment, separate verifier and reward parsers; actual Linux containers and shell scripts.",
+  "fixture": "No LLM. Deterministic solve.sh claims success for all variants. Fixed independent test.sh checks /logs/artifacts/answer.txt content 42; separate container receives collected artifact.",
+  "inputs": [
+    {
+      "case": "correct",
+      "answer": "42",
+      "expected": "reward=1; verifier stdout saw=42; collected artifact42"
+    },
+    {
+      "case": "wrong",
+      "answer": "41",
+      "expected": "reward=0 despite solver exit0 and success text; verifier stdout saw=41 and artifact41 retained"
+    },
+    {
+      "case": "missing-reward",
+      "answer": "42",
+      "expected": "RewardFileNotFoundError; verifier diagnostic retained; no success reward"
+    },
+    {
+      "case": "invalid-reward",
+      "answer": "42",
+      "expected": "RewardFileInvalidError for nan; raw reward/diagnostic retained; no success reward"
+    }
+  ],
+  "oracle": "Task contract fixed answer42 independent from solver success claim. Raw host-collected artifact, verifier stdout/reward and trial exception are compared; CLI exit alone insufficient.",
+  "environment": {
+    "image": "python@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea",
+    "network_mode": "Task public; fixed Docker Compose main.network_mode none",
+    "verifier_environment_mode": "separate",
+    "telemetry": "disabled",
+    "credentials": "minimal process env, freshHOME, no task secrets"
+  },
+  "command": "python3 -B research/harbor/run-experiment.py --batch artifact-001",
+  "stop": "Each Harbor job<=180 sec and max_retries0. Preserve infrastructure failures, do not relabel as verifier rejection.",
+  "limits": "Demonstrates actual evaluation/retention with fixed script. Not real agent quality, general malicious-agent isolation, resource limits, or production Linux sandbox proof. Docker engine is current WSL Linux engine.",
+  "amendments": [
+    {
+      "at_utc": "2026-09-12T18:25:43.259964+00:00",
+      "reason": "artifact-001 failed before trial selection: invalid enum none. Use documented no-network. Separate verifier uses image-owned tests (trial.py skip_tests_upload=True), so build pinned base with fixed verifier script at /tests/test.sh. These are fixture/environment syntax corrections; all four artifact predicates unchanged.",
+      "previous_batch": "artifact-001",
+      "command_next": "python3 -B research/harbor/run-experiment.py --batch artifact-002"
+    },
+    {
+      "at_utc": "2026-09-12T18:27:59.413328+00:00",
+      "reason": "artifact-002 rejected requested no-network before running because DockerEnvironment exposes network policy support only with optional egress control. Preserve refusal. Artifact experiment will supply fixed Compose network_mode:none directly for both agent/verifier, task policy public. This does not claim Harbor policy enforcement capability.",
+      "command_next": "python3 -B research/harbor/run-experiment.py --batch artifact-003"
+    },
+    {
+      "at_utc": "2026-09-12T18:29:49.012498+00:00",
+      "reason": "artifact-003 actually ran OracleAgent and collected42/41, but separate verifier creation failed because its image definition is tests/Dockerfile, not environment/Dockerfile. All trials CLI0 but exception recorded; not counted as verification support. Add same pinned Dockerfile and Compose to tests/ (its context already has fixed test.sh).",
+      "command_next": "python3 -B research/harbor/run-experiment.py --batch artifact-004"
+    }
+  ]
+}

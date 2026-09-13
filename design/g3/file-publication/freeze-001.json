@@ -1,0 +1,25 @@
+{
+  "status": "PREPARED_NOT_INTEGRATION_PASS",
+  "cases": [
+    "FP01",
+    "FP02",
+    "FP03",
+    "FP04",
+    "FP05",
+    "FP06"
+  ],
+  "inputs": {
+    "design/g3/file-publication/contract.md": "5f0af7132a73f5d2065794abf6054dc253d2a68bcce6fdacecf7a1affd9175fe",
+    "design/g3/file-publication/cases.json": "23ee38ebc9cda232b8f263351c0deb0fd5e88ba1469146c5c09a9115c40c2e27",
+    "validation/file_publication_probe.py": "359180c39b4f4d06f158fa9f939209a139f8aef5dfe474a0ec0f472fc246a1c3"
+  },
+  "missing_evidence": "validation/file-publication-evidence/missing-001/result.json",
+  "missing": {
+    "actual_runs": 0,
+    "copied_source": true,
+    "exit_code": 2,
+    "original_X_unchanged": true,
+    "source_unchanged": true,
+    "status": "MISSING"
+  }
+}

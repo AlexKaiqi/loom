@@ -1,0 +1,42 @@
+{
+  "id": "F-G3-OBSERVER-001",
+  "registered_utc": "2026-09-12T20:03:12.809435+00:00",
+  "controls": [
+    "complete_fixture",
+    "missing_ignored",
+    "missing_empty_directory",
+    "wrong_mode",
+    "good_binding",
+    "wrong_domain",
+    "missing_observation",
+    "missing_actual_tree",
+    "actual_rooted_archive",
+    "corrupt_archive_binding",
+    "restored_after_ignored",
+    "restored_after_empty",
+    "actual_complete_bundle",
+    "missing_archive_path",
+    "missing_manifest_path",
+    "wrong_manifest_hash",
+    "forged_member_valid_hash"
+  ],
+  "expected": "All17 predeclared judgments; structural controls isolated and positive restored; new complete bundle reads both actual paths and Git blobs plus real tar members; wrong/missing manifest and valid-hash fabricated member rejected.",
+  "driver_missing": "run_contract --module lore_files --batch component-missing-001 must exit2 MISSING with 0/19 executed; no component pass",
+  "fixture_entry": "test_contract.fixture on fresh directory; exact 13 members/raw bytes and observer snapshot persisted before candidate call",
+  "syntax": "ast.parse all local validation py source; no SUT implementation",
+  "output": [
+    "oracle-controls-001",
+    "component-missing-001",
+    "driver-preparation-001",
+    "oracle-controls-003",
+    "driver-preparation-003",
+    "component-missing-004",
+    "oracle-controls-004",
+    "driver-preparation-004",
+    "component-missing-005"
+  ],
+  "scope": "D02/D03 preparation only; actual component and X/R integration absent",
+  "revision": "FR05 before product; original PASS invalidated, old evidence retained",
+  "handshake_preparation": "Fresh actual file with owner read lease; child atomic ready+SIGIO+blocked writer directly observed within2s; relay original signal after verifier observes handshake; releasing lease permits AFTER bytes. This tests verifier helper, not F.",
+  "registered_revision_utc": "2026-09-12T20:25:21.559043+00:00"
+}

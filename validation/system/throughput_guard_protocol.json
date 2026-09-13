@@ -1,0 +1,15 @@
+{
+  "id": "THROUGHPUT-SOURCE-GUARD-002",
+  "utc": "2026-09-12T23:50:42.082582+00:00",
+  "status": "PREREGISTERED_BEFORE_GUARD_CHANGE",
+  "old_controls_sha256": "27879d217646920bd829e29ffd28140ee1a3ba0ce9a4c432695f82c91d7a49dc",
+  "old_preparation_sha256": "2eace086b127e69d2492ddecb94c6b55ec4ac2e0deee0b2c83952c8304fd2551",
+  "change": "Before any control execution, require actual copied workload bytes SHA equals predeclared throughput_protocol.workload.sha256. Missing or wrong declaration, or missing actual file, gives REJECTED_SOURCE with zero controls and nonzero exit.",
+  "new_calibration": [
+    "normal declared SHA: original17 controls PASS",
+    "missing declared SHA: REJECTED_SOURCE/0controls/exit2",
+    "wrong declared SHA: REJECTED_SOURCE/0controls/exit2",
+    "missing actual workload file: REJECTED_SOURCE/0controls/exit2"
+  ],
+  "not_changed": "Original workload/math/predicates/17 inventory or historical root PREPARATION_ONLY; no system or ordinary task execution."
+}

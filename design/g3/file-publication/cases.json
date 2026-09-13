@@ -1,0 +1,21 @@
+{
+  "schema": "lore-file-publication-cases/v1",
+  "ids": [
+    "FP01",
+    "FP02",
+    "FP03",
+    "FP04",
+    "FP05",
+    "FP06"
+  ],
+  "contract_sha256": "5f0af7132a73f5d2065794abf6054dc253d2a68bcce6fdacecf7a1affd9175fe",
+  "expected": {
+    "normal_revision": 2,
+    "normal_exchange_count": 1,
+    "scope_error": "reference_invalid",
+    "manual_error": "BASE_CHANGED",
+    "missing_exit": 2,
+    "failure_exit": 1,
+    "source_bound": true
+  }
+}

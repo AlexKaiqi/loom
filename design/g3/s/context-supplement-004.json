@@ -1,0 +1,71 @@
+{
+  "id": "S-CONTEXT-SUPPLEMENT-004",
+  "utc": "2026-09-12T21:02:11.913891+00:00",
+  "status": "PREREGISTERED_BEFORE_DRIVER_CHANGE",
+  "source_requirements": [
+    "V5-B060",
+    "V5-B056",
+    "V5-B059",
+    "V5-B061"
+  ],
+  "prior_index": {
+    "path": "design/g3/s/history/before-retrieval-004/design__g3__s__preparation-index.json",
+    "sha256": "082a6435f4014d444cd0c553cf481d83f7c97707abed94d05ae5e595fe3d0025"
+  },
+  "raw_requirement": "不预先展开全量目录树、所有文件和长篇 diff。允许模型在获授权环境中使用普通工具查找，但先让它知道正确路径和执行位置。",
+  "fixtures": {
+    "large_materials": {
+      "directories": 64,
+      "ordinary_files_per_directory": 8,
+      "diff_body_lines": 4096,
+      "selected_file": "catalog/area-37/REQUESTED_COMPONENT.txt",
+      "selected_text": "REQUESTED_FILE_FRAGMENT: component Delta uses bounded ordinary files.",
+      "selected_diff_line": "+REQUESTED_DIFF_FRAGMENT: Delta timeout changes from 3 to 5.",
+      "unselected_markers": [
+        "UNSELECTED_TREE_PATH_",
+        "UNSELECTED_FILE_BODY_",
+        "UNSELECTED_DIFF_BODY_"
+      ],
+      "initial_provider_payload_canonical_utf8_max_bytes": 32768,
+      "first_tool": "one ordinary workspace Python invocation using glob/read_text/hashlib; no retrieval-specific tool or Runtime API",
+      "total_provider_calls": 2,
+      "total_tools": 1
+    },
+    "clip": {
+      "source": "originals/log",
+      "prefix": "BEGIN saved execution log\nrequested operation: inspect fixture values [2,3,5]\n",
+      "body": "progress data_雪\n repeated 4096 times",
+      "suffix": "CHECK values_sum=10\nEND saved execution log\n",
+      "selected_view": "prefix and suffix only; exact half-open UTF8 byte ranges, source hash/size/owner/read_path and original immutable source_ref",
+      "scope": "This finite default external Harness profile uses an ordinary JSON text context block with clipped=true, source_ref, owner, read_path, source_sha256, source_bytes, retained_ranges, fragments. Other Harness formats/algorithms are not forbidden."
+    }
+  },
+  "predeclared_observations": [
+    "S027 first provider keeps goal, notes, event and saved-feedback fixture plus workspace path; excludes all unselected marker families and selected payload fragments; canonical payload<=32KiB.",
+    "Actual X tool resolves requested real file and diff through ordinary glob/read; stdout contains selected fragments and path/bytes/sha/input_ref descriptors of full file and full diff.",
+    "Raw Pi toolResult and next provider native toolResult retain actual fragments, source hashes and original input binding; no direct F insertion of selected feedback.",
+    "S020 actual clipped context block contains exact prefix/suffix, exact UTF8 byte ranges and original source owner/ref/read path/hash/size; retained source and full recall remain byte-identical. UNKNOWN_EXEC17 is only context, not proof of R responsibility."
+  ],
+  "known_bad": [
+    "eager_full_tree_or_file_or_diff_expansion",
+    "hide_all_context_or_disable_ordinary_lookup",
+    "invent_lookup_result_without_real_tool_stdout",
+    "lose_source_reference_after_tool",
+    "clipped_label_without_useful_fragments_or_exact_ranges",
+    "clipped_fragment_or_source_hash_mismatch"
+  ],
+  "preparation_plan": [
+    "Write finite fixture/script generator and actual driver/oracle branches after this file; no product code.",
+    "Run ordinary selected script against self-created files and save complete inputs/outputs as fixture preparation only.",
+    "Calibrate oracle with positive context blocks and explicit missing/incorrect fragment/range/hash plus eager-expansion variants; fixture origin is not real S proof.",
+    "Actual full S/X/F collector must remain MISSING until accepted dependencies and real entry exist."
+  ],
+  "limits": {
+    "fixture_bytes_max": 1048576,
+    "fixture_inodes_max": 1024,
+    "retrieval_stdout_bytes_max": 8192,
+    "preparation_command_seconds": 10,
+    "system_slot_contract": "design/g3/system/contract.md"
+  },
+  "responsibility_boundary": "Avoiding eager full expansion is a default external Harness projection policy; Runtime supplies authorized ordinary paths/bytes and must not hard-code directory ignoring. G5 still verifies actual system sources, model/tool permissions and unknown responsibility."
+}

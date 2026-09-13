@@ -1,0 +1,44 @@
+{
+  "id": "PI-MECH-01",
+  "kind": "exploratory actual durable local Session",
+  "preregistered_utc": "2026-09-12T18:29:04.935822+00:00",
+  "upstream_commit": "71dca871bc80b6bc97be37f0ca3189399d651fff",
+  "properties": [
+    "P01",
+    "P07",
+    "P12"
+  ],
+  "hypotheses": [
+    "H02",
+    "H10"
+  ],
+  "question": "Can actual JSONL Session/AgentHarness accept without execute, restore/drive/read original result across OS processes, expose external continuation, and avoid replay of unknown unsafe tool effects?",
+  "actual_code": [
+    "JsonlSessionRepo",
+    "JsonlStorage",
+    "NodeExecutionEnv filesystem",
+    "createAgentHarness",
+    "Lane.accept/drive/getResult",
+    "HookRegistry.before_run_end",
+    "drive/tools recoverToolInvocation",
+    "upstream fauxProvider"
+  ],
+  "fixtures": "Fixed faux provider, real own tool appends target file. Tool kills only experiment worker after append before return. No real model/keys/network. Query audit records provider callback; target effect measured separately.",
+  "oracle": [
+    "Accepted-only worker: durable prompt/op identity before process exit, zero provider/tool calls; new process inspect identifies same open operation and no result.",
+    "New process drive by same operation identity: fixed answer saved; third process getResult returns original record without provider query; JSONL target raw contains corresponding prompt/result entries.",
+    "External before_run_end policy returns one followUp then nothing: two fixed provider responses, followUp recorded, ordinary policy one response. Hook source remains external.",
+    "Re-submit same operationId while completed, same payload and changed payload in isolated independent copies: strict admission requires id/content binding. Observe actual result; rejection or accepted/overwritten old binding classified, never infer exact-id idempotency from name.",
+    "Unsafe tool crash after real append: process SIGKILL, effect1. New process attaches without calls; drive must not repeat unsafe tool, original assistant/toolCall identity retained, synthetic result must declare interrupted/unknown (not success).",
+    "Relevant failure control: identical crash marked replay=safe (wrong contract for append) may duplicate effect; record unsafe integration consequence rather than endorse replay-safe label.",
+    "Observer compares target effect file, call audit, actual Session file and getResult; inconsistent extra effect rejects."
+  ],
+  "command": "python3 research/pi/experiment.py <fresh-batch-name>",
+  "stop_conditions": "One normal accept/inspect/drive/query, external-policy run, two independent duplicate identity copies, unsafe/safe crash+resume. Each child<=30s, fixed responses<=3. Preserve failed batch.",
+  "limits": [
+    "JSONL backend only, same-host process loss; no fsync/power loss or multiprocess write exclusivity claim.",
+    "Full build failed on provider catalog/type issue; scoped source TSX resolves actual source with fixed faux provider, not a complete distribution build.",
+    "No explicit harness_version/source_result request fields in public OperationRequest; adapter responsibility unresolved.",
+    "No system G3/G5 acceptance from experiment."
+  ]
+}

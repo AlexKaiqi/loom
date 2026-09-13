@@ -1,0 +1,1781 @@
+{
+  "scope": "Traceability index, not a gate verdict or proof of complete requirement coverage",
+  "source_sha256": {
+    "design/g1/cases-durability.json": "fcd8f28d3e9eb245cef55f5716a404e458fff0d9ec3f5f7c75906e2490f3f861",
+    "design/g1/cases-boundaries.json": "c6a156b4b779a9c4e2c70c4ca94ca126d9909a4fbfa5cf787b6601257d91d441",
+    "design/g1/cases-strategy.json": "c29b132edd3a8c09ba399cb3cd3c1183ecc83cfe7e362f7c9ae4342b7ee50a60",
+    "design/g1/cases-durability-supplement.json": "b09e071a2adc9faeafc34deb94d7708f14ef582354cc7dc58eeda2f2c4b0f26a"
+  },
+  "properties": [
+    {
+      "property": "P01",
+      "source_requirements": [
+        "V5-A001",
+        "V5-A002",
+        "V5-A003",
+        "V5-A004",
+        "V5-A005",
+        "V5-A006",
+        "V5-A011",
+        "V5-A012",
+        "V5-A015",
+        "V5-A016",
+        "V5-A017",
+        "V5-A026",
+        "V5-A027",
+        "V5-A029",
+        "V5-A030",
+        "V5-A031",
+        "V5-A032",
+        "V5-A034",
+        "V5-A052",
+        "V5-A059",
+        "V5-A061",
+        "V5-A062",
+        "V5-A063",
+        "V5-A064",
+        "V5-A065",
+        "V5-A066",
+        "V5-A067",
+        "V5-A072",
+        "V5-A077",
+        "V5-A078",
+        "V5-A079",
+        "V5-A080",
+        "V5-A082",
+        "V5-A093",
+        "V5-A096",
+        "V5-A102",
+        "V5-A107",
+        "V5-A109",
+        "V5-B002",
+        "V5-B022",
+        "V5-B023",
+        "V5-B024",
+        "V5-B027",
+        "V5-B028",
+        "V5-B029",
+        "V5-B030",
+        "V5-B031",
+        "V5-B033",
+        "V5-B035",
+        "V5-B037",
+        "V5-B038",
+        "V5-B039",
+        "V5-B040",
+        "V5-B042",
+        "V5-B043",
+        "V5-B045",
+        "V5-B047",
+        "V5-B052",
+        "V5-B055",
+        "V5-B064",
+        "V5-B067",
+        "V5-B069",
+        "V5-B072",
+        "V5-B075",
+        "V5-B081",
+        "V5-B093",
+        "V5-B095",
+        "V5-B099",
+        "R001",
+        "R002",
+        "R003",
+        "R004",
+        "R005",
+        "R015"
+      ],
+      "preregistered_main_cases": [
+        "G1-BND-018",
+        "G1-STR-001",
+        "G1-STR-003"
+      ],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H02",
+        "H10"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P02",
+      "source_requirements": [
+        "V5-A002",
+        "V5-A020",
+        "V5-A024",
+        "V5-A025",
+        "V5-A028",
+        "V5-A035",
+        "V5-A036",
+        "V5-A043",
+        "V5-A062",
+        "V5-A105",
+        "V5-A106",
+        "V5-A107",
+        "V5-A108",
+        "V5-A110",
+        "V5-A111",
+        "V5-A112",
+        "V5-B001",
+        "V5-B002",
+        "V5-B003",
+        "V5-B004",
+        "V5-B005",
+        "V5-B007",
+        "V5-B009",
+        "V5-B010",
+        "V5-B011",
+        "V5-B012",
+        "V5-B050",
+        "V5-B051",
+        "V5-B070",
+        "V5-B076",
+        "V5-B092",
+        "R004",
+        "R006",
+        "R008",
+        "R009",
+        "R017"
+      ],
+      "preregistered_main_cases": [
+        "G1-BND-001",
+        "G1-BND-002",
+        "G1-BND-003",
+        "G1-BND-004",
+        "G1-BND-005",
+        "G1-BND-006",
+        "G1-BND-009",
+        "G1-BND-017",
+        "G1-BND-021"
+      ],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H04",
+        "H05"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P03",
+      "source_requirements": [
+        "V5-A037",
+        "V5-A038",
+        "V5-A046",
+        "V5-A047",
+        "V5-B094"
+      ],
+      "preregistered_main_cases": [
+        "G1-BND-008",
+        "G1-BND-009",
+        "G1-BND-010",
+        "G1-BND-011",
+        "G1-BND-012"
+      ],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H04",
+        "H05"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P04",
+      "source_requirements": [
+        "V5-A010",
+        "V5-A014",
+        "V5-A015",
+        "V5-A019",
+        "V5-A030",
+        "V5-A031",
+        "V5-A035",
+        "V5-A039",
+        "V5-A040",
+        "V5-A041",
+        "V5-A044",
+        "V5-A045",
+        "V5-A047",
+        "V5-A071",
+        "V5-A111",
+        "V5-A114",
+        "V5-B016",
+        "V5-B050",
+        "V5-B074",
+        "V5-B084",
+        "V5-B087",
+        "V5-B090",
+        "V5-B096",
+        "R010"
+      ],
+      "preregistered_main_cases": [
+        "G1-BND-011",
+        "G1-BND-012",
+        "G1-BND-013",
+        "G1-BND-014",
+        "G1-BND-017",
+        "G1-BND-018",
+        "G1-BND-019",
+        "G1-BND-020"
+      ],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H01",
+        "H06",
+        "H07",
+        "H08"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P05",
+      "source_requirements": [
+        "V5-A014",
+        "V5-A023",
+        "V5-A025",
+        "V5-A036",
+        "V5-A043",
+        "V5-A048",
+        "V5-A049",
+        "V5-A053",
+        "V5-A056",
+        "V5-A057",
+        "V5-A087",
+        "V5-B003",
+        "V5-B004",
+        "V5-B005",
+        "V5-B006",
+        "V5-B007",
+        "V5-B008",
+        "V5-B010",
+        "V5-B011",
+        "V5-B013",
+        "V5-B017",
+        "V5-B053",
+        "V5-B078",
+        "V5-B079",
+        "V5-B092",
+        "V5-B096",
+        "R001",
+        "R008",
+        "R009",
+        "R014"
+      ],
+      "preregistered_main_cases": [
+        "G1-BND-001",
+        "G1-BND-002",
+        "G1-BND-003",
+        "G1-BND-004",
+        "G1-BND-005",
+        "G1-BND-006",
+        "G1-BND-007",
+        "G1-BND-010"
+      ],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H04",
+        "H05"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P06",
+      "source_requirements": [
+        "V5-A008",
+        "V5-A009",
+        "V5-A023",
+        "V5-A050",
+        "V5-A051",
+        "V5-A054",
+        "V5-A060",
+        "V5-A096",
+        "V5-B019",
+        "V5-B034",
+        "V5-B044",
+        "V5-B045",
+        "V5-B080",
+        "V5-B081",
+        "V5-B094",
+        "R007",
+        "R008",
+        "R011",
+        "R014",
+        "R015"
+      ],
+      "preregistered_main_cases": [
+        "DUR-022",
+        "DUR-023",
+        "DUR-024"
+      ],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H03",
+        "H08",
+        "H09"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P07",
+      "source_requirements": [
+        "V5-A010",
+        "V5-A015",
+        "V5-A017",
+        "V5-A022",
+        "V5-A023",
+        "V5-A029",
+        "V5-A030",
+        "V5-A031",
+        "V5-A032",
+        "V5-A042",
+        "V5-A050",
+        "V5-A052",
+        "V5-A055",
+        "V5-A059",
+        "V5-A060",
+        "V5-A061",
+        "V5-A065",
+        "V5-A066",
+        "V5-A068",
+        "V5-A073",
+        "V5-A092",
+        "V5-A093",
+        "V5-A096",
+        "V5-A108",
+        "V5-A114",
+        "V5-B014",
+        "V5-B019",
+        "V5-B021",
+        "V5-B023",
+        "V5-B025",
+        "V5-B027",
+        "V5-B028",
+        "V5-B030",
+        "V5-B034",
+        "V5-B037",
+        "V5-B039",
+        "V5-B040",
+        "V5-B041",
+        "V5-B044",
+        "V5-B045",
+        "V5-B048",
+        "V5-B056",
+        "V5-B057",
+        "V5-B059",
+        "V5-B061",
+        "V5-B066",
+        "V5-B068",
+        "V5-B069",
+        "V5-B078",
+        "V5-B080",
+        "V5-B081",
+        "V5-B084",
+        "V5-B085",
+        "V5-B087",
+        "V5-B088",
+        "V5-B093",
+        "V5-B098",
+        "R001",
+        "R002",
+        "R003",
+        "R006",
+        "R007",
+        "R011",
+        "R017"
+      ],
+      "preregistered_main_cases": [
+        "DUR-006",
+        "DUR-007",
+        "DUR-008",
+        "DUR-009",
+        "DUR-010",
+        "DUR-011",
+        "DUR-013",
+        "DUR-014",
+        "DUR-015",
+        "DUR-017",
+        "DUR-018",
+        "DUR-019",
+        "DUR-020",
+        "DUR-021",
+        "DUR-022",
+        "DUR-023",
+        "DUR-025",
+        "DUR-027",
+        "DUR-028",
+        "G1-BND-018",
+        "G1-BND-020",
+        "DUR-S001",
+        "DUR-S002"
+      ],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H01",
+        "H02",
+        "H03",
+        "H08",
+        "H09"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P08",
+      "source_requirements": [
+        "V5-A021",
+        "V5-A031",
+        "V5-A036",
+        "V5-A069",
+        "V5-A081",
+        "V5-A082",
+        "V5-A087",
+        "V5-A090",
+        "V5-A092",
+        "V5-A098",
+        "V5-A099",
+        "V5-A100",
+        "V5-A102",
+        "V5-A104",
+        "V5-A107",
+        "V5-A110",
+        "V5-B005",
+        "V5-B008",
+        "V5-B029",
+        "V5-B031",
+        "V5-B053",
+        "V5-B054",
+        "V5-B071",
+        "V5-B072",
+        "V5-B089",
+        "V5-B091",
+        "R013"
+      ],
+      "preregistered_main_cases": [
+        "G1-BND-001",
+        "G1-BND-002",
+        "G1-BND-007",
+        "G1-BND-014",
+        "G1-BND-015",
+        "G1-BND-016",
+        "G1-BND-017",
+        "G1-BND-018",
+        "G1-BND-020",
+        "G1-BND-021"
+      ],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H04"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P09",
+      "source_requirements": [
+        "V5-A021",
+        "V5-A070",
+        "V5-A074",
+        "V5-A075",
+        "V5-A081",
+        "V5-A082",
+        "V5-A083",
+        "V5-A084",
+        "V5-A085",
+        "V5-A086",
+        "V5-A098",
+        "V5-A100",
+        "V5-A101",
+        "V5-A103",
+        "V5-B032",
+        "V5-B054",
+        "V5-B065",
+        "V5-B071",
+        "V5-B073",
+        "V5-B078",
+        "V5-B089",
+        "V5-B091",
+        "V5-B096",
+        "R011",
+        "R013"
+      ],
+      "preregistered_main_cases": [
+        "DUR-001",
+        "DUR-002",
+        "DUR-003",
+        "DUR-004",
+        "DUR-005",
+        "DUR-019",
+        "DUR-028",
+        "DUR-S001",
+        "DUR-S002"
+      ],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H01",
+        "H02",
+        "H03"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P10",
+      "source_requirements": [
+        "V5-A005",
+        "V5-A021",
+        "V5-A022",
+        "V5-A026",
+        "V5-A028",
+        "V5-A052",
+        "V5-A070",
+        "V5-A071",
+        "V5-A072",
+        "V5-A073",
+        "V5-A074",
+        "V5-A075",
+        "V5-A076",
+        "V5-A078",
+        "V5-A088",
+        "V5-A089",
+        "V5-A090",
+        "V5-A091",
+        "V5-A092",
+        "V5-A094",
+        "V5-A095",
+        "V5-A096",
+        "V5-A097",
+        "V5-A103",
+        "V5-A104",
+        "V5-B023",
+        "V5-B033",
+        "V5-B034",
+        "V5-B048",
+        "V5-B071",
+        "V5-B081",
+        "V5-B089",
+        "V5-B094",
+        "V5-B096",
+        "R006",
+        "R011",
+        "R013"
+      ],
+      "preregistered_main_cases": [
+        "DUR-007",
+        "DUR-008",
+        "DUR-013",
+        "DUR-014",
+        "DUR-015",
+        "DUR-016",
+        "DUR-017",
+        "DUR-018",
+        "DUR-019",
+        "DUR-020",
+        "DUR-021",
+        "DUR-022",
+        "DUR-025",
+        "DUR-026",
+        "DUR-027",
+        "DUR-028",
+        "DUR-S001",
+        "DUR-S002"
+      ],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H01",
+        "H03",
+        "H09"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P11",
+      "source_requirements": [
+        "V5-A040",
+        "V5-A041",
+        "V5-A057",
+        "V5-A104",
+        "V5-B014",
+        "V5-B015",
+        "V5-B016",
+        "V5-B017",
+        "V5-B018",
+        "V5-B020",
+        "V5-B041",
+        "V5-B059",
+        "V5-B078",
+        "V5-B079",
+        "V5-B084",
+        "V5-B085",
+        "V5-B086",
+        "V5-B087",
+        "V5-B088",
+        "V5-B098",
+        "R008",
+        "R009",
+        "R011"
+      ],
+      "preregistered_main_cases": [
+        "DUR-006",
+        "DUR-007",
+        "DUR-010",
+        "DUR-011",
+        "DUR-012",
+        "DUR-019",
+        "DUR-024",
+        "DUR-025",
+        "DUR-028",
+        "G1-BND-020",
+        "DUR-S001",
+        "DUR-S002"
+      ],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H02",
+        "H05",
+        "H07"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P12",
+      "source_requirements": [
+        "V5-A003",
+        "V5-A011",
+        "V5-A012",
+        "V5-A016",
+        "V5-A018",
+        "V5-A019",
+        "V5-A076",
+        "V5-A088",
+        "V5-A089",
+        "V5-A090",
+        "V5-A105",
+        "V5-A109",
+        "V5-A111",
+        "V5-A112",
+        "V5-A113",
+        "V5-A114",
+        "V5-B026",
+        "V5-B038",
+        "V5-B046",
+        "V5-B047",
+        "V5-B048",
+        "V5-B049",
+        "V5-B050",
+        "V5-B051",
+        "V5-B055",
+        "V5-B056",
+        "V5-B057",
+        "V5-B058",
+        "V5-B059",
+        "V5-B060",
+        "V5-B061",
+        "V5-B062",
+        "V5-B063",
+        "V5-B064",
+        "V5-B074",
+        "V5-B076",
+        "V5-B090",
+        "R002",
+        "R003",
+        "R005",
+        "R007",
+        "R010"
+      ],
+      "preregistered_main_cases": [
+        "G1-BND-011",
+        "G1-BND-012",
+        "G1-BND-013",
+        "G1-BND-016",
+        "G1-BND-018",
+        "G1-BND-019",
+        "G1-BND-020",
+        "G1-BND-021",
+        "G1-STR-002"
+      ],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H01",
+        "H02",
+        "H06",
+        "H10"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P13",
+      "source_requirements": [
+        "V5-A027",
+        "V5-A078",
+        "V5-A097",
+        "V5-A113",
+        "V5-B001",
+        "V5-B012",
+        "V5-B026",
+        "V5-B031",
+        "V5-B032",
+        "V5-B035",
+        "V5-B036",
+        "V5-B038",
+        "V5-B040",
+        "V5-B042",
+        "V5-B043",
+        "V5-B046",
+        "V5-B051",
+        "V5-B052",
+        "V5-B053",
+        "V5-B054",
+        "V5-B055",
+        "V5-B062",
+        "V5-B063",
+        "V5-B065",
+        "V5-B066",
+        "V5-B067",
+        "V5-B068",
+        "V5-B070",
+        "V5-B071",
+        "V5-B072",
+        "V5-B073",
+        "V5-B074",
+        "V5-B075",
+        "V5-B076",
+        "V5-B077",
+        "V5-B083",
+        "V5-B097",
+        "V5-B098",
+        "V5-B099",
+        "R004",
+        "R017"
+      ],
+      "preregistered_main_cases": [
+        "G1-STR-002",
+        "G1-STR-003"
+      ],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H01",
+        "H02",
+        "H03",
+        "H04",
+        "H06",
+        "H08",
+        "H10"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P14",
+      "source_requirements": [
+        "V5-A006",
+        "V5-A007",
+        "V5-A063",
+        "V5-B082",
+        "V5-B083",
+        "V5-B094",
+        "V5-B097",
+        "V5-B099",
+        "R005",
+        "R012"
+      ],
+      "preregistered_main_cases": [],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H04",
+        "H05",
+        "H10"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    },
+    {
+      "property": "P15",
+      "source_requirements": [
+        "V5-A009",
+        "V5-A014",
+        "V5-A058",
+        "V5-B082",
+        "V5-B083",
+        "V5-B094",
+        "V5-B096",
+        "V5-B097",
+        "V5-B099"
+      ],
+      "preregistered_main_cases": [],
+      "g1_scope": "Finite traces and design argument only; not full property verification",
+      "real_world_premises": [
+        "H03",
+        "H08",
+        "H09"
+      ],
+      "runtime_verdict": "UNVERIFIED",
+      "next_evidence": "G2 mechanism experiment then G3/G4 component and G5 system evidence; P14/P15 comparison and scale baselines must precede corresponding implementation"
+    }
+  ],
+  "requirements_without_main_case": [
+    "V5-A002",
+    "V5-A003",
+    "V5-A004",
+    "V5-A005",
+    "V5-A006",
+    "V5-A007",
+    "V5-A009",
+    "V5-A011",
+    "V5-A012",
+    "V5-A013",
+    "V5-A014",
+    "V5-A015",
+    "V5-A016",
+    "V5-A017",
+    "V5-A018",
+    "V5-A019",
+    "V5-A020",
+    "V5-A022",
+    "V5-A023",
+    "V5-A026",
+    "V5-A027",
+    "V5-A028",
+    "V5-A029",
+    "V5-A030",
+    "V5-A031",
+    "V5-A032",
+    "V5-A033",
+    "V5-A034",
+    "V5-A043",
+    "V5-A049",
+    "V5-A052",
+    "V5-A053",
+    "V5-A054",
+    "V5-A055",
+    "V5-A058",
+    "V5-A060",
+    "V5-A061",
+    "V5-A062",
+    "V5-A064",
+    "V5-A065",
+    "V5-A066",
+    "V5-A067",
+    "V5-A068",
+    "V5-A070",
+    "V5-A072",
+    "V5-A074",
+    "V5-A075",
+    "V5-A077",
+    "V5-A078",
+    "V5-A079",
+    "V5-A080",
+    "V5-A082",
+    "V5-A085",
+    "V5-A089",
+    "V5-A097",
+    "V5-A098",
+    "V5-A103",
+    "V5-A104",
+    "V5-A105",
+    "V5-A109",
+    "V5-A111",
+    "V5-A113",
+    "V5-B002",
+    "V5-B009",
+    "V5-B014",
+    "V5-B021",
+    "V5-B023",
+    "V5-B024",
+    "V5-B030",
+    "V5-B033",
+    "V5-B035",
+    "V5-B036",
+    "V5-B037",
+    "V5-B038",
+    "V5-B039",
+    "V5-B044",
+    "V5-B045",
+    "V5-B048",
+    "V5-B049",
+    "V5-B052",
+    "V5-B054",
+    "V5-B055",
+    "V5-B058",
+    "V5-B062",
+    "V5-B063",
+    "V5-B064",
+    "V5-B069",
+    "V5-B070",
+    "V5-B071",
+    "V5-B072",
+    "V5-B073",
+    "V5-B075",
+    "V5-B076",
+    "V5-B077",
+    "V5-B082",
+    "V5-B083",
+    "V5-B088",
+    "V5-B089",
+    "V5-B090",
+    "V5-B091",
+    "V5-B092",
+    "V5-B093",
+    "V5-B094",
+    "V5-B095",
+    "V5-B096",
+    "V5-B097",
+    "V5-B098",
+    "V5-B099",
+    "U001",
+    "U002",
+    "U003",
+    "U004",
+    "U005",
+    "U006",
+    "U007",
+    "U008",
+    "U009",
+    "U010",
+    "U011",
+    "U012",
+    "R001",
+    "R002",
+    "R003",
+    "R004",
+    "R005",
+    "R006",
+    "R007",
+    "R008",
+    "R009",
+    "R010",
+    "R011",
+    "R012",
+    "R013",
+    "R014",
+    "R015",
+    "R016",
+    "R017",
+    "R018",
+    "R019"
+  ],
+  "case_index": [
+    {
+      "suite": "durability",
+      "case": "DUR-001",
+      "properties": [
+        "P09"
+      ],
+      "source_requirement_ids": [
+        "V5-A081",
+        "V5-A083",
+        "V5-A086"
+      ],
+      "title": "写出字节不等于受理"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-002",
+      "properties": [
+        "P09"
+      ],
+      "source_requirement_ids": [
+        "V5-A083",
+        "V5-A100",
+        "V5-B032",
+        "V5-B065"
+      ],
+      "title": "受理、登记完成与启动三个阶段"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-003",
+      "properties": [
+        "P09"
+      ],
+      "source_requirement_ids": [
+        "V5-A083",
+        "V5-A084"
+      ],
+      "title": "保存后丢回执与相同身份重试"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-004",
+      "properties": [
+        "P09"
+      ],
+      "source_requirement_ids": [
+        "V5-A084"
+      ],
+      "title": "同身份不同内容必须冲突"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-005",
+      "properties": [
+        "P09"
+      ],
+      "source_requirement_ids": [
+        "V5-A083",
+        "V5-A084",
+        "V5-A100",
+        "V5-B032"
+      ],
+      "title": "操作完成回执丢失可以查询原完成事实"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-006",
+      "properties": [
+        "P07",
+        "P11"
+      ],
+      "source_requirement_ids": [
+        "V5-A010",
+        "V5-B084",
+        "V5-B085"
+      ],
+      "title": "未保存结果不能由易失内容猜测恢复"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-007",
+      "properties": [
+        "P07",
+        "P10",
+        "P11"
+      ],
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-B025",
+        "V5-B028",
+        "V5-B040",
+        "V5-B085"
+      ],
+      "title": "结果保存后至继续登记前崩溃"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-008",
+      "properties": [
+        "P07",
+        "P10"
+      ],
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A092",
+        "V5-B028"
+      ],
+      "title": "已受理下一步在启动前崩溃"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-009",
+      "properties": [
+        "P07"
+      ],
+      "source_requirement_ids": [
+        "V5-A010",
+        "V5-A042",
+        "V5-A050",
+        "V5-B084",
+        "V5-B085"
+      ],
+      "title": "已确认恢复集合跨全部易失域丢失仍保留"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-010",
+      "properties": [
+        "P11",
+        "P07"
+      ],
+      "source_requirement_ids": [
+        "V5-B015",
+        "V5-B020",
+        "V5-B041",
+        "V5-B086"
+      ],
+      "title": "未知副作用查询发现已完成，不重做"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-011",
+      "properties": [
+        "P11",
+        "P07"
+      ],
+      "source_requirement_ids": [
+        "V5-B020",
+        "V5-B079",
+        "V5-B086"
+      ],
+      "title": "未知副作用无法查询时暂停并保留责任"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-012",
+      "properties": [
+        "P11"
+      ],
+      "source_requirement_ids": [
+        "V5-B015",
+        "V5-B016",
+        "V5-B086"
+      ],
+      "title": "暂时查无结果不等于安全重试"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-013",
+      "properties": [
+        "P10",
+        "P07"
+      ],
+      "source_requirement_ids": [
+        "V5-A094",
+        "V5-A095",
+        "V5-A096",
+        "V5-B081"
+      ],
+      "title": "目标条件发生于登记等待之前"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-014",
+      "properties": [
+        "P10",
+        "P07"
+      ],
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A095",
+        "V5-B081"
+      ],
+      "title": "检查后登记之间发生条件"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-015",
+      "properties": [
+        "P10",
+        "P07"
+      ],
+      "source_requirement_ids": [
+        "V5-A095",
+        "V5-A096",
+        "V5-B081"
+      ],
+      "title": "条件发生于等待受理之后"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-016",
+      "properties": [
+        "P10"
+      ],
+      "source_requirement_ids": [
+        "V5-A090",
+        "V5-A095"
+      ],
+      "title": "明确起点排除不属于本次等待的旧事件"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-017",
+      "properties": [
+        "P07",
+        "P10"
+      ],
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A094",
+        "V5-A096",
+        "V5-B034",
+        "V5-B081"
+      ],
+      "title": "通知丢失且底座重启仍恢复等待交付"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-018",
+      "properties": [
+        "P07",
+        "P10"
+      ],
+      "source_requirement_ids": [
+        "V5-A092",
+        "V5-A093"
+      ],
+      "title": "读取事件视图不是消费完成"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-019",
+      "properties": [
+        "P07",
+        "P09",
+        "P10",
+        "P11"
+      ],
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A084",
+        "V5-A092"
+      ],
+      "title": "重复通知不重做已处理输入的实际动作"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-020",
+      "properties": [
+        "P07",
+        "P10"
+      ],
+      "source_requirement_ids": [
+        "V5-A071",
+        "V5-A090",
+        "V5-B085"
+      ],
+      "title": "恢复承诺仍有效时不能过期删除依据"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-021",
+      "properties": [
+        "P07",
+        "P10"
+      ],
+      "source_requirement_ids": [
+        "V5-A071",
+        "V5-B084",
+        "V5-B085"
+      ],
+      "title": "归档可改变位置但不改变恢复内容与身份"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-022",
+      "properties": [
+        "P06",
+        "P07",
+        "P10"
+      ],
+      "source_requirement_ids": [
+        "V5-A008",
+        "V5-A050",
+        "V5-A051",
+        "V5-A096",
+        "V5-B080"
+      ],
+      "title": "等待期任务资源归零而共享底座可保留"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-023",
+      "properties": [
+        "P06",
+        "P07"
+      ],
+      "source_requirement_ids": [
+        "V5-A050",
+        "V5-A096",
+        "V5-B019"
+      ],
+      "title": "等待确认必须晚于必要状态持久确认"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-024",
+      "properties": [
+        "P11",
+        "P06"
+      ],
+      "source_requirement_ids": [
+        "V5-A057",
+        "V5-B017",
+        "V5-B018"
+      ],
+      "title": "取消受理不是进程实际停止"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-025",
+      "properties": [
+        "P07",
+        "P10",
+        "P11"
+      ],
+      "source_requirement_ids": [
+        "V5-B087",
+        "V5-A092"
+      ],
+      "title": "事件回放只恢复事实，不重做描述的动作"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-026",
+      "properties": [
+        "P10"
+      ],
+      "source_requirement_ids": [
+        "V5-A071",
+        "V5-A090"
+      ],
+      "title": "承诺期外缺失也须显式报告，不伪造空历史成功"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-027",
+      "properties": [
+        "P07",
+        "P10"
+      ],
+      "source_requirement_ids": [
+        "V5-B028",
+        "V5-B029",
+        "V5-B031",
+        "V5-B067"
+      ],
+      "title": "保存结果后的停止策略不被恢复器强行继续"
+    },
+    {
+      "suite": "durability",
+      "case": "DUR-028",
+      "properties": [
+        "P07",
+        "P09",
+        "P10",
+        "P11"
+      ],
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A084",
+        "V5-B027",
+        "V5-B028",
+        "V5-B085"
+      ],
+      "title": "已受理决定 A 不因恢复后候选变为 B 而被改写"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-001",
+      "properties": [
+        "P02",
+        "P05",
+        "P08"
+      ],
+      "source_requirement_ids": [
+        "V5-A024",
+        "V5-A025",
+        "V5-A035",
+        "V5-A036",
+        "V5-B003",
+        "V5-B004",
+        "V5-B005"
+      ],
+      "title": "双域授权写入与控制状态保持分离"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-002",
+      "properties": [
+        "P02",
+        "P05",
+        "P08"
+      ],
+      "source_requirement_ids": [
+        "V5-B007",
+        "V5-B008",
+        "V5-A025",
+        "V5-A110"
+      ],
+      "title": "调用文本与 blocks 不得决定身份和启动权限"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-003",
+      "properties": [
+        "P02",
+        "P05"
+      ],
+      "source_requirement_ids": [
+        "V5-B011",
+        "V5-B007",
+        "V5-A107"
+      ],
+      "title": "无权或未登记目标必须拒绝且无宿主回退"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-004",
+      "properties": [
+        "P02",
+        "P05"
+      ],
+      "source_requirement_ids": [
+        "V5-B010",
+        "V5-B011",
+        "V5-B012"
+      ],
+      "title": "相同位置对应多个环境时不能选第一个匹配"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-005",
+      "properties": [
+        "P02",
+        "P05"
+      ],
+      "source_requirement_ids": [
+        "V5-B010",
+        "V5-A036",
+        "V5-A048",
+        "V5-B078"
+      ],
+      "title": "路径别名及授权检查后的目标变化不能穿透对象边界"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-006",
+      "properties": [
+        "P02",
+        "P05"
+      ],
+      "source_requirement_ids": [
+        "V5-B001",
+        "V5-B010",
+        "V5-B012",
+        "V5-B050"
+      ],
+      "title": "一次执行固定环境，脚本 cd 和内容不触发跨域路由"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-007",
+      "properties": [
+        "P05",
+        "P08"
+      ],
+      "source_requirement_ids": [
+        "V5-B006",
+        "V5-B013",
+        "V5-B005",
+        "V5-A056",
+        "V5-A087"
+      ],
+      "title": "不可见目录不能代替继承端点和开放句柄隔离"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-008",
+      "properties": [
+        "P03"
+      ],
+      "source_requirement_ids": [
+        "V5-A037",
+        "V5-A038",
+        "V5-A046"
+      ],
+      "title": "同 Surface 接管以旧写者实际失去写能力为前提"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-009",
+      "properties": [
+        "P03",
+        "P02"
+      ],
+      "source_requirement_ids": [
+        "V5-A037",
+        "V5-A038",
+        "V5-A063"
+      ],
+      "title": "共享 Workspace 需要独立于 Surface 锁的写者协调"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-010",
+      "properties": [
+        "P03",
+        "P05"
+      ],
+      "source_requirement_ids": [
+        "V5-A038",
+        "V5-A057",
+        "V5-B017",
+        "V5-B018",
+        "V5-B013"
+      ],
+      "title": "父进程退出或取消回执不足以证明整棵写者进程树停止"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-011",
+      "properties": [
+        "P03",
+        "P04",
+        "P12"
+      ],
+      "source_requirement_ids": [
+        "V5-A047",
+        "V5-A037",
+        "V5-A039"
+      ],
+      "title": "人工编辑必须进入冲突和版本判断，不能被当作不存在"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-012",
+      "properties": [
+        "P03",
+        "P04",
+        "P12"
+      ],
+      "source_requirement_ids": [
+        "V5-A045",
+        "V5-A047",
+        "V5-A046",
+        "V5-A090",
+        "V5-B047",
+        "V5-B046"
+      ],
+      "title": "多文件渲染依据必须对应明确的输入内容集合"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-013",
+      "properties": [
+        "P04",
+        "P12"
+      ],
+      "source_requirement_ids": [
+        "V5-A039",
+        "V5-A044",
+        "V5-A045",
+        "V5-A114",
+        "V5-B074"
+      ],
+      "title": "快照覆盖实际依赖的未跟踪文件和版本化产物引用"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-014",
+      "properties": [
+        "P04",
+        "P08"
+      ],
+      "source_requirement_ids": [
+        "V5-A035",
+        "V5-A039",
+        "V5-A040",
+        "V5-A041",
+        "V5-B050",
+        "V5-B087"
+      ],
+      "title": "回退选择明确两域版本，同时保留执行历史与外部效果"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-015",
+      "properties": [
+        "P08"
+      ],
+      "source_requirement_ids": [
+        "V5-A021",
+        "V5-A069",
+        "V5-A099",
+        "V5-A101",
+        "V5-A102",
+        "V5-B029",
+        "V5-B031"
+      ],
+      "title": "应用同名声明与成功文本不能伪造 Runtime 确认"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-016",
+      "properties": [
+        "P08",
+        "P12"
+      ],
+      "source_requirement_ids": [
+        "V5-A069",
+        "V5-A076",
+        "V5-A088",
+        "V5-A091",
+        "V5-A092"
+      ],
+      "title": "修改或读取输入视图不改变权威事实和消费责任"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-017",
+      "properties": [
+        "P02",
+        "P04",
+        "P08"
+      ],
+      "source_requirement_ids": [
+        "V5-A106",
+        "V5-A107",
+        "V5-A108",
+        "V5-B011"
+      ],
+      "title": "登记路径移动、删除和重绑定不得继续使用失效关系"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-018",
+      "properties": [
+        "P01",
+        "P04",
+        "P07",
+        "P08",
+        "P12"
+      ],
+      "source_requirement_ids": [
+        "V5-B027",
+        "V5-B047",
+        "V5-A108",
+        "V5-A039"
+      ],
+      "title": "已开始 Step 固定 Harness 的模型、模板及解析规则版本"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-019",
+      "properties": [
+        "P12",
+        "P04"
+      ],
+      "source_requirement_ids": [
+        "V5-B056",
+        "V5-B057",
+        "V5-B060",
+        "V5-B061",
+        "V5-A114"
+      ],
+      "title": "裁剪仅改变投影，原始日志完整且可按授权取回"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-020",
+      "properties": [
+        "P04",
+        "P07",
+        "P08",
+        "P11",
+        "P12"
+      ],
+      "source_requirement_ids": [
+        "V5-B059",
+        "V5-B061",
+        "V5-B041",
+        "V5-A040"
+      ],
+      "title": "裁剪与窗口推进不能删除未知结果的核对责任"
+    },
+    {
+      "suite": "boundaries",
+      "case": "G1-BND-021",
+      "properties": [
+        "P02",
+        "P08",
+        "P12"
+      ],
+      "source_requirement_ids": [
+        "V5-B026",
+        "V5-B050",
+        "V5-B051",
+        "V5-B053",
+        "V5-A110",
+        "V5-A112"
+      ],
+      "title": "投影路径、版本与普通内容执行边界保持明确"
+    },
+    {
+      "suite": "strategy",
+      "case": "G1-STR-001",
+      "properties": [
+        "P01"
+      ],
+      "source_requirement_ids": [
+        "V5-A001",
+        "V5-A059",
+        "V5-B022",
+        "V5-B029",
+        "V5-B040"
+      ],
+      "title": "相同反馈由外部策略决定不同继续行为"
+    },
+    {
+      "suite": "strategy",
+      "case": "G1-STR-002",
+      "properties": [
+        "P12",
+        "P13"
+      ],
+      "source_requirement_ids": [
+        "V5-B042",
+        "V5-B053",
+        "V5-B066",
+        "V5-B067"
+      ],
+      "title": "只有完整且合法的模型输出可成为本次最终回答"
+    },
+    {
+      "suite": "strategy",
+      "case": "G1-STR-003",
+      "properties": [
+        "P01",
+        "P13"
+      ],
+      "source_requirement_ids": [
+        "V5-B031",
+        "V5-B043",
+        "V5-B068"
+      ],
+      "title": "预算停止保留原因且不封闭Surface业务终态"
+    },
+    {
+      "suite": "durability-supplement",
+      "case": "DUR-S001",
+      "properties": [
+        "P07",
+        "P09",
+        "P10",
+        "P11"
+      ],
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A084",
+        "V5-B027",
+        "V5-B028",
+        "V5-B085"
+      ],
+      "title": "同一已接受决定的 source_result 变化须冲突且保留原关联"
+    },
+    {
+      "suite": "durability-supplement",
+      "case": "DUR-S002",
+      "properties": [
+        "P07",
+        "P09",
+        "P10",
+        "P11"
+      ],
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A084",
+        "V5-B027",
+        "V5-B028",
+        "V5-B085"
+      ],
+      "title": "同一已接受决定的 harness_version 变化须冲突且保留原关联"
+    }
+  ],
+  "open_supplement": "CLOSED by independent rerun and direct review; see g1-gate.json. Actual Runtime remains UNVERIFIED"
+}

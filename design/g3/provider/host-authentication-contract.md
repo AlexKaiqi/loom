@@ -1,0 +1,7 @@
+# Provider 已授权主机凭据与真实调用时限增量
+
+先行范围：S原provider-preparation第3—4项要求可信主机使用用户授权代理、最多60秒每次，Node/Harness保持无密钥。现已验WireClient仅支持无认证localhost、timeout<=2秒，不能把其组件通过当真实代理接线完成。
+
+最小实现：沿用原WireClient请求/响应映射与一次HTTP传输，无重试；构造时可注入可信 credential_provider 可调用对象，未提供时原行为不变。完整请求先通过原binding/model/targets/refs校验，才读取一次凭据；只在实际HTTP Authorization Bearer头使用，正文、URL、argv、环境、请求原件/association/result均不含凭据。回调/凭据不能由intent或Node frame提供。凭据限单行ASCII非空最多4096字节；异常拒绝无网络。保持原endpoint白名单由可信host对象选择。原timeout下界不变，上界由2秒增至已约定60秒，默认仍2秒；60秒为总请求界，不增加重试。
+
+实现前独立判据：用纯localhost真实HTTP读端与公开非秘密fixture token。实际合法Authorization头与原请求正文一致；未配置认证时头缺失；2.2秒延迟在显式3秒总时限内收到完整原body；invalid binding在凭据回调及HTTP之前拒绝；带CRLF凭据拒绝且0HTTP；timeout>60拒绝。原33项有限wire合同回归仍须通过。用例不读取真实密钥，源码与真实wire保存到新批次。随后正式S物理隔离通过再按原三实呼预算核真实代理，不用本localhost测试宣称真实兼容。

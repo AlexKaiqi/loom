@@ -1,0 +1,42 @@
+{
+  "schema": "lore-x-trusted-node-test-config/v1",
+  "status": "PREREGISTERED_CONFIGURATION_NOT_PRODUCT",
+  "source": "interface.json revision4 and root-approved additive trusted-config argv; original X argument envelope retained",
+  "required_fields": [
+    "schema",
+    "transport_principal",
+    "state_root",
+    "profiles",
+    "slots",
+    "grants",
+    "references",
+    "read_only_roots",
+    "allowed_harness_entries",
+    "dynamic_reference_authorities"
+  ],
+  "transport_principal": "Fixed by trusted runner before adapter startup. JSON peer arguments with transport_principal/trusted_config/profile_registry/slot_registry/checker must reject; config is only read by host-side adapter then supplied to X constructor.",
+  "profiles": "Array {id,path,sha256}; actual immutable profile file bytes, exact selected dependency manifest plus generated tsconfig closure checked. No peer profile installation.",
+  "slots": "Array of interface.slot.trusted_registration_required entries. Same state_root and immutable plan are shared across independent adapter owners. Registry changes after first use conflict and cannot create duplicate credits.",
+  "grants": "Array {ref,record}; ref has owner,id,record_path,sha256. Real record contains principal,operations and original_request complete bytes plus request_digest,namespace/session/generation,original source refs,slot_ref,role. X resolves actual record before each operation. Having a caller string is never a grant.",
+  "references": {
+    "snapshots": "Array {ref,registered_scope}. registered_scope fixed by trusted fixture from original accepted session/execution record and not read from supplied ref. Complete actual archive/manifest/record required.",
+    "F_views": "Array {version_ref,materialized_root,manifest_ref,domain,resource_id}; actual verified F original plus materialization.",
+    "owner_receipts": "Array {ref,registered_scope}; complete actual S owner receipt payload + file ref; owner scope is original X accepted execution, not supplied receipt context."
+  },
+  "read_only_roots": "Array of exact role/source/target/manifest_ref/content_ref objects. Targets fixed /opt,/harness,/input,/workspace. Dependency generated tsconfig is explicitly added to member manifest, original882 licensed files remain unchanged.",
+  "allowed_harness_entries": "Array {path,sha256,argv_modes}; exact ordinary file bytes. X does not parse Pi, test harness mode semantics or source code.",
+  "command_line": [
+    "--trusted-config",
+    "<absolute trusted file>",
+    "--trusted-config-sha256",
+    "<actual bytes hash>"
+  ],
+  "lifetime": "Configuration freezes trusted authority root/resolver identity/namespace/principal/profile/slot/grant rules, not all future facts. Unknown Engine IDs are registered as owner facts only after actual execution by trusted owner. Grants and original registrations never silently rebind; dynamic owner/restore facts append immutable refs and fsync. Peer cannot register, replace root or mutate rules.",
+  "not_authority": "This validation fixture is not a production S implementation. Actual X product must perform authority matching and durable calls/slot retention itself. Independent oracle compares raw files and actual Engine, not fixture accepted=true.",
+  "dynamic_reference_authorities": {
+    "root": "fixed trusted ordinary control root, never mounted into task",
+    "identity": "fixed resolver identity/principal/namespace and rule hashes, not supplied by peer",
+    "registration": "trusted S/F owner writes complete immutable files and append-only registration with real fsync; registry ID never rebinds bytes or scope. Future records may be registered without replacing constructor configuration.",
+    "expectation": "X obtains expected original execution/session tuple from its own previously accepted original request. Registered owner record alone cannot supply expected scope. Full registered ref/current actual bytes are compared; latest-path indirection forbidden."
+  }
+}

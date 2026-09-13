@@ -1,0 +1,33 @@
+{
+  "questions": [
+    "H02/H08: 2026最后公开 daemon SessionService 以原 ID 查询结果时是否依赖原活进程/内存索引？",
+    "H05: Delete 的进程组+树处理是否真正覆盖已脱离的 FD 写者？"
+  ],
+  "candidate": "v0.190.0 apps/daemon/pkg/session 真实 SessionService；较旧v0.53仅身份/职责对照",
+  "cases": [
+    "Create→Execute 显式 session/command ID，独立读真实产物及 GetSessionCommand；同 ID 相同/不同命令重交均观察，不能把拒绝重交冒充幂等内容复用。",
+    "在同 configDir 创建新 SessionService，再按原 ID Get/GetSessionCommand；比较物理日志留存与索引可恢复性。",
+    "普通子进程与 setsid 后孤儿化子进程分别预开自建文件 FD，Delete 后触发延迟写，独立比较内容与 child PID；记录 Delete 返回和实际旧写能力。"
+  ],
+  "limits": [
+    "运行固定历史源码包，不调用云 API、不使用现商业能力和文档承诺。",
+    "候选采用AGPL-3.0，源码直接复用需保留许可义务评估；当前仅机制研究。",
+    "不照搬上游AGENTS中Nix/全系统配置安装；当前授权要求局部依赖与宿主不改配置，使用固定原生Go及局部GOCACHE。"
+  ],
+  "id": "DAYTONA-G2-001",
+  "registered_utc": "2026-09-12T18:18:19.602501+00:00",
+  "status": "PREREGISTERED_EXPLORATORY_NOT_COMPONENT_ACCEPTANCE",
+  "source_of_criteria": [
+    "design/g1/alternatives-review.md:H04-H08",
+    "design/g1/research-questions.md",
+    "governance/runtime-acceptance-map.md"
+  ],
+  "commands": [
+    "实验脚本保存在本项目 experiment.py/experiment.mjs/experiment.go；由本项目 run_experiment.py 执行并保存完整命令及退出状态。"
+  ],
+  "stop_conditions": [
+    "每子进程最多45秒；构建最多300秒，超时/依赖失败留存，不计性质通过。",
+    "所有可写 fixture 限本项目 evidence/<batch>/fixture；不读取用户凭据或宿主非fixture文件内容。",
+    "相关错误对照必须真正执行相同候选或明确的无保护fixture，不能从 expected 填观察输出。"
+  ]
+}

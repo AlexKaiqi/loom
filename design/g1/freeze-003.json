@@ -1,0 +1,9 @@
+{
+  "id": "G1-FREEZE-003",
+  "scope": "Execution inventory projection for already frozen criteria; 53 positive and 54 negative runs",
+  "source_commit": "cddeb83210854d3b30eca2bf571570371f4fa613",
+  "time_utc": "2026-09-12T17:53:41.190421+00:00",
+  "inputs_sha256": {
+    "design/g1/execution-inventory.json": "104cf2204ad73ae8e18405001986d50a942af81b3ee3aa87a0759593ed3e70ac"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "id": "S-PHYSICAL-WITNESS-PREP-003",
+  "utc": "2026-09-12T20:43:24.845599+00:00",
+  "scope": "Exercise only new independent OS observer with one fixed existing Engine exec; not S implementation or formal S case",
+  "actions": [
+    "Create fixed root/cap0 keeper under S512MiB profile",
+    "Start exactly one fixed UID1000/cap0 ordinary Python wait via actual Engine API",
+    "Observe actual exec argv/UID/PID namespace with two sequential RO helpers",
+    "Kill original container and independently enumerate original namespace",
+    "Remove only exact created objects"
+  ],
+  "expected": [
+    "before contains keeper+task",
+    "actual taskUID1000/cap0",
+    "after original namespace PIDs empty",
+    "actual Engine exec/container/full generation association retained",
+    "exec task namespace equals keeper namespace and differs from host PID namespace"
+  ],
+  "limits": {
+    "max_concurrent_objects": 2,
+    "max_memory_bytes": 671088640,
+    "keeper_memory_bytes": 536870912,
+    "helper_memory_bytes": 134217728,
+    "max_total_created_objects": 5,
+    "total_seconds": 60,
+    "each_command_seconds": 10,
+    "raw_bytes": 8388608
+  },
+  "resource_contract": "design/g3/system/contract.md",
+  "not_proven": [
+    "S ACK loss behavior",
+    "real S/X/F full driver",
+    "provider compatibility",
+    "Runtime scheduling"
+  ],
+  "amendment_before_004": {
+    "utc": "2026-09-12T20:54:23.865684+00:00",
+    "reason": "Require actual exec task namespace equals keeper namespace, differs from observer host PID namespace, and before PID membership includes actual ExecInspect PID; do not treat a merely valid namespace string as isolated identity."
+  }
+}

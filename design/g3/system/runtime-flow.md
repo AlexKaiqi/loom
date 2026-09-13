@@ -1,0 +1,11 @@
+# Runtime control glue: fixed original responsibilities
+
+Uses the admitted R APIs, E fixed-input API, S facility delivery and external original Harness control body. No business interpretation or second ledger. RuntimeFlow owns no files or task truth: accepted invocations, exact results, exact external decisions and successors remain R records.
+
+Before implementation, validation/runtime_flow_probe.py runs actual ControlStore against six bounded cases with explicit NoEngine ScriptedDelivery and event input fixture. Missing module is MISSING/0. The fixtures test the orchestration boundary only, not S/X/E facility validity, which is separately required before composition.
+
+RF01: start only accepts; fixed input before fair claim; exact external successors execute once; stop only from original body. RF02: real R fairness handles an earlier different namespace and lease renewals while a blocking delivery executes; specified target is observation, not bypass of claim. RF03: interrupt after saved result/accepted decision; new flow applies the same original body without S.execute. RF04: unresolved original and result lacking external control pause with original identity; no inferred final/continue policy or retries. RF05: wrong external original body rejected before R acceptance/application; source validator runs at both boundaries. RF06: query reads original selected R request/decision/wait/holder/install/release facts with zero writes/calls; repeated settled drive/query cannot repeat effects.
+
+SessionDelivery accepts original per-action R facility request before S invoke, marks dispatch once, retains actual X/S receipt wrapper and reads confirmed originals on repeats. Issued/unknown paths only inspect original identity, never reissue S from old accepted state. Wrapper and saved decision are independently verified against original SessionFacts and current R/F publication; body remains exact external JSON. RuntimeFlow has no validation imports.
+
+Runtime config uses the original component handles already assembled into SessionService.plans; config paths must match actual R/F/X/S owners. open starts only shared E and a shared original JetStream reader. Runtime register/start/query follow original entry-contract; no alternative factory or guessed policy API is exposed. Full M01 and original later system scenarios remain mandatory.

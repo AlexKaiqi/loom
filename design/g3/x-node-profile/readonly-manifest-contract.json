@@ -1,0 +1,14 @@
+{
+  "schema": "lore-x-readonly-tree/v1",
+  "required": [
+    "schema",
+    "role",
+    "root",
+    "entries",
+    "source_ref"
+  ],
+  "root": "actual absolute path/dev/ino of registered ordinary directory; one member . plus every directory/file/link",
+  "entries": "canonical relative POSIX keys; kind dir/file/symlink, mode,uid,gid,mtime_ns. Regular includes byte_length/sha256, symlink includes literal target and resolved_relative; no special file or outside-link. F original manifest remains referenced separately; this ordinary projection does not replace F authority.",
+  "generated_dependency": "Original dependencies.json 882 files/4links remains unchanged. Formal /opt projection adds exact design/g3/x-node-profile/tsconfig.json at lore/config/tsconfig.json, source_ref records this additional file path/hash/bytes. Entry uses profile TSX_TSCONFIG_PATH exactly.",
+  "evidence": "Manifest is written by external fixture before candidate start; actual mount/file reread and member compare independently. Hash list alone is not protection from hostile host editors. Fixture holds no concurrent host writer; task sees actual read-only mounts."
+}

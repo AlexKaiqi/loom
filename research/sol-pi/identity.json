@@ -1,0 +1,61 @@
+{
+  "project": "sol-pi",
+  "official_repository": "https://github.com/NVlabs/SoL-Pi",
+  "discovery_path": [
+    "user main research list",
+    "maintainer GitHub repository page",
+    "public git clone"
+  ],
+  "retrieved_utc": "2026-09-12T18:13:23.437175+00:00",
+  "commit": "d7ecfc089944f0d04b80122a0a9a6ca0d786f3d0",
+  "commit_subject": "docs: restore the original Star History chart layout (#19)",
+  "commit_time": "2026-09-11T17:03:15+02:00",
+  "checkout": "/path/to/loom/research/repos/sol-pi",
+  "declared_license": "MIT",
+  "license_sources": [
+    {
+      "file": "LICENSE",
+      "sha256": "3d48837289818b1f3efac782ec22fed30c4656b6c5abecdf5a04f3c0e0cbe7d2"
+    }
+  ],
+  "dependency_manifests": [
+    {
+      "file": "package.json",
+      "sha256": "85ff73187469272f79bc540271fa2eaeb99e2c98748e20f8fe9cbdf0939c9548"
+    },
+    {
+      "file": "package-lock.json",
+      "sha256": "368093754f6b688f8eaa231dd16242d78f24f2f3b26f569d2196179b0f96640f"
+    }
+  ],
+  "properties": [
+    "P01",
+    "P07",
+    "P12"
+  ],
+  "hypotheses": [
+    "H02",
+    "H10"
+  ],
+  "verification_state": "SOURCE_AND_ACTUAL_SCOPED_MECHANISM_OBSERVED_PENDING_INDEPENDENT_REVIEW",
+  "credential_mode": "Fixed shipped responses; white-listed experiment environment; no provider calls or credential files",
+  "research_scope": "P01/P07/P12 and H02/H10; exploratory candidate boundary, not component/system acceptance",
+  "runtime": {
+    "os": "WSL Ubuntu Linux",
+    "node": "24.21.0"
+  },
+  "installed_dependency_inventory": "installed-dependencies.json",
+  "analysis": "analysis.md",
+  "protocol": "protocol.json",
+  "evidence_index": "evidence-index.json",
+  "mechanism_batches": [
+    "mechanism-001"
+  ],
+  "limitations": [
+    "Actual ObservationPack and real SessionManager with upstream FakePi event-dispatch fixture; no full AgentSession host.",
+    "Pinned Pi0.84.2 vs researched Pi0.85.1; integration unverified.",
+    "Post-archive corruption is returned by recall path."
+  ],
+  "tested_pi_dependency_version": "0.84.2",
+  "source_tree_status": ""
+}

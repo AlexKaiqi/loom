@@ -1,0 +1,331 @@
+{
+  "id": "XN-INTERFACE-001",
+  "status": "DRAFT_FOR_ROOT_REVIEW_NOT_ENABLED",
+  "compatibility": "Original Python schema_version=1 request is unchanged. Only fixed-node-pi-session-v1 accepts the new schema_version=2 command form. Internal session is not a model Shell target.",
+  "out_of_band_trust": {
+    "configuration": "Shared trusted X instance receives immutable profile/slot registries and mandatory authorization/reference resolver from trusted host constructor/configuration; peer method params cannot replace those objects.",
+    "principal": "Only trusted host route injects transport_principal; any peer body authority.transport_principal is forbidden and cannot override. Peer caller strings are correlations, never permission. Model-origin route retains runtime/task whitelist before any candidate dispatch.",
+    "authority_reference": "Untrusted method arguments may name a reference, never self-issue a grant. Resolver must compare complete context against actual registered immutable record and files. Missing checker/ref or changed registration fails closed.",
+    "reference_context_fields": [
+      "operation",
+      "principal",
+      "request_digest",
+      "namespace",
+      "session_id",
+      "session_generation",
+      "execution_id",
+      "object_generation",
+      "profile_id",
+      "profile_sha256",
+      "snapshot_ref",
+      "readonly_mounts",
+      "slot_ref",
+      "role"
+    ],
+    "scope_limit": "Same host admin/user can modify controls; this tests task/agent isolation, not malicious host administrators.",
+    "operation_grants": {
+      "execute": "execute",
+      "query": "query",
+      "await_exit": "query",
+      "channel_read": "query",
+      "channel_write": "execute",
+      "close_stdin": "execute",
+      "checkpoint": "checkpoint",
+      "resume": "execute",
+      "seal": "stop",
+      "release": "stop",
+      "query_call": "query",
+      "release_checkpoint": "checkpoint",
+      "query_checkpoint": "query"
+    },
+    "every_operation": "Each operation, including query/read/release/exact retries, resolves original full grant and complete original execution context. Having a binding or previous accepted call is not a new authorization. Query/read never mutate caller/grant/role.",
+    "dynamic_reference_records": {
+      "meaning": "Fixed authority root/resolver identity and rules; trusted owner may append actual future owner/restore immutable full refs with file+directory fsync. Configuration is not an impossible list of all future Engine facts.",
+      "scope": "X expected scope comes from its own original execution registration, not owner/peer receipt. Same registration ID can never replace bytes or change association. No latest mutable pointer replaces fullref.",
+      "deny": [
+        "peer registration",
+        "peer authority-root/rule override",
+        "wrong actual record after registration",
+        "same namespace other Session original/successor swap"
+      ]
+    }
+  },
+  "request_required_fields": [
+    "schema_version",
+    "execution_id",
+    "caller",
+    "invocation_id",
+    "step_id",
+    "source_result",
+    "harness_version",
+    "domain",
+    "session_binding",
+    "object_generation",
+    "environment",
+    "profile_sha256",
+    "base_version",
+    "snapshot_ref",
+    "readonly_mounts",
+    "command_argv",
+    "cwd",
+    "environment_values",
+    "stdin_base64",
+    "io_mode",
+    "budgets"
+  ],
+  "request_forbidden_fields": [
+    "script_base64",
+    "interpreter_argv",
+    "target_selector",
+    "input_root",
+    "endpoints",
+    "authorization_checker",
+    "reference_checker",
+    "slot_plan",
+    "allow_network"
+  ],
+  "snapshot_ref": {
+    "owner": "S",
+    "required": [
+      "id",
+      "namespace",
+      "session_id",
+      "session_generation",
+      "record_path",
+      "record_sha256",
+      "archive_path",
+      "archive_sha256",
+      "archive_bytes",
+      "manifest_path",
+      "manifest_sha256",
+      "manifest_bytes"
+    ],
+    "meaning": "Actual trusted S immutable source record including original execution/object generation or explicit empty initial snapshot; X verifies exact complete ordinary bytes/association, does not parse Pi meaning. base_version is canonical complete snapshot_ref SHA.",
+    "authority": "Only configured S reference authority resolves original records; changing owner string cannot make arbitrary archive trusted.",
+    "manifest_contract": "snapshot-manifest-contract.json; complete ordinary member/type/byte/hash/metadata schema plus actual empty initial archive required"
+  },
+  "readonly_mount": {
+    "required": [
+      "role",
+      "source",
+      "target",
+      "read_only",
+      "manifest_ref",
+      "content_ref"
+    ],
+    "source": {
+      "required": [
+        "path",
+        "dev",
+        "ino"
+      ],
+      "meaning": "exact registered real directory, full actual member manifest checked at activation; content must be sealed or held stable until actual RO mount. Two unsynchronized hash passes do not prove arbitrary concurrent consistency."
+    },
+    "allowed_roles": {
+      "dependencies": "fixed selected manifest projection mounted /opt including Node/TSX/Pi and exact generated tsconfig",
+      "harness": "authorized ordinary Harness tree mounted /harness",
+      "input": "actual F version materialized read view mounted /input",
+      "workspace": "actual F Workspace version materialized read view mounted /workspace"
+    },
+    "content_ref": "F full version_ref + actual materialized root/manifest for input/workspace; selected profile record for dependencies; trusted Harness version/F record for harness. All exact objects and hashes must agree.",
+    "reject": [
+      "read_only != true",
+      "duplicate or overlapping target",
+      "non-fixed target",
+      "source overlaps host control/socket/secret roots",
+      "extra or missing member",
+      "unregistered internal symlink or link outside source",
+      "changed dev/ino/content/manifest",
+      "unsupported metadata or writable source lifetime not sealed"
+    ]
+  },
+  "command": {
+    "prefix": [
+      "/opt/node/bin/node",
+      "--import",
+      "/opt/lore/research/repos/pi/node_modules/tsx/dist/loader.mjs"
+    ],
+    "entry": "exact authorized /harness relative entry; actual ExecInspect ProcessConfig matches full command_argv; no Python/shell rewriting or host import",
+    "args": "explicit finite strings covered by authority and complete invocation digest",
+    "environment": "exact profile environment only; TSX config fixed in dependency mount; no inheritance",
+    "limits": "exact registered profile ceilings; caller cannot override upward; smaller changes still part of immutable complete request"
+  },
+  "binding_return": {
+    "required": [
+      "execution_id",
+      "namespace",
+      "session_id",
+      "session_generation",
+      "container_id",
+      "exec_id",
+      "volume_id",
+      "object_generation",
+      "freeze_generation",
+      "request_digest",
+      "profile_sha256",
+      "snapshot_sha256",
+      "readonly_mounts_sha256",
+      "slot_id",
+      "slot_revision",
+      "slot_reservation_id",
+      "channel_id"
+    ],
+    "meaning": "actual Engine IDs verified externally; fields are associations, not proof of permission or physical truth",
+    "digest": "request_digest is the sole SHA256(canonical complete request) identity, same name as original X. No parallel request_sha256 field. Original trusted grant/slot context is separately immutable and tied to that digest; query resolves it rather than trusting peer rewrites."
+  },
+  "slot": {
+    "trusted_registration_required": [
+      "slot_id",
+      "revision",
+      "namespace",
+      "plan_sha256",
+      "plan",
+      "allowed_principals",
+      "state_root"
+    ],
+    "plan": {
+      "max_objects": 3,
+      "memory_bytes": 805306368,
+      "session_memory_bytes": 536870912,
+      "tool_memory_bytes": 134217728,
+      "helper_memory_bytes": 134217728,
+      "cpus": {
+        "S": 0.5,
+        "tool": 0.25,
+        "helper": 0.25
+      },
+      "all_active_writable_bytes": 134217728,
+      "all_active_writable_inodes": 8192
+    },
+    "roles": [
+      "session",
+      "tool",
+      "helper"
+    ],
+    "requirements": [
+      "One shared trusted instance reserves before any create. Reservation binds full execution request/context and role; exact duplicate resolves original reservation, changed content conflicts.",
+      "Session512/tool128/helper128 MiB and .5/.25/.25 CPU plan is fixed. Legacy Python tool request bytes unchanged; optional trusted authority context carries the slot_ref and role.",
+      "Helper capacity is reserved at slot registration and shared serially across session/tool export and observer. No fourth container; paused but unsealed objects retain reservations.",
+      "Every tmpfs, live volume, deleted-open bytes, streams, raw archive copies and host spool included in original 128MiB/8192 inode plan. Immutable RO dependencies separate/global budget.",
+      "X component, never transport alone, owns persisted pre-write reservations or bounded preallocated backing for host spool with retained originals; path moves cannot release debt. Partial failures retain reservation until actual resource stop/reclaim checked.",
+      "Slot registry/reservations are reconstructable; instance restart inspects original Engine objects before releasing or recreating. Unknown identity remains reserved; no per-wait process.",
+      "Candidate numeric reports are not evidence. Independent actual Engine/cgroup/statvfs/spool inventory confirms sums and exact own objects."
+    ],
+    "public_peer_forbidden": [
+      "register_profile",
+      "register_slot",
+      "change_role",
+      "release_unknown",
+      "replace_authority"
+    ],
+    "actual_mount_requirement": "--shm-size alone does not prove nr_inodes=64. Explicit bounded /dev/shm tmpfs options must first pass preregistered facility statvfs probe; current numeric64 remains required/unverified. /tmp/work and host spool likewise require real bytes/inode evidence. No raising totals."
+  },
+  "bridge": {
+    "scope": "Trusted test transport adapter around shared X instance and original channel owner; no policy, task scheduler or model logic.",
+    "peer_envelope": {
+      "protocol": "LORE_COMPONENT_TEST/1",
+      "fixture_root": "exact trusted fixture root",
+      "method": "execute/query/checkpoint/seal/channel_write/channel_read/close_stdin/query_call / release_checkpoint/query_checkpoint",
+      "params": "method-specific complete context; no expected/caseID",
+      "meaning": "Only S short-peer boundary uses this envelope. Thin shim maps to original X request_id/method/arguments; original X owns calls and receipts. No parallel state authority."
+    },
+    "short_peers": "Each JsonPort caller is a distinct short process. It forwards to one trusted Unix socket bridge and exits; transport close does not close Node stdin. Socket/credentials never mounted to Node.",
+    "call_binding_required": [
+      "call_id",
+      "execution_id",
+      "object_generation",
+      "channel_id",
+      "method",
+      "request_digest"
+    ],
+    "channel_write_required": [
+      "data_base64",
+      "byte_offset"
+    ],
+    "channel_read_required": [
+      "stream",
+      "byte_offset",
+      "max_bytes"
+    ],
+    "call_receipt": "X component itself owns original call identity/content, persisted write dispatch/outcome and stream cursors. Transport only forwards unchanged existing channel operations; it is not the only reliable journal. Exact known duplicate returns original bytes/receipt without another write; conflicting call content rejects. Lost ACK/partial write remains INCOMPLETE_OBSERVATION/UNKNOWN in original X persistent record and is never automatically re-dispatched.",
+    "close_stdin": "Only explicit call on exact original channel closes; peer EOF is not close. Duplicate returns original closure state.",
+    "restart": "Bridge lifetime may end with unresolved calls. A new bridge queries actual original execution and durable retained bytes; if attach/ACK continuity cannot be proved, channel stays UNKNOWN/paused and original object is explicitly stopped. It must not start another Node or replay accept/tool input.",
+    "max_live_bridge": "One per shared X instance, not per Session/wait. Active channel ownership only; after all stop, no Session-specific bridge child remains.",
+    "single_control_process": "The same already-validated X channel API and original durable receipts are used when called in one control process. Passing short-peer tests cannot compensate for a failure of this ordinary API.",
+    "S_legacy_compatibility": "Existing S JsonPort envelope and ExecutionChannel data_b64/limit_bytes are adapted only at trusted test shim. Shim supplies explicit stable call identity and requested cursor before forwarding, records original input/return, and maps byte field names only; it does not create a second authoritative write journal or invent successful receipts.",
+    "candidate_envelope": {
+      "request_id": "transport correlation only",
+      "method": "original X method name",
+      "arguments": "request, authority, binding and method-specific arguments"
+    },
+    "control_encoding_bound": "Node trusted-config adapter uses at most 2097152 bytes for control JSON envelope so base64 of a bounded 1MiB stream payload can be represented. The decoded payload/frame limits remain fixed at 1MiB. Original Python no-arg adapter 262144-byte control contract is unchanged."
+  },
+  "rejection_codes": [
+    "UNAUTHORIZED",
+    "ID_CONFLICT",
+    "INVALID_REQUEST",
+    "INCOMPLETE_OBSERVATION",
+    "SLOT_EXHAUSTED"
+  ],
+  "evidence_boundary": "Errors alone are never sufficient: legitimate positives actual Node/Pi; rejects observe no new own Engine object/effect and original persisted association unchanged. Missing candidate is MISSING/0, not pass.",
+  "revision": 4,
+  "checkpoint_retention": {
+    "api": "release_checkpoint(request_id, original_full_ref, owner_receipt_ref) / query_checkpoint(original_full_ref)",
+    "scope": "ordinary X/S resource ownership only; no Pi interpretation. Whole execution release=stop unchanged; new artifact release requires original checkpoint grant.",
+    "cap": "at most2 live X-owned original checkpoint archives per Session execution; attempted third before release returns SLOT_EXHAUSTED with no new archive/credit leak. Input, partial output and all copies remain included in physical slot budget.",
+    "owner_receipt_required": [
+      "owner=S",
+      "receipt_id",
+      "namespace",
+      "session_id",
+      "session_generation",
+      "old_checkpoint_full_ref",
+      "retained_original_ref",
+      "confirmed_successor_full_ref",
+      "successor_owner_record_ref",
+      "actual_owner_receipt_path_sha_bytes",
+      "handoff_kind=successor_retained|sealed_ownership_transfer"
+    ],
+    "positive_preconditions": [
+      "Current trusted owner authority independently resolves actual original receipt and bytes, not caller confirmed=true.",
+      "S retained_original_ref is exact old checkpoint original bytes in independently registered immutable static storage (different actual inode from still writable X source), actual hash/size, complete Session association and original request_digest all match.",
+      "Either a newer exact successor is actually confirmed by S for the same Session/generation, OR handoff_kind=sealed_ownership_transfer and X has independently confirmed the original execution/namespace fully stopped with S already owning the exact old bytes. This second resource handoff permits final/waiting Sessions to shed all X active debt without inventing a newer semantic Session. X does not infer Pi supersession; S retains exact old bytes/history.",
+      "No pending X restore/read pin needs the local old source, and original X IO handles are closed. Current unique unconfirmed/original-only snapshot cannot release.",
+      "S static artifact ownership and global20GiB/inode accounting already accepted before X deletes local old archive; same-path rename, owner-string change, hardlink alias or unregistered destination does not release debt.",
+      "X persists original full release intent before unlink. It removes only its exact original path/inode and physically confirms local resource removal before credit is returned. Crash before/after unlink reconciles same request_id/originalref; never copies/charges twice."
+    ],
+    "history": "X retains small immutable original checkpoint lineage/bytes/hash/owner receipt and released status. query_checkpoint returns released owner ref and original associations; original raw bytes remain independently readable at S authoritative original storage. No erase of checkpoint/call history.",
+    "errors": "UNAUTHORIZED wrong scope/owner; INVALID_REQUEST missing/corrupt source receipt; ID_CONFLICT changed same release ID/ref; INCOMPLETE_OBSERVATION unknown physical ownership/unlink; SLOT_EXHAUSTED attempted3rd before legitimate release.",
+    "independent_tests": [
+      "Two actual X checkpoints live and same namespace; third without release physically rejected.",
+      "Existing but wrong Session/generation/old fullref receipt, merely confirmed flag, missing owner bytes, hardlink alias, unconfirmed successor, old still only original all reject and preserve X path/reservation.",
+      "Valid successor plus exact original S immutable copy permits one reclaim; original S bytes/history still queryable; new third checkpoint now fits2 and slot counts actual resources.",
+      "Repeat same release ID returns original receipt, changed reference conflicts; crash between persisted release/unlink/credit is reconciled without extra budget or source loss.",
+      "Sealed original with no newer checkpoint may fully transfer exact old bytes to confirmed S static ownership and release X debt; same path while old namespace active or owner copy missing rejects. Waiting must not retain a per-Session X execution/volume/bridge."
+    ],
+    "owner_schema_source": "../../g4/s-author-design-preparation/snapshot-owner-draft/schema.json",
+    "owner_extra_required": [
+      "retained_owner_record_ref",
+      "storage_charge_ref"
+    ],
+    "owner_body_rule": "Actual receipt body equals outer semantic fields excluding actual_owner_receipt_path_sha_bytes; never self-hashes. ordinary snapshot record and S ownership record are separate. Both successor fields are null only for actual sealed ownership transfer."
+  },
+  "observable_receipts_contract": "observable-receipts-contract.json; original X full artifact refs use size; S snapshot file refs use bytes. No canonical digest duplication.",
+  "checkpoint_read_boundary": {
+    "existing_methods": {
+      "constructor": "ExecutionStore(state_dir, checkpoint=hook, trusted_config=path, trusted_config_sha256=hash)",
+      "query": "query_checkpoint(execution_id, authority, original_full_ref) -> checkpoint.original_full_ref",
+      "release": "release_checkpoint(execution_id, authority, release_id, original_full_ref, owner_receipt_ref)"
+    },
+    "hook": "checkpoint_read_open_before_close after actual original archive FD opened, before read finished/FD close; another thread on same actual store attempts existing release",
+    "required": "INCOMPLETE_OBSERVATION while actual read pin is held, original inode/bytes/slot unchanged; unblock and the SAME original query returns original_full_ref. No second query or synthetic pin field.",
+    "restore_scope": "Node restoration reads independently confirmed S source, normally not the released X blob. This read branch proves existing restore/read retention obligation; it does not invent an X-blob dependency for S restore.",
+    "live_sealed_transfer": "INCOMPLETE_OBSERVATION when original namespace remains live; valid owner bytes alone do not prove X stop.",
+    "owner_cleanup": "Original object paused; stop only old validation adapter before acquiring the same original journal from direct candidate instance. After original query/release threads finish, close its actual Journal owner FD and restart original RPC owner. No duplicate store ownership."
+  },
+  "existing_write_hook_observation": {
+    "hook": "Original product hook remains (label,binding). Adapter reads current original call_id via existing query_call and emits {test_barrier,binding,call_ref}; no new record/query side effect.",
+    "actual_prefix": "Driver reads saved original written_bytes, RO helper waits exact same actual Node received prefix; owner crash recovery must preserve prefix. Partial input131111 bytes with1MiB existing cap, ordinary send syscall requests at most65536, actual return count remains authoritative only after independent Node bytes comparison.",
+    "scope": "Validation hook visibility of original persisted reference only, no new public method or business state."
+  }
+}

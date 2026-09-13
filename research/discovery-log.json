@@ -1,0 +1,50 @@
+{
+  "method": "Problem-first mechanism discovery plus original required complete-system sources",
+  "inputs": [
+    "design/g1/research-questions.md",
+    "design/g1/alternatives-review.md",
+    "harness-runtime-open-source-research-list.md"
+  ],
+  "root_queries": [
+    {
+      "query": "JetStream consumers durability acknowledgement retention deduplication",
+      "primary_sources": [
+        "https://docs.nats.io/concepts/jetstream",
+        "https://github.com/nats-io/nats-server"
+      ]
+    },
+    {
+      "query": "DBOS durable workflow recovery wait resource and identity semantics",
+      "primary_sources": [
+        "https://docs.dbos.dev/python/tutorials/workflow-tutorial",
+        "https://github.com/dbos-inc/dbos-transact-py",
+        "https://github.com/dbos-inc/dbos-transact-ts"
+      ]
+    }
+  ],
+  "mechanism_families": [
+    "Session operation state plus external strategy callbacks",
+    "Workflow step replay plus persistent queues",
+    "Persistent message streams and historical consumers",
+    "Linux namespace/mount/seccomp and container lifecycle",
+    "Virtual DB-backed files versus native directories with external version store",
+    "Artifact verifier and paired isolated workloads"
+  ],
+  "expansions": [
+    {
+      "source": "Git CLI and official manuals",
+      "reason": "Compare AgentFS against native file semantics and independent version domains for H06/H07/H08; not a new product/project requirement",
+      "experiment": "research/git-files/evidence/run-001"
+    },
+    {
+      "source": "Docker Linux Engine, fixed Moby seccomp and official container/resource docs",
+      "reason": "Actual escaped-writer and resource-boundary gaps in H04/H05; compare existing namespace/cgroup lifecycle, no new required agent framework",
+      "protocol": "research/docker-linux/protocol.json",
+      "amendment": "research/docker-linux/protocol-amendment-002.json",
+      "evidence": "research/docker-linux/evidence/compliant-independent-002",
+      "review": "research/reviews/docker-linux.md"
+    }
+  ],
+  "candidate_discovery_status": "All original main projects retained; associated repos counted with parents; Grok candidates identity remains unconfirmed; project-specific discovery logs live with identity.json",
+  "stop_condition": "Required scoped project deliverables and relevant executable observations, mechanism comparison, remaining premises and independently testable component boundaries; no arbitrary extra project count"
+}

@@ -1,0 +1,37 @@
+{
+  "id": "X-LIFECYCLE-PROBE-002",
+  "registered_utc": "2026-09-12T19:54:13.074593+00:00",
+  "scope": "G3 preparation only; resolves natural task exit before tmpfs export and exporter write permission gap in storage-preparation-001",
+  "expected": [
+    "A task Engine-exec process runs UID1000/capability0 and cannot SIGKILL trusted UID0/capability0 PID1 keeper.",
+    "After task process naturally returns, same container/volume still exists and contains exact task bytes.",
+    "Whole-container pause holds source while separate trusted exporter UID0 plus DAC_OVERRIDE reads mode000 data through the same named volume mounted RO.",
+    "Exporter actual write attempt returns EROFS despite DAC_OVERRIDE; it has no host PID or host writable binding.",
+    "Only after successful bounded export does keeper stop; temporary helper and keeper/volume removed."
+  ],
+  "limits": {
+    "containers_created_max": 2,
+    "concurrent_containers_max": 2,
+    "per_container_memory_bytes": 134217728,
+    "combined_memory_bytes": 268435456,
+    "workspace_bytes": 4194304,
+    "workspace_inodes": 128,
+    "pids": 32,
+    "cpu": 0.5,
+    "shm_bytes": 1048576,
+    "tmp_bytes": 1048576,
+    "command_timeout_seconds": 10,
+    "total_timeout_seconds": 60,
+    "output_archive_max_bytes": 1048576,
+    "network": "none",
+    "image": "python@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea"
+  },
+  "negative_controls": [
+    "actual UID1000 task sends SIGKILL to keeper and must fail",
+    "trusted exporter tries to modify its RO volume and must fail"
+  ],
+  "not_claimed": [
+    "This is not a durable execution registry, authorization adapter, full X output collector or Pi barrier verification.",
+    "No claims that ExecInspect can reconstruct lost stdout; original incomplete output remains query/pause."
+  ]
+}

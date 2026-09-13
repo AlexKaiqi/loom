@@ -1,0 +1,266 @@
+{
+  "id": "G3-R-CASES-001",
+  "status": "DRAFT_BEFORE_IMPLEMENTATION",
+  "source": "contract.md",
+  "formal_runs": {
+    "concurrency_repetitions": 3,
+    "workers": 4,
+    "namespaces": 3,
+    "requests_per_namespace": 12,
+    "kill_scope": "SIGKILL acknowledged worker; original DB retained",
+    "test_deadline_seconds": 10
+  },
+  "cases": [
+    {
+      "id": "R01",
+      "title": "全关联受理幂等/冲突",
+      "independent_expected": "重复完整请求仅一持久身份；分别改变payload/source_ref/harness_ref/input_ref/kind/namespace/principal均拒绝",
+      "properties": [
+        "P09",
+        "P07"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R02",
+      "title": "ACK后新进程SIGKILL恢复",
+      "independent_expected": "成功ACK原请求在kill后的全新控制进程逐字段可查；只看返回值不够",
+      "properties": [
+        "P07",
+        "P09"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R03",
+      "title": "受理前大小/JSON/身份/授权拒绝",
+      "independent_expected": "边界内接受；非法ID、NaN、过深、超限、越权没有新持久责任",
+      "properties": [
+        "P05",
+        "P08",
+        "P09"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R04",
+      "title": "登记仅接入且普通编辑保持",
+      "independent_expected": "真实目录身份/授权/绑定可查，普通文件写后有效，登记没有排队调用或模型效果",
+      "properties": [
+        "P01",
+        "P02"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R05",
+      "title": "失效与歧义路由拒绝",
+      "independent_expected": "删除/同路径换inode/重叠登记/未登记/越权和伪造user不能回退宿主",
+      "properties": [
+        "P02",
+        "P05"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R06",
+      "title": "显式移动/重绑定/注销及进行中绑定",
+      "independent_expected": "移动必须原对象；旧路径拒绝；已受理调用仍旧策略，新调用为新策略；并发revision冲突",
+      "properties": [
+        "P01",
+        "P07"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R07",
+      "title": "并发受理唯一身份",
+      "independent_expected": "4真实进程竞争12身份，每身份一次受理，无重复行/静默覆盖，预定3批",
+      "properties": [
+        "P09"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R08",
+      "title": "公平领取与域内顺序",
+      "independent_expected": "3域各12项，最初三次连续领取各域一次，域内顺序固定；4进程无同时有效claim，预定3批",
+      "properties": [
+        "P06",
+        "P10",
+        "P15"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R09",
+      "title": "过期接管仅核对/旧token失效",
+      "independent_expected": "失联租约变reconcile，原操作ID不变，不自动创建新作用；旧owner不能提交",
+      "properties": [
+        "P07",
+        "P11"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R10",
+      "title": "结果保存未结清继续责任",
+      "independent_expected": "实际合法原结果ref保存后仍可发现待决定，不成为业务完成；未知ref拒绝",
+      "properties": [
+        "P07",
+        "P11"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R11",
+      "title": "外部决定完整绑定与恢复",
+      "independent_expected": "同decision只改source/harness/body冲突；全新进程复用原已接受内容，不重新求值",
+      "properties": [
+        "P01",
+        "P07",
+        "P09"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R12",
+      "title": "后继事务交接/丢回执重复",
+      "independent_expected": "接续保存后重复apply只一后继；任一可见已确认快照均有旧或新责任；kill后由原决定继续",
+      "properties": [
+        "P07",
+        "P10"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R13",
+      "title": "停止需真实原回答/停止引用",
+      "independent_expected": "缺失/工具结果冒充stop_ref拒绝且旧责任保留；合法原停止仅终结本次调用，Surface仍可再调用",
+      "properties": [
+        "P01",
+        "P07"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R14",
+      "title": "静态wait与重复满足关联",
+      "independent_expected": "wait完整起点/条件代码版本/授权产物持久，未满足不被claim；同event重交只有原后继",
+      "properties": [
+        "P06",
+        "P10"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R15",
+      "title": "资源独占与取消不能撤权",
+      "independent_expected": "4进程竞争一个真实资源仅一holder；lease过期/取消文本/错误exec停止ref不释放，新writer拒绝",
+      "properties": [
+        "P03",
+        "P11"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R16",
+      "title": "真实引用核验后才能释放",
+      "independent_expected": "显式reference authority只认可匹配exec/base/published；合法证明释放后可新holder，旧执行不能release新holder",
+      "properties": [
+        "P03",
+        "P04"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R17",
+      "title": "暂停保留原未知与责任",
+      "independent_expected": "未知pause重开仍原query_ref，不出新ID不删历史，其他资源可继续",
+      "properties": [
+        "P07",
+        "P11"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R18",
+      "title": "SQLite故障不虚假ACK",
+      "independent_expected": "只读/锁超时/损坏库显式失败；已确认库不静默重建；独立连接检验原行",
+      "properties": [
+        "P07",
+        "P09"
+      ],
+      "requires": "real SQLite/ext4/processes; reference checker fixture scope explicit",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R19",
+      "title": "受控安装与原登记对象推进",
+      "independent_expected": "prepare仅保留完整安装意图，原resource待核对；F实际布局确认后才更新同ID真实root/revision；丢回执重交同身份，新/旧布局不猜测重装，未经协调替换仍拒绝",
+      "properties": [
+        "P03",
+        "P04",
+        "P07"
+      ],
+      "requires": "real directory identities + explicit F reference authority fixture; real exchange integration separate",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R20",
+      "title": "设施回执与父策略责任分离",
+      "independent_expected": "首次dispatch唯一；权威positive/明确negative回执完整绑定且重启保留，父invocation仍decide；真实unknown观察不得确认negative；原negative同ID不能重发；显式新attempt必须引用原确定negative，unknown/mismatched retry_of拒绝。",
+      "properties": [
+        "P07",
+        "P08",
+        "P09",
+        "P10",
+        "P11"
+      ],
+      "requires": "realSQLite + explicit external receipt authority; real service effect is E/X/S scope",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R21",
+      "title": "E固定输入完整关联与调用资格",
+      "independent_expected": "真实登记invocation声明完整selector：绑定前pending可发现但不claim，完整实际四文件目录ref核验并提交后可claim；重复相同幂等，逐字段/真实ref改变冲突，缺原件/无权/未知ID明确拒绝，全新进程读取同binding/ref及原payload不变；无input_binding普通请求行为不变。",
+      "properties": [
+        "P02",
+        "P07",
+        "P08",
+        "P09",
+        "P10",
+        "P12"
+      ],
+      "requires": "real SQLite, ordinary directory/four fixed files/manifest/SHA/devino and actual new Python process; E reference authority fixture only, not NATS/model proof",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "R22",
+      "property": "受理的RestorePlan/回退动作留痕，完整范围和部分安装重启可核对",
+      "independent_expected": "原完整两域restore/keep、namespace/授权、Session continuation、event起点、pending/effect/Harness/environment refs在实际F安装前已保存；失ACK原ID查询；wrong actual source/generation/ref拒绝；部分remaining不结清、两域收据齐才机械confirmed、全部历史原件不变。",
+      "live_actions": "真实SQLite/四类原引用文件/真实目录devino；accept提交后切点SIGKILL与新进程query；真实受控F布局fixture逐域安装，部分后新进程读原进度；分别keep域无安装。",
+      "negative_controls": "遗漏keep域、无恢复域、变完整plan、无权、真实错域version、真实错generation停止/安装收据、保留域安装、缺原plan、预留install绕过关联。",
+      "scope": "R关联/持久事实，F布局fixture不证明原子exchange或X实际停止；M06仍须真实组合回退动作及旧事实外部检查。",
+      "status": "UNVERIFIED"
+    }
+  ],
+  "revision": "R20 receipt outcome clarification + R21 input association, original20-case PASS invalidated and retained"
+}

@@ -1,0 +1,55 @@
+{
+  "id": "E-OBSERVATION-INDEPENDENT-PREPARATION-001",
+  "status": "PASS_PREPARATION_ONLY",
+  "utc": "2026-09-12T22:49:59.731951+00:00",
+  "scope": "G3 D incremental preparation for original R surface registration observation; no E product exists or passed",
+  "cases": 10,
+  "oracle_controls": 5,
+  "independent_authority_calibration": {
+    "actual_R_originals_accepted": 2,
+    "real_bad_or_missing_rejected": 9,
+    "status": "PASS",
+    "no_E_or_NATS_used": true,
+    "command": "design/g4/e-independent-observation-authority-001/command.json"
+  },
+  "missing_entry": {
+    "first_original_driver_exit": 2,
+    "latest_copied_driver_exit": 2,
+    "declared_inventory": 10,
+    "actual_component_cases_executed": 0,
+    "case_statuses": "all MISSING",
+    "five_controls_pass": true
+  },
+  "finding": {
+    "id": "EO-R01",
+    "initial": "Runtime emit_observation had no same-ID/other genuine reference conflict trajectory; submit conflict did not establish this separate entry.",
+    "status": "CLOSED_BEFORE_PRODUCT",
+    "repair": "EO06 now rejects observation-1 with complete valid second n1 source as conflict; verifies original control whole value and seq1 original bytes plus no new PUB/stream/R event, then observation-2 full second source succeeds. Fifteen calls remain within predeclared budget; old five inputs preserved.",
+    "history": "design/g4/e-author-observation-before-conflict-001"
+  },
+  "review": [
+    "Direct SQL owner reads both original operations binding_json and response_json UTF-8, not reconstructed SUT reply. Hash, principal, namespace, resource, revision, kind, Harness/grants all checked independently.",
+    "Expected namespace/source originates trusted authenticated call; EO02/EO05 and authority caller control reject borrowed principal/namespace. A complete second source is valid; mixed identity is rejected.",
+    "Controls do not implement E. Exact original wire bytes must be observed from independent real NATS connection and actual PUB, plus original R receipt.",
+    "Missing/errors/all-declared inventory cannot imply any component execution. Wrapper binds latest driver and rejects incomplete candidate capability."
+  ],
+  "bindings": {
+    "design/g3/e/observation-preparation.json": "82eae7b411f35352e89d261c332b9f0c9ba548825e5e2154e399d059d4ee12ab",
+    "design/g3/e/observation-supplement.md": "48ab60dcbfc4eee6f7a3763255a285a873bc7cf62a3969c571a5adc0a71518cc",
+    "design/g3/e/observation-protocol.json": "630f1033c4901314b34217a56418ade1a082050a611a5a1a27d14423706ea819",
+    "validation/components/e/observation_authority.py": "689a3e91703abcd069dd517922f75f31e6efeface7822a7706b86d30272fa5bd",
+    "validation/components/e/run_observation.py": "b2d2ceb5aa5b0aaf0f4af28714cb9279c122598ba2a0cde4f7132ffd1b47c17c",
+    "design/g4/e-independent-observation-authority-001/protocol.json": "e2307abb1dc4ae809dbe216e0ee5ac8c88ee76cf0229008095023640d4717b4f",
+    "design/g4/e-independent-observation-authority-001/probe.py": "35bdf8481907ef6b200fc1fbb6088c7f262513a91905a32c25a161a00dc6f3cb",
+    "design/g4/e-independent-observation-authority-001/result.json": "ade9537587d708afd3dc6f026ea2a2ba7ebaea52367af39270aa32b6492eb054",
+    "design/g4/e-independent-observation-authority-001/command.json": "611a00e69eee75c5e208381f04d9a38e259677be30f721ac9f3ffa50162de0f4",
+    "validation/components/e/evidence/observation-independent-missing-001/result.json": "bd4f43a539c805327183f7db13bb85c59b770c31eafe9c0f48abf3aff901288c",
+    "validation/components/e/evidence/snapshot-bad-capability-001/result.json": "f3b90220afc4ccca90a69710a139679fd3ee950a3be61fe138d7625d1cc4b790",
+    "design/g4/r-gate.json": "788080f25f09a34c4c3ee01e585e212e77548eef91abb2fbc65f8e8aa771b2f2"
+  },
+  "limits": [
+    "G4 EventService positive behavior not yet executed; real native NATS in wrapper negative batch belongs original receipt-preparation controls, not EO component success.",
+    "Narrow first original-owner mapping covers R surface register only. Other X/S events require their own prior source contract; this does not create a general observation truth store.",
+    "Observation author authored original runner/authority; reviewer did not change them and independently reran actual authority and missing entry. Wrapper author is reviewer and requires root independent preparation review."
+  ]
+}

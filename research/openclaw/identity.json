@@ -1,0 +1,28 @@
+{
+  "recorded_at_utc": "2026-09-12T18:20:00.445142+00:00",
+  "identity_basis": "Maintainer GitHub repository and clone origin/HEAD; source pinned, no claim hosted commercial products are entirely open source",
+  "repositories": [
+    {
+      "slug": "openclaw",
+      "official_url": "https://github.com/openclaw/openclaw",
+      "local_repository": "research/repos/openclaw",
+      "commit": "a023ff811043cbf8110009e218fa29dc7133eee1",
+      "licenses": [
+        {
+          "path": "LICENSE",
+          "sha256": "73571b25326281d369087f469842c02444fe39faaecebda4d82ed21ff3a1c29d",
+          "text": "MIT License\n\nCopyright (c) 2026 OpenClaw Foundation\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n\nThird-party notices for incorporated or adapted code are recorded in\nTHIRD_PARTY_NOTICES.md.\n"
+        }
+      ]
+    }
+  ],
+  "execution_platform": "WSL Ubuntu Linux native filesystem",
+  "dependencies": {
+    "record": "dependencies.json",
+    "source_hashes": "source-anchors.json",
+    "isolation": "Per-project Linux local environments under research/.venvs or research/.cache; model credentials absent"
+  },
+  "mechanism_evidence_batches": [
+    "cron-002"
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "case": "M03",
+  "source": {
+    "case": "design/g3/system/cases.json:M03",
+    "contract": "design/g3/system/contract.md:31"
+  },
+  "status": "PREREGISTERED_NOT_EXECUTED",
+  "repeats": 3,
+  "limits": {
+    "per_cut_seconds": 180,
+    "localhost_HTTP_per_cut": 1,
+    "real_model_calls": 0,
+    "sequential_slots": 1,
+    "containers": 3,
+    "memory_bytes": 805306368
+  },
+  "cases": [
+    {
+      "id": "M03-ACCEPT",
+      "cut": "accept",
+      "hook_owner": "R",
+      "hook": "after_commit_before_reply",
+      "selector": "value.id == original invocation ID",
+      "reply": "none",
+      "expected": {
+        "HTTP": 0,
+        "tools": 0,
+        "exchanges": 0,
+        "parent_phase": "accepted"
+      },
+      "recovery": "new process assemble same saved config, original Runtime.query only; original acceptance row unchanged and no further accept/start"
+    },
+    {
+      "id": "M03-PROVIDER",
+      "cut": "provider",
+      "hook_owner": "S",
+      "hook": "effect_received",
+      "selector": "callback.type == provider.request, same operation",
+      "reply": "ordinary final text",
+      "expected": {
+        "HTTP": 1,
+        "tools": 0,
+        "exchanges": 0,
+        "parent_phase": "issued"
+      },
+      "recovery": "query leaves original issued responsibility and complete raw wire untouched; after actual original lease expires explicit drive may pause, never replay original HTTP or inject saved response into orphan Pi"
+    },
+    {
+      "id": "M03-TOOL",
+      "cut": "tool",
+      "hook_owner": "S",
+      "hook": "effect_received",
+      "selector": "callback.type == tool.request, same operation",
+      "reply": "one native Workspace append+fsync effect",
+      "expected": {
+        "HTTP": 1,
+        "tools": 1,
+        "exchanges": 1,
+        "parent_phase": "issued"
+      },
+      "recovery": "original tool/Pi pending and confirmed X/F/R result retained; original query has no work, explicit drive after original lease expiry pauses without repeating tool/HTTP"
+    },
+    {
+      "id": "M03-DECISION",
+      "cut": "decision",
+      "hook_owner": "Flow",
+      "hook": "decision_accepted",
+      "selector": "original parent decision, not unrelated event",
+      "reply": "ordinary final text",
+      "expected": {
+        "HTTP": 1,
+        "tools": 0,
+        "exchanges": 0,
+        "parent_phase": "decide"
+      },
+      "recovery": "new query retains accepted unapplied source-bound decision; explicit drive after actual original lease expiry applies same decision exactly once with no model/tool; no invented new decision"
+    },
+    {
+      "id": "M03-INSTALL",
+      "cut": "install",
+      "hook_owner": "F",
+      "hook": "after_exchange_before_record",
+      "selector": "original tool-install request for this Workspace",
+      "reply": "one native Workspace append+fsync effect",
+      "expected": {
+        "HTTP": 1,
+        "tools": 1,
+        "exchanges": 1,
+        "parent_phase": "issued"
+      },
+      "recovery": "same saved startup permits read-only construction despite exchanged original root; R holder/installation remain pending, real F current/staged identities show one swap; query never confirms/re-exchanges, explicit drive after lease expiry pauses without repeated tool/HTTP"
+    }
+  ],
+  "independent_oracles": [
+    "external parent sends SIGKILL to exact child process group only after complete fsynced cut notification; requires actual -9/reaped",
+    "same immutable config and original IDs in new process; full R tables and original X/S/F files unchanged across query, zero extra localhost requests and task dispatches",
+    "actual fixed HTTP received request bytes, original X CID/ExecInspect plus exact native effect script, actual workspace effects.log and F installed/retired inode pairs; hook labels alone not effect evidence",
+    "decision body/source/harness original byte binding and one applied R decision; issued paths preserve responsibility or pause without replay",
+    "collect before exact owned-object test cleanup; cleanup never makes FAIL pass"
+  ],
+  "dependency": "Shared bootstrap must expose StartupAssets.open_existing and choose it from saved original host without changing assemble signature. Absent dependency -> MISSING/0; current candidate is not silently substituted.",
+  "execution_rule": "All five cuts times three required; stop after first unexpected failure and report remaining NOT_RUN; localhost responses are fixed input fixtures, not real-model validation."
+}

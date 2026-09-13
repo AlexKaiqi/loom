@@ -1,0 +1,568 @@
+{
+  "id": "XN-CONCRETE-INPUTS-001",
+  "status": "PREREGISTERED_FOR_DRIVER_AND_ROOT_REVIEW",
+  "cases": [
+    {
+      "id": "XN01",
+      "positive_recipe": "actual_pi_accept_then_snapshot_query",
+      "negative_variants": [
+        {
+          "name": "missing_dependency",
+          "mutate": {
+            "where": "filesystem",
+            "path": "dependencies/required_member",
+            "value": "delete"
+          },
+          "expected_code": "INVALID_REQUEST"
+        }
+      ],
+      "independent_required_facts": [
+        "Actual fixed Node argv/version/source hashes, same original Session JSONL after accept and new read-only query from snapshot",
+        "accept/query provider_calls=0 and effect_count=0; original accepted op identity present; actual ExitCode0",
+        "actual UID1000/cap0, exact RO source mount IDs, original private volume"
+      ],
+      "positive_failure": "FAIL if any required actual action/evidence is absent",
+      "negative_rule": "exact original request and authority context, original record and zero new physical object/effect must all be checked; unexpected crash/missing observation is INVALID not semantic rejection",
+      "expected_source": "original cases.json corresponding question; variants concretize it without removing original requirement"
+    },
+    {
+      "id": "XN02",
+      "positive_recipe": "valid_source_then_preexecute_integrity",
+      "negative_variants": [
+        {
+          "name": "same_size_byte_change",
+          "mutate": {
+            "where": "filesystem",
+            "path": "dependencies/required_member",
+            "value": "flip-one-byte"
+          },
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "root_replaced",
+          "mutate": {
+            "where": "filesystem",
+            "path": "dependencies_root",
+            "value": "replace-directory-preserve-files"
+          },
+          "expected_code": "INVALID_REQUEST"
+        }
+      ],
+      "independent_required_facts": [
+        "valid original projection loads first",
+        "source old/new raw files and registration dev/ino/hashes retained",
+        "rejections precede any new Node object"
+      ],
+      "positive_failure": "FAIL if any required actual action/evidence is absent",
+      "negative_rule": "exact original request and authority context, original record and zero new physical object/effect must all be checked; unexpected crash/missing observation is INVALID not semantic rejection",
+      "expected_source": "original cases.json corresponding question; variants concretize it without removing original requirement"
+    },
+    {
+      "id": "XN03",
+      "positive_recipe": "actual_readonly_files_and_denials",
+      "negative_variants": [
+        {
+          "name": "wrong_digest",
+          "mutate": {
+            "where": "request",
+            "path": "readonly_mounts/2/manifest_ref/sha256",
+            "value": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "missing_reference",
+          "mutate": {
+            "where": "request",
+            "path": "readonly_mounts/2/content_ref",
+            "value": null
+          },
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "outside_source",
+          "mutate": {
+            "where": "request",
+            "path": "readonly_mounts/2/source/path",
+            "value": "@fixture.unauthorized_root"
+          },
+          "expected_code": "UNAUTHORIZED"
+        },
+        {
+          "name": "source_symlink_escape",
+          "mutate": {
+            "where": "filesystem",
+            "path": "input/escape",
+            "value": "symlink-outside"
+          },
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "host_socket",
+          "mutate": {
+            "where": "request",
+            "path": "readonly_mounts/2/source/path",
+            "value": "@fixture.owned_host_socket"
+          },
+          "expected_code": "UNAUTHORIZED"
+        },
+        {
+          "name": "rw_mount",
+          "mutate": {
+            "where": "request",
+            "path": "readonly_mounts/2/read_only",
+            "value": false
+          },
+          "expected_code": "INVALID_REQUEST"
+        }
+      ],
+      "independent_required_facts": [
+        "actual Node reads exact F/input/Harness members",
+        "write attempts on every allowed RO target fail EROFS/EACCES and originals bytes unchanged",
+        "Engine Mounts exact real source+RW=false; no broad host source"
+      ],
+      "positive_failure": "FAIL if any required actual action/evidence is absent",
+      "negative_rule": "exact original request and authority context, original record and zero new physical object/effect must all be checked; unexpected crash/missing observation is INVALID not semantic rejection",
+      "expected_source": "original cases.json corresponding question; variants concretize it without removing original requirement"
+    },
+    {
+      "id": "XN04",
+      "positive_recipe": "internal_session_positive_and_unauthorized_routes",
+      "negative_variants": [
+        {
+          "name": "wrong_profile",
+          "mutate": {
+            "where": "request",
+            "path": "environment",
+            "value": "fixed-python-linux-v1"
+          },
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "wrong_domain",
+          "mutate": {
+            "where": "request",
+            "path": "domain",
+            "value": "runtime"
+          },
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "model_shell_session",
+          "mutate": {
+            "where": "trusted_route",
+            "path": "principal",
+            "value": "model-origin"
+          },
+          "expected_code": "UNAUTHORIZED"
+        },
+        {
+          "name": "peer_principal_override",
+          "mutate": {
+            "where": "peer_params",
+            "path": "transport_principal",
+            "value": "trusted-S"
+          },
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "cross_session",
+          "mutate": {
+            "where": "request",
+            "path": "session_binding/session_id",
+            "value": "@fixture.other_session_id"
+          },
+          "expected_code": "UNAUTHORIZED"
+        },
+        {
+          "name": "stale_generation",
+          "mutate": {
+            "where": "request",
+            "path": "session_binding/session_generation",
+            "value": 0
+          },
+          "expected_code": "UNAUTHORIZED"
+        }
+      ],
+      "independent_required_facts": [
+        "trusted registered S session route actual Node positive",
+        "all forbidden initial requests zero object; no model third-target rewrite",
+        "original configured route cannot be changed by peer body"
+      ],
+      "positive_failure": "FAIL if any required actual action/evidence is absent",
+      "negative_rule": "exact original request and authority context, original record and zero new physical object/effect must all be checked; unexpected crash/missing observation is INVALID not semantic rejection",
+      "expected_source": "original cases.json corresponding question; variants concretize it without removing original requirement"
+    },
+    {
+      "id": "XN05",
+      "positive_recipe": "node_isolation_probe",
+      "negative_variants": [
+        {
+          "name": "body_authority_injection",
+          "mutate": {
+            "where": "peer_params",
+            "path": "authorization_checker",
+            "value": {
+              "always": true
+            }
+          },
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "network_override",
+          "mutate": {
+            "where": "request",
+            "path": "environment_values/LORE_TEST_CONTROL_CANARY",
+            "value": "@fixture.canary"
+          },
+          "expected_code": "INVALID_REQUEST"
+        }
+      ],
+      "independent_required_facts": [
+        "Node actual /proc environment/fd/path canary probes no host key/socket/control FD",
+        "Engine NetworkMode none; real internal peer reachable by own witness and unreachable by Node",
+        "task/keeper actual UID/caps/namespace/cgroup original IDs; actualRO root and only bounded work/tmp/shm writes"
+      ],
+      "positive_failure": "FAIL if any required actual action/evidence is absent",
+      "negative_rule": "exact original request and authority context, original record and zero new physical object/effect must all be checked; unexpected crash/missing observation is INVALID not semantic rejection",
+      "expected_source": "original cases.json corresponding question; variants concretize it without removing original requirement"
+    },
+    {
+      "id": "XN06",
+      "positive_recipe": "quota_and_output_limits",
+      "negative_variants": [
+        {
+          "name": "work_bytes",
+          "mode": "quota-bytes",
+          "expected": "actual ENOSPC; work bytes_free0 before release"
+        },
+        {
+          "name": "work_unlinked",
+          "mode": "quota-unlinked",
+          "expected": "same held deleted-open FD and bytes_free0 before release"
+        },
+        {
+          "name": "work_inodes",
+          "mode": "quota-inodes",
+          "expected": "actual ENOSPC/inodes0 before release"
+        },
+        {
+          "name": "output_flood",
+          "mode": "output-flood",
+          "expected": "original partial bytes retained, original output-limit reason, actual old namespace stopped; never COMPLETE"
+        }
+      ],
+      "independent_required_facts": [
+        "work/tmp/shm statvfs exact configuredbytes/inodes; full fixed profile retains original capacity limits",
+        "all quota modes release only on explicit channel control after external fullness",
+        "actual complete streambytes under bounds; whole slot actual accounting includes archive/spool"
+      ],
+      "positive_failure": "FAIL if any required actual action/evidence is absent",
+      "negative_rule": "exact original request and authority context, original record and zero new physical object/effect must all be checked; unexpected crash/missing observation is INVALID not semantic rejection",
+      "expected_source": "original cases.json corresponding question; variants concretize it without removing original requirement"
+    },
+    {
+      "id": "XN07",
+      "positive_recipe": "shared_channel_three_short_peers",
+      "negative_variants": [
+        {
+          "name": "changed_call_bytes",
+          "mutate": {
+            "where": "channel_call",
+            "path": "same_call/data_base64",
+            "value": "@fixture.different_nonce"
+          },
+          "expected_code": "ID_CONFLICT"
+        },
+        {
+          "name": "changed_cursor",
+          "mutate": {
+            "where": "channel_call",
+            "path": "same_call/byte_offset",
+            "value": 999
+          },
+          "expected_code": "ID_CONFLICT"
+        },
+        {
+          "name": "wrong_channel",
+          "mutate": {
+            "where": "channel_call",
+            "path": "channel_id",
+            "value": "@fixture.foreign_channel"
+          },
+          "expected_code": "UNAUTHORIZED"
+        }
+      ],
+      "independent_required_facts": [
+        "at least3 distinct peer PIDs; same actual NodePID/container/exec/object_generation/channel throughout",
+        "nonce order exactly once in actual JSONL and raw replies; short peer exits not stdin EOF",
+        "direct single-process X API sees same persisted original calls/cursors, not bridge-only cache"
+      ],
+      "positive_failure": "FAIL if any required actual action/evidence is absent",
+      "negative_rule": "exact original request and authority context, original record and zero new physical object/effect must all be checked; unexpected crash/missing observation is INVALID not semantic rejection",
+      "expected_source": "original cases.json corresponding question; variants concretize it without removing original requirement"
+    },
+    {
+      "id": "XN08",
+      "positive_recipe": "channel_ack_loss_and_owner_restart",
+      "negative_variants": [
+        {
+          "name": "lost_ack",
+          "fault": "after_actual_write_before_ack",
+          "expected": "same call query original confirmed-or-unknown record, no redispatch"
+        },
+        {
+          "name": "partial_write",
+          "fault": "after_real_prefix_write",
+          "expected": "INCOMPLETE_OBSERVATION, actual prefix bytes preserved and no remainder auto-retry"
+        },
+        {
+          "name": "bridge_restart",
+          "fault": "kill_original_channel_owner",
+          "expected": "same original Node retained/paused until explicit stop; no new execute or old input replay"
+        }
+      ],
+      "independent_required_facts": [
+        "X original persisted issued/partial/unknown call reference before dispatch/ACK loss",
+        "actual Node effect/accepted prefix and actual Engine identities; no substitute process",
+        "recovered query/read still authorized by original complete context; orphan namespace actually stopped"
+      ],
+      "positive_failure": "FAIL if any required actual action/evidence is absent",
+      "negative_rule": "exact original request and authority context, original record and zero new physical object/effect must all be checked; unexpected crash/missing observation is INVALID not semantic rejection",
+      "expected_source": "original cases.json corresponding question; variants concretize it without removing original requirement"
+    },
+    {
+      "id": "XN09",
+      "positive_recipe": "checkpoint_resume_seal_restore",
+      "negative_variants": [
+        {
+          "name": "wrong_snapshot_hash",
+          "mutate": {
+            "where": "request",
+            "path": "snapshot_ref/archive_sha256",
+            "value": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "wrong_snapshot_generation",
+          "mutate": {
+            "where": "request",
+            "path": "snapshot_ref/session_generation",
+            "value": 0
+          },
+          "expected_code": "UNAUTHORIZED"
+        },
+        {
+          "name": "fake_empty_snapshot",
+          "mutate": {
+            "where": "filesystem",
+            "path": "snapshot_archive",
+            "value": "empty-origin-with-file"
+          },
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "wrong_existing_owner_association",
+          "action": "release_checkpoint",
+          "owner_receipt_mutation": "real-receipt-other-session",
+          "expected_code": "UNAUTHORIZED"
+        },
+        {
+          "name": "owner_only_flag",
+          "action": "release_checkpoint",
+          "owner_receipt_mutation": "confirmed-without-original-file",
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "owner_hardlink_alias",
+          "action": "release_checkpoint",
+          "owner_receipt_mutation": "same-inode-owner-copy",
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "unconfirmed_successor",
+          "action": "release_checkpoint",
+          "owner_receipt_mutation": "no-successor-owner-record",
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "only_original",
+          "action": "release_checkpoint",
+          "owner_receipt_mutation": "old-only-source",
+          "expected_code": "INVALID_REQUEST"
+        }
+      ],
+      "independent_required_facts": [
+        "actual original JSONL grows after same-object resume; exact raw archive/manifest complete members and ns metadata",
+        "final freeze export stays bound to original IDs/generation; actualseal removes all original namespace tasks",
+        "new query from actual S original snapshot does not accept/drive old op again; no F Surface/Workspace install",
+        "actual retained successor and separate S old-byte original permit release_checkpoint; local old file gone and original owner bytes/history remain queryable",
+        "same release repeated no extra credit; actual existing checkpoint-read pin rejects release; independent S snapshot restore does not read the old X blob",
+        "sealed original no newer version: actual stop plus complete S ownership transfer releases last X local archive; same ownership claim while namespace active rejects"
+      ],
+      "positive_failure": "FAIL if any required actual action/evidence is absent",
+      "negative_rule": "exact original request and authority context, original record and zero new physical object/effect must all be checked; unexpected crash/missing observation is INVALID not semantic rejection",
+      "expected_source": "original cases.json corresponding question; variants concretize it without removing original requirement"
+    },
+    {
+      "id": "XN10",
+      "positive_recipe": "same_id_content_associations",
+      "negative_variants": [
+        {
+          "name": "Node_manifest",
+          "mutate": {
+            "where": "request",
+            "path": "readonly_mounts/0/manifest_ref/sha256",
+            "value": "@fixture.other_legitimate_dep_manifest_sha"
+          },
+          "expected_code": "ID_CONFLICT"
+        },
+        {
+          "name": "Harness_ref",
+          "mutate": {
+            "where": "request",
+            "path": "harness_version",
+            "value": "@fixture.other_legitimate_harness_version"
+          },
+          "expected_code": "ID_CONFLICT"
+        },
+        {
+          "name": "input_ref",
+          "mutate": {
+            "where": "request",
+            "path": "readonly_mounts/2/content_ref",
+            "value": "@fixture.other_legitimate_F_ref"
+          },
+          "expected_code": "ID_CONFLICT"
+        },
+        {
+          "name": "readonly_role_source_association",
+          "mutate": {
+            "where": "request",
+            "path": "readonly_mounts",
+            "value": "@fixture.other_legitimate_complete_mounts"
+          },
+          "expected_code": "ID_CONFLICT"
+        },
+        {
+          "name": "command_args",
+          "mutate": {
+            "where": "request",
+            "path": "command_argv/4",
+            "value": "read-files"
+          },
+          "expected_code": "ID_CONFLICT"
+        }
+      ],
+      "independent_required_facts": [
+        "original and alternate requests have explicitly independently registered scope so authorization failure cannot masquerade as conflict",
+        "same execution ID never overwrites original complete request_digest/ref/source",
+        "new ID with new actual grant can execute; unauthorized generation cannot"
+      ],
+      "positive_failure": "FAIL if any required actual action/evidence is absent",
+      "negative_rule": "exact original request and authority context, original record and zero new physical object/effect must all be checked; unexpected crash/missing observation is INVALID not semantic rejection",
+      "expected_source": "original cases.json corresponding question; variants concretize it without removing original requirement"
+    },
+    {
+      "id": "XN11",
+      "positive_recipe": "shared_slot_actual_three_roles",
+      "negative_variants": [
+        {
+          "name": "fourth_object",
+          "action": "second_tool_execute",
+          "expected": "SLOT_EXHAUSTED before create, first3reservation identities retained"
+        },
+        {
+          "name": "over_private_bytes",
+          "action": "extra_spool_reservation_over128MiB",
+          "expected": "SLOT_EXHAUSTED/INVALID_REQUEST before filewrite; no unaccounted original copy"
+        },
+        {
+          "name": "over_private_inodes",
+          "action": "extra_reservation_over8192",
+          "expected": "SLOT_EXHAUSTED/INVALID_REQUEST before membercreate"
+        },
+        {
+          "name": "peer_register_slot",
+          "action": "peer_attempt_register_slot",
+          "expected": "INVALID_REQUEST; no configuration changed"
+        },
+        {
+          "name": "crash_reserved_before_create",
+          "fault": "slot_reserved_before_engine_create",
+          "expected": "same X original reservation recovered, no duplicate credit or extra object"
+        },
+        {
+          "name": "third_checkpoint_without_release",
+          "action": "third_checkpoint",
+          "expected": "SLOT_EXHAUSTED; same2originalrefs/files/reservations retained"
+        },
+        {
+          "name": "checkpoint_release_crash",
+          "fault": "release_persisted_before_unlink_or_after_unlink_before_credit",
+          "expected": "same original release ID reconciled; old S bytes/readback preserved and exact local physical credit returned once"
+        }
+      ],
+      "independent_required_facts": [
+        "actual simultaneous S512/tool128/helper128MiB; .5/.25/.25CPU; helper reused serially",
+        "exact same registered plan and durable X reservation records before Engine objects; no transport-only ledger",
+        "all observed volumes, deleted-open bytes, tmp/shm, host archive/spool/include copies counted; release only actualstop/reclaim",
+        "no waiting Session-specific bridge/worker after all roles stop"
+      ],
+      "positive_failure": "FAIL if any required actual action/evidence is absent",
+      "negative_rule": "exact original request and authority context, original record and zero new physical object/effect must all be checked; unexpected crash/missing observation is INVALID not semantic rejection",
+      "expected_source": "original cases.json corresponding question; variants concretize it without removing original requirement"
+    },
+    {
+      "id": "XN12",
+      "positive_recipe": "large_F_input_actual_readonly_Node",
+      "negative_variants": [
+        {
+          "name": "default_F_limits",
+          "mutate": {
+            "where": "F_fixture",
+            "path": "limits",
+            "value": "default"
+          },
+          "expected_code": "LIMIT_EXCEEDED"
+        },
+        {
+          "name": "missing_large_member",
+          "mutate": {
+            "where": "filesystem",
+            "path": "input/selected_file",
+            "value": "delete"
+          },
+          "expected_code": "INVALID_REQUEST"
+        },
+        {
+          "name": "wrong_large_file_hash",
+          "mutate": {
+            "where": "filesystem",
+            "path": "input/selected_file",
+            "value": "same-size-corrupt"
+          },
+          "expected_code": "INVALID_REQUEST"
+        }
+      ],
+      "independent_required_facts": [
+        "actualG4F578members/513files and 4096-line diff from actualmaterialized source",
+        "Node reads all original filebytes and exact F refs through actualRO /input,/workspace; root/manifest hashes match",
+        "explicit1024entry/2MiBlogical/4MiBarchiveF profile; no silent truncation/default64 success"
+      ],
+      "positive_failure": "FAIL if any required actual action/evidence is absent",
+      "negative_rule": "exact original request and authority context, original record and zero new physical object/effect must all be checked; unexpected crash/missing observation is INVALID not semantic rejection",
+      "expected_source": "original cases.json corresponding question; variants concretize it without removing original requirement"
+    }
+  ],
+  "revision": 2,
+  "prior_revision": "interface-prior-003/cases-inputs.json",
+  "revision_reason": "Before any Node X implementation: command mode is argv[4]; a duplicate /input target is not an independently valid alternative. Use an actual other authorized complete mount association, first prove new-ID positive, then require same-ID conflict. Original twelve properties unchanged.",
+  "execution_clarifications": [
+    "Valid same-role/path intent grants do not certify actual hashes/content; content failures remain INVALID_REQUEST. Cross Session/path/route receive no extra grant and remain UNAUTHORIZED.",
+    "Same-ID changed content has a prior actual positive with a fresh ID; command alternate read-files is an admitted ordinary mode.",
+    "XN11 aggregate storage proof uses original valid execute/channel/checkpoint actions, actual store/Engine/FD totals and fixed upper bound; no reserve_spool API.",
+    "XN09 restore/read retention uses existing query_checkpoint actual archive FD + same-store concurrent release INCOMPLETE_OBSERVATION; original query completes after unblock. S snapshot restore does not artificially retain unrelated old X blob. Existing live sealed-transfer must reject INCOMPLETE_OBSERVATION. No new case or product method."
+  ]
+}

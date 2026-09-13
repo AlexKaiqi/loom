@@ -1,0 +1,24 @@
+{
+  "id": "G1-FREEZE-001",
+  "status": "FROZEN_FOR_SIMULATION",
+  "time_utc": "2026-09-12T17:36:44.652412+00:00",
+  "source_commit": "0550919ff4cba2983d581c3068e1cfbff67d557a",
+  "scope": [
+    "DUR-001 through DUR-028",
+    "G1-STR-001 through G1-STR-003"
+  ],
+  "excluded": "BND pending independent preregistration; no BND model implementation yet",
+  "cases": 31,
+  "inputs_sha256": {
+    "design/g1/top-level-contracts.md": "5644cd02f5d6625690ba8ff9e90e7e4085606eba44eb532eb4c2de34314adeb4",
+    "design/g1/simulation-protocol.md": "ccc770ccc875b0764cc14b64ecb755441a093924b70c9805e73212131a79a350",
+    "design/g1/mechanism-decisions.md": "c50f39f84379b6527edfbeb807291a75ff7a1511a63b2495f159ed0f1d3afaa0",
+    "design/g1/cases-durability.json": "fcd8f28d3e9eb245cef55f5716a404e458fff0d9ec3f5f7c75906e2490f3f861",
+    "design/g1/cases-strategy.json": "c29b132edd3a8c09ba399cb3cd3c1183ecc83cfe7e362f7c9ae4342b7ee50a60",
+    "design/g1/alternatives-review.md": "bf92f7b4e22c35ff024a1bd87bffa70979daa9e4f77f580d2fe9c74329835346",
+    "design/g1/preregistration-review-batch1.md": "bee1ba25050eedd243503c1dd2eadcda810e51e2e59577a0052d5a6ea9a4f8ad",
+    "design/g1/cases-durability.md": "06ccae7d47e62f0cdcfe666eebe8df9fe4d6bf176e34395ac770673ab9970e95",
+    "design/g1/causal-arguments.md": "1e257279d85a6101616a63e82491979dfee7cb145fee87e8e95ec909a0d05a41"
+  },
+  "rule": "Only these finite model families are authorized by this gate. No real Runtime property PASS."
+}

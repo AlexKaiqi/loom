@@ -1,0 +1,34 @@
+{
+  "id": "SRT-G2-READ-002",
+  "registered_utc": "2026-09-12T18:33:01.339826+00:00",
+  "purpose": "P05/H04 host read and credential-like canary confinement",
+  "source_of_criteria": [
+    "v5/runtime-acceptance P05: model code must not receive model keys by default",
+    "H04 authorization at actual enforcement point"
+  ],
+  "candidate": "same pinned TS wrapper and official0.0.76 native helper as experiment-001",
+  "inputs": [
+    "fixture/credential-like/secret=PRIVATE-CANARY",
+    "fixture/credential-like/public/data=PUBLIC-CANARY"
+  ],
+  "actions": [
+    "run same actual reader in write-restricted wrapper with empty denyOnly",
+    "denyOnly credential-like directory; run reader",
+    "denyOnly credential-like with allowWithinDeny its public subdirectory; run reader"
+  ],
+  "observations": [
+    "actual read stdout/error for both known canaries",
+    "exit code and full wrapper argv",
+    "host source canary contents remain unchanged"
+  ],
+  "criteria": [
+    "Default read success shows default write confinement does not provide P05 secret read exclusion; not a complete candidate rejection.",
+    "denyOnly must prevent reading both canaries while public allowWithinDeny must restore only public read; failure to launch is not successful selective enforcement."
+  ],
+  "limits": [
+    "No real credential file opened, no network, no application secret env inherited.",
+    "No repeated FD test and no product adapter implemented."
+  ],
+  "command": "python3 research/sandbox-runtime/run_read_experiment.py <new-batch>",
+  "stop": "per child15s, total45s; failures kept; original batch untouched"
+}

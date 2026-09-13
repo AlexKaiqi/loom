@@ -1,0 +1,38 @@
+{
+  "project": "Pi",
+  "repository": "https://github.com/earendil-works/pi",
+  "commit": "71dca871bc80b6bc97be37f0ca3189399d651fff",
+  "copyright": "Copyright (c) 2025 Mario Zechner",
+  "license": "MIT",
+  "copied_material": "Original license, original upstream package metadata/lockfile, and a one-line local patch. No upstream implementation, node_modules or binary is included.",
+  "package_metadata_scope": "The package.json and lockfile describe the complete pinned upstream monorepo, including development and unused packages. They are provenance records, not a standalone Loom install manifest or evidence that every locked package is used.",
+  "modification": {
+    "file": "packages/agent/src/harness/runtime/drive/response.ts",
+    "purpose": "Honor the existing compaction.enabled setting before automatic overflow/length recovery. The patch adds this guard to the existing overflow predicate; it does not implement a new compaction algorithm.",
+    "original_sha256": "6e66e581e63af08833cda2c0e305e9695bd131022b71389b61d3ce268ed3f157",
+    "patch": "compaction-enabled.patch",
+    "patch_sha256": "518042bf0e0021786396069e7da74d51a0667b76a00e15c521e6f30e8318c53a"
+  },
+  "preserved_files": [
+    {
+      "path": "LICENSE",
+      "sha256": "0457f5bcec3b3b211605dfb5d1a49042fd638f3686a410fe099c24a25af13c48",
+      "bytes": 1069
+    },
+    {
+      "path": "compaction-enabled.patch",
+      "sha256": "518042bf0e0021786396069e7da74d51a0667b76a00e15c521e6f30e8318c53a",
+      "bytes": 485
+    },
+    {
+      "path": "upstream-package.json",
+      "sha256": "fad7121f20f9c01e2573e582a4908a7d22b92041000ed71e62528403416f55c0",
+      "bytes": 4937
+    },
+    {
+      "path": "upstream-package-lock.json",
+      "sha256": "b9ab7cb9d02e818ba16dd0874285175f3b2cad117326761de0e2c61f285a5e2b",
+      "bytes": 167220
+    }
+  ]
+}

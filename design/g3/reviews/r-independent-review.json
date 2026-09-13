@@ -1,0 +1,108 @@
+{
+  "stage": "G3 D01-D05 preparation only",
+  "status": "SUPERSEDED_PENDING_LOCAL_REVIEW",
+  "reviewer": "long_task_drift independent of R author",
+  "findings": [
+    {
+      "id": "RR01",
+      "file": "validation/components/r/test_control.py:17;process_cases.py:65",
+      "issue": "TemporaryDirectory cleanup removes unit raw DB/refs and process failure fixtures; success-only backup cannot preserve failed facts.",
+      "resolution": "CLOSED_BY_SOURCE_RECHECK_AND_INDEPENDENT_PREPARATION_002_003",
+      "status": "CLOSED"
+    },
+    {
+      "id": "RR02",
+      "file": "validation/components/r/test_control.py:250;process_cases.py:157",
+      "issue": "No aggregate executable inventory matching 20 unit and 23 required companions; omitted entry could still have isolated green run.",
+      "resolution": "CLOSED_BY_SOURCE_RECHECK_AND_INDEPENDENT_PREPARATION_002_003",
+      "status": "CLOSED"
+    },
+    {
+      "id": "RR03",
+      "file": "validation/components/r/test_control.py:105",
+      "issue": "R06 new invocation after rebind never checks registered h2; stale strategy forever can pass.",
+      "resolution": "CLOSED_BY_SOURCE_RECHECK_AND_INDEPENDENT_PREPARATION_002_003",
+      "status": "CLOSED"
+    },
+    {
+      "id": "RR04",
+      "file": "validation/components/r/test_control.py:178",
+      "issue": "R15 does not actually expire a worker lease while a holder exists.",
+      "resolution": "CLOSED_BY_SOURCE_RECHECK_AND_INDEPENDENT_PREPARATION_002_003",
+      "status": "CLOSED"
+    },
+    {
+      "id": "RR05",
+      "file": "validation/components/r/test_control.py:183",
+      "issue": "R16 real wrong-association stopped refs covered; analogous authentic-but-wrong published ref not covered.",
+      "resolution": "CLOSED_BY_SOURCE_RECHECK_AND_INDEPENDENT_PREPARATION_002_003",
+      "status": "CLOSED"
+    },
+    {
+      "id": "RR06",
+      "file": "validation/components/r/process_cases.py:59",
+      "issue": "phase != settled counts nonpending invalid state as surviving old responsibility; fixed before-cut should independently require decide and original decision.",
+      "resolution": "CLOSED_BY_SOURCE_RECHECK_AND_INDEPENDENT_PREPARATION_002_003",
+      "status": "CLOSED"
+    },
+    {
+      "id": "RR07",
+      "file": "validation/components/r/test_control.py:96,125,193;process_cases.py:56",
+      "issue": "Declaration/action gaps: deletion and forged authority, other resource progress while paused, fairness beyond first prefix, and full acknowledged request fields after new-process query.",
+      "resolution": "CLOSED_BY_SOURCE_RECHECK_AND_INDEPENDENT_PREPARATION_002_003",
+      "status": "CLOSED"
+    }
+  ],
+  "already_rechecked_revisions": [
+    "R18 lock requires exact storage_error/action/request ID and real BEGIN IMMEDIATE held",
+    "R16 actual reference bytes exist but stopped association differs",
+    "R14 condition/event/successor duplicate conflicts are explicit"
+  ],
+  "independent_evidence": [
+    "r-independent-preparation-001/result.json",
+    "r-independent-preparation-002/result.json",
+    "r-independent-preparation-003/result.json"
+  ],
+  "source_sha256": {
+    "design/g3/r/cases.json": "c1403dd02f4978d5af7f74b54d722343ced1baef4bf9b920684b6eeb3bb99eb4",
+    "design/g3/r/execution-inventory.json": "8bd40660bc9339f13d8d103698276ecda5ab0a47122f151d37f9b019dad14d51",
+    "design/g3/r/contract.md": "4d8c526e9b6f374ebdc9d80d4ca77575969592090345c2448396f2a0e0ef5590",
+    "validation/components/r/missing_capability.py": "de7751923dd7d231367057f565abccaeb944f004c2fc3d36874d822dd9e02c13",
+    "validation/components/r/test_oracle.py": "7687baf5434ca5add7ecd1449a9b2a460e0e2f1e3dbea80393c7ab5d3d8725df",
+    "validation/components/r/run_contract.py": "563f33aed3580e110b9fd0e83c6b6f8b1aceb3ed23ecc512b8ee2c321c51c09b",
+    "validation/components/r/oracle.py": "e14c00b076f6a7b63c829895d2ac0239a2b96500de38717c702a3bce18f0deae",
+    "validation/components/r/process_cases.py": "07bfa75df06ff80de4443b1604b47b6d6eecfeb96e4f654501c9f20e413b44ca",
+    "validation/components/r/test_control.py": "569af986168dfae66e47fe0a1c460da54575542ea762b8ea3e8e274aff571fd3",
+    "validation/components/r/process_worker.py": "335ce93d56e144a12c9225011de1e36f76f700f4df7bde69ef57d2c55d3ab2f0"
+  },
+  "not_component_pass": true,
+  "independent_current_evidence": "r-independent-preparation-002/result.json",
+  "recheck_summary": "RR01-07 closed without reducing original requirements. Independent oracle controls pass, missing exits2/0 executed, bad-capability exits1 after20 unit attempts; actual fixture preservation checked. Strong original fairness now all sliding windows with ABC CBA counterexample.",
+  "D01": {
+    "status": "PASS",
+    "basis": "R narrow SQLite authority/interface/state/failure/durability boundaries explicit; full originals remain owned by S/E/X/F; RF install and RE delivery preserve responsibility separation."
+  },
+  "D02": {
+    "status": "PASS",
+    "basis": "20 executable unit scenarios plus23 mandatory actual process companions fixed before production; raw files/SQL/ref bytes retained even on failure; existing environment Python3.10/SQLite/ext4 available."
+  },
+  "D03": {
+    "status": "PASS",
+    "basis": "Independent oracle rejection controls pass; exact inventory, no skip/error/false claim, source/input bindings; actual bad-capability fixture rejected and missing component exits2 without executing cases."
+  },
+  "D04": {
+    "status": "PASS",
+    "basis": "SQLite/files/SIGKILL/concurrency fixtures real; ref authority is explicit controlled port, not actual X revocation/NATS/provider/F exchange evidence; G4/G5 duties retained."
+  },
+  "D05": {
+    "status": "PASS",
+    "basis": "Predeclared20+23 coverage,3 repetitions,4 workers,36 ordered requests/12 duplicate IDs, sliding fairness windows, explicit deadlines and invalid-result failures; no performance extrapolation."
+  },
+  "limits": [
+    "No production R exists; this passes only preparation and allows independent implementation after whole authorized G3 gate.",
+    "Real component behavior, 23 successful companions, independent G4 rerun and real R/F/X/E/S integration remain unverified.",
+    "Preserved bad-capability evidence is verifier rejection, not a semantic model of R or proof any production property."
+  ],
+  "history": "../r/history/input-receipt-001/r-independent-review.json",
+  "note": "Original independent PASS applies only to preserved version; long_task_drift now authors limited R20/R21 revision and cannot independently approve it."
+}

@@ -1,0 +1,103 @@
+{
+  "scope": "NO_ENGINE_FINITE_PRODUCTION_GLUE_ONLY",
+  "api": "SessionService(execution,snapshots,provider,plans,tools,checkpoint=None).invoke(request, *, execution_id, deadline_monotonic)",
+  "source": "design/g3/s/contract.md §§1–4; original Node callbacks/adapter/stdio; existing SessionRun and ProviderBridge contracts",
+  "cases": [
+    {
+      "id": "accept",
+      "criterion": "accepted original meta/state, durable confirmation before return, no provider/tool"
+    },
+    {
+      "id": "drive",
+      "criterion": "original provider/tool pending + complete replies + saved boundary, exact frame, checkpoint precedes each call; seal before release"
+    },
+    {
+      "id": "query_saved",
+      "criterion": "original saved result/decision unchanged and zero provider/tool calls"
+    },
+    {
+      "id": "provider_query_known",
+      "criterion": "original pending query only, retained wire and original ID, reconciliation result unchanged"
+    },
+    {
+      "id": "provider_query_unknown",
+      "criterion": "original pending query only, UNKNOWN and original ID, paused result unchanged"
+    },
+    {
+      "id": "effect_query",
+      "criterion": "original tool pending query only; no execute"
+    },
+    {
+      "id": "bad_response_id",
+      "criterion": "wrong original reserved response identity: invalid_frame before provider"
+    },
+    {
+      "id": "bad_effect_id",
+      "criterion": "wrong stable effect identity: invalid_frame before provider"
+    },
+    {
+      "id": "bad_binding",
+      "criterion": "same scope but trusted input differs from original: invalid_frame before provider"
+    },
+    {
+      "id": "bad_tool_args",
+      "criterion": "same original pending ID but script differs from saved pi.op.tool_args: invalid_frame before tool"
+    },
+    {
+      "id": "query_attempts_dispatch",
+      "criterion": "query cannot invoke provider.complete even with otherwise valid frame"
+    },
+    {
+      "id": "retained_provider",
+      "criterion": "old complete receipt fresh=false: paused_reconciliation_required, no replay reply"
+    },
+    {
+      "id": "unknown_provider",
+      "criterion": "UNKNOWN: paused_unknown, no replay reply"
+    },
+    {
+      "id": "bad_final",
+      "criterion": "same saved result but changed Harness decision: invalid_frame; no synthesized strategy"
+    },
+    {
+      "id": "failed_accept",
+      "criterion": "original binding missing: Q retained, no healthy confirmation or admission; seal/release Q"
+    },
+    {
+      "id": "short_eof",
+      "criterion": "EOF before frame: paused_unknown with original retained; no manufactured result"
+    },
+    {
+      "id": "checkpoint_cut",
+      "criterion": "hook raises after original pending saved and before dispatch: retain/stop/release, zero provider"
+    },
+    {
+      "id": "bad_stdout",
+      "criterion": "trusted tool stdout file changed: integrity mismatch, no tool.reply"
+    },
+    {
+      "id": "export_read",
+      "criterion": "Original saved result queried without effects; trusted resolver alone maps full original read ref and Node descriptor, actual host bytes/hash match; original frame unchanged plus resolved_read_ref"
+    },
+    {
+      "id": "export_bad_source",
+      "criterion": "Wrong original read authority reference is rejected precisely before arbitrary host path read; no provider/tool, retained stop/release facts"
+    },
+    {
+      "id": "SS21-confirmation-failed",
+      "criterion": "Actual SessionRun obtains X cp but actual SnapshotStore.confirm rejects corrupt original. Reuse same pending fullref via quarantine_pending only: exactly one scripted X checkpoint, actual original bytes/hash retained by Q, same-source real S sealed ownership receipt and release; no fabricated healthy ref/no second or third checkpoint. NoEngine stop remains scripted."
+    }
+  ],
+  "fixtures_sha256": "410eb61567190ded4fd828f8dd33f12b4b40a624b7b43dd7b33573efbc3c698c",
+  "limits": {
+    "cases": 21,
+    "frame_bytes": 1048576,
+    "read_bytes": 65536,
+    "callbacks": 2,
+    "no_engine": true,
+    "no_http": true,
+    "no_node": true
+  },
+  "negative_control": "always-green replaces invoke return with saved frame; must fail related guards/lifecycle; missing module returns MISSING/0/nonzero",
+  "limitations": "Scripted X/provider/tools isolate host callback glue; actual SnapshotStore and original Pi archive parser execute. No fresh Node/Docker/provider/R/F publication claim; original S27 and real assembly remain necessary."
+}

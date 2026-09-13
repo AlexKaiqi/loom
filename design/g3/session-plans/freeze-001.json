@@ -1,0 +1,15 @@
+{
+  "status": "PREPARED_NOT_GATE",
+  "cases": [
+    "SP01",
+    "SP02",
+    "SP03",
+    "SP04",
+    "SP05"
+  ],
+  "inputs": {
+    "design/g3/session-plans/contract.md": "f62bf9c687fc3e4f6a792a4c58d0543d22e8b013f38f43b9f7ab7ae2da9e94c4",
+    "validation/session_plans_probe.py": "7608316542bbe33f830edf12252639f9167610013ac79be8cab1937c7a62fc16"
+  },
+  "missing": "validation/session-plan-evidence/missing-001/result.json"
+}

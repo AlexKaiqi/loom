@@ -1,0 +1,40 @@
+{
+  "id": "DEEP-MECH-01",
+  "kind": "exploratory actual plugin Session mechanism",
+  "preregistered_utc": "2026-09-12T18:34:24.655589+00:00",
+  "upstream_commit": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "properties": [
+    "P01",
+    "P07",
+    "P12"
+  ],
+  "hypotheses": [
+    "H02",
+    "H10"
+  ],
+  "question": "Does actual Cordis AgentLoop/JSONL Session preserve raw log and reconstructed requests across separate process lifecycles, reject active writer conflicts, and distinguish not-started from unknown tool outcomes in cold repair?",
+  "actual_code": [
+    "dsh-session SessionStore/Session",
+    "dsh-agent-loop",
+    "dsh-session-persistence-jsonl including native flock",
+    "dsh-session-projection",
+    "shipped MockAdapter fixed responses"
+  ],
+  "fixtures": "Own Vitest entry drives actual source plugins and native locking. Fixed model adapter; real fixture tool appends own effect file. Interrupted records constructed through actual persistence seam, not claimed as measured arbitrary process crash. Each phase runs a separate Node process.",
+  "oracle": [
+    "Normal actual loop fixed tool call and answer: two adapter requests, exactly one target effect, authoritative disk events contain original tool output/result/answer; live second resume rejects writer ownership.",
+    "Fresh-process resume: same session ID, prior exact event prefix/derived messages survives with zero adapter requests before followup; external pre-step plugin requests series and next actual call logs corresponding request header; no prior effect rerun.",
+    "Cold repair fixtures separately: assistant tool request without tool/call gets TOOL_NOT_STARTED; durable tool/call without result gets TOOL_OUTCOME_UNKNOWN and sourceEventSeqs cites original call; no model or tool invoked by resume, original prefix remains exact.",
+    "Torn uncommitted physical final fragment is discarded while complete prefix remains; invalid complete line rejects instead of accepting/truncating corruption.",
+    "Raw target JSONL and independent Python observer determine observations; no success flag substitutes evidence."
+  ],
+  "command": "python3 research/deepseek-harness/experiment.py <fresh-batch-name>",
+  "stop_conditions": "Normal, resume, seed, repair phases each<=60s; fixed normal2calls/resume1call; stop on unexpected invalid setup with preservedbatch. No fullmonorepo/fullprovider tests.",
+  "limits": [
+    "No provider quality/API compatibility test.",
+    "Crash fixtures test actual cold repair over explicitly constructed durable prefixes, not arbitrary tool-process crash timing.",
+    "Unknown-warning text does not mechanically enforce query/pause before future unsafe retries.",
+    "Selected plugins do not prove all released migration paths/power-loss durability; native flock build must be real.",
+    "No accepted execution-id/payload/version binding inferred from SessionId."
+  ]
+}

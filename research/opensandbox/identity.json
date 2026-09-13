@@ -1,0 +1,39 @@
+{
+  "slug": "opensandbox",
+  "official_repository": "https://github.com/opensandbox-group/OpenSandbox",
+  "clone_origin": "https://github.com/opensandbox-group/OpenSandbox.git",
+  "commit": "60bca638497d9c50e948928b8b15fe22328afee3",
+  "commit_time": "2026-09-12T22:47:02+08:00",
+  "commit_subject": "fix(egress): honor canceled revision requests",
+  "retrieval_evidence": "evidence/discovery-001",
+  "recorded_utc": "2026-09-12T18:27:07.139784+00:00",
+  "license": {
+    "declaration": "Apache-2.0",
+    "source": "LICENSE",
+    "sha256": "50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a",
+    "scope": "Pinned candidate source and tested modules; not a blanket declaration for every third-party dependency"
+  },
+  "discovery_path": [
+    "原始主清单/根分派",
+    "G1 research-questions H04-H08",
+    "维护方 GitHub 仓库→固定提交→模块调用链→先行实验"
+  ],
+  "experiment_batch": "evidence/experiment-001",
+  "scope_status": "RESEARCH_ONLY_NOT_COMPONENT_PASS",
+  "former_repository_redirect": {
+    "requested_url": "https://github.com/alibaba/OpenSandbox",
+    "final_url": "https://github.com/opensandbox-group/OpenSandbox",
+    "status": 200,
+    "checked_utc": "2026-09-12T18:27:09.413152+00:00"
+  },
+  "candidate_dependencies": [
+    "components/execd/go.mod + go.sum",
+    "components/internal local replace",
+    "native Go 1.27.1 / CGO_ENABLED=0 for actual runtime probe",
+    "isolated sessions additionally depend on bwrap + native session gate + namespace/cgroup capabilities; not executed in batch001"
+  ],
+  "dependency_lock_hashes": {
+    "components/execd/go.sum": "66b8813a7a3995e0af1a39ee43772b00427d8376683edb82eacae43814fde41d",
+    "components/execd/go.mod": "2dd2ec357443b783c790319203518d7f11aa18a4cedfa4b150a16612976a8b22"
+  }
+}

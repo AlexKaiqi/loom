@@ -1,0 +1,7 @@
+# R22 先行准备协议
+
+本协议和contract RF02/cases在测试代码前保存。只补原恢复要求，不构建R/F/X。
+
+R22先真实登记两域、保存原结果责任与原F/S/E/X引用。完整恢复计划accept后在after_commit_before_reply切点由实际子进程停住，外部读取ready原PID/ID后SIGKILL，检查退出信号并从新进程查询原DB。随后逐域以真实原件+实际目录布局的F authority夹具验证原安装关联；Surface已装/Workspace未装时重启仍一已存一pending，禁止重复安装或提前整体confirmed。实际错误gen但原件存在的stop与F收据要被本次关联拒绝；直接读旧Session/event/effect原文件及R原责任，不能只看计划自述。单域keep计划明确另一域版本并无安装ID。非组件F原子性/实际X撤权不在此替身范围。
+
+固定发现22unit+原23process；原oracle继续，真实restore authority控制要拒绝缺原件、同长损坏、错关联和物理根失配。缺SUT正式入口MISSING/exit2/0；always-green坏入口FAIL/exit1/全部22unit尝试并留raw。保存原所有批次，不重写gate002；最终由根Agent局部独立D复审。

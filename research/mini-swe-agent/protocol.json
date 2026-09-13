@@ -1,0 +1,47 @@
+{
+  "id": "MINI-MECH-01",
+  "kind": "exploratory mechanism boundary",
+  "preregistered_utc": "2026-09-12T18:22:27.665448+00:00",
+  "upstream_commit": "04d809ceab9df28f9adaed044884180159172930",
+  "properties": [
+    "P01",
+    "P07",
+    "P12"
+  ],
+  "hypotheses": [
+    "H02",
+    "H10"
+  ],
+  "question": "Can the actual default loop externalize a stopping policy, and does its saved trajectory cover an effect whose process dies before step-finally save?",
+  "actual_code": [
+    "src/minisweagent/agents/default.py: DefaultAgent.run/query/execute_actions/save",
+    "src/minisweagent/environments/local.py: LocalEnvironment.execute",
+    "src/minisweagent/models/test_models.py: DeterministicModel"
+  ],
+  "fixtures": "Shipped fixed-response model; audit subclass logs calls before actual super.query. Policy subclass invokes actual super.execute_actions then raises upstream Submitted. Real harmless local shell. No model/network/credentials.",
+  "inputs": {
+    "task": "fixture task",
+    "observation": "OBSERVED_UTF8_雪",
+    "effect": "effect\\n",
+    "default_policy_queries": 2,
+    "external_policy_queries": 1,
+    "crash": "first tool appends real effect then sends SIGKILL only to its own experiment worker PID"
+  },
+  "oracle": [
+    "Normal default: child exit0, one effect line, two query audit lines, JSON transcript contains actual observation and terminal submission done.",
+    "External policy: child exit0, one effect, one query, actual observation persisted and terminal policy-stop; upstream DefaultAgent file hash unchanged.",
+    "Crash boundary: child killed by SIGKILL (-9), one effect, one query, no trajectory file in fresh directory. This observes a recovery gap, never a P07 pass.",
+    "Fresh retry in the same crash workspace uses same input: second effect occurs and two additional queries; it is reexecution, not recovery.",
+    "Observer rejects a deliberately modified copy with an extra effect, proving counts are read from target artifact and not controller success."
+  ],
+  "commands": [
+    "research/.venvs/mini-swe-agent/bin/python research/mini-swe-agent/experiment.py <fresh-batch-name>"
+  ],
+  "stop_conditions": "One normal, one external-policy, one crash and one fresh retry; each worker timeout15s. Unexpected protocol/import failure is INVALID; preserve batch, repair harness only in a new batch.",
+  "limits": [
+    "No claim of sandboxing; local host shell full authority.",
+    "No claim all optional agents/environments lack recovery; only actual DefaultAgent/LocalEnvironment path.",
+    "Crash observation is same-host process kill, not machine/power-loss durability.",
+    "No performance or model-quality inference."
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "schema": "lore-x-session-ordinary-snapshot/v1",
+  "status": "PREREGISTERED_COMPLETE_BYTES_CONTRACT",
+  "record_required": [
+    "schema",
+    "origin",
+    "namespace",
+    "surface_id",
+    "session_id",
+    "session_generation",
+    "original_execution",
+    "archive",
+    "manifest"
+  ],
+  "origin_values": [
+    "empty-initial",
+    "checkpoint"
+  ],
+  "original_execution": "null only for actual empty-initial. checkpoint binds execution_id,object_generation,request_digest,container_id,exec_id,volume_id,freeze_generation and original stopped/prepared state; X checks association not Pi semantics.",
+  "archive_required": {
+    "path": "exact trusted immutable regular file",
+    "sha256": "64 lowercase hexadecimal of exact archive bytes",
+    "bytes": "actual bounded int <=18874368"
+  },
+  "manifest_required": [
+    "schema",
+    "namespace",
+    "session_id",
+    "session_generation",
+    "metadata_profile",
+    "entries",
+    "logical_bytes",
+    "archive_sha256",
+    "archive_bytes"
+  ],
+  "manifest_schema": "lore-x-session-ordinary-manifest/v1",
+  "metadata_profile": "linux-posix-session-no-xattr-acl-v1",
+  "entries": "object from unique canonical POSIX member path to exact entry, root . mandatory; no empty/absolute/NUL/dotdot path, every parent actual directory; reject duplicates, special device/FIFO/socket/sparse/unsupported encoding",
+  "metadata_required": {
+    "kind": "dir|file|symlink|hardlink",
+    "mode": "integer permission bits0..4095 exact, never chmod-to-read as silent conversion",
+    "uid": "1000 current profile",
+    "gid": "1000 current profile",
+    "mtime_ns": "signed integer ns representable on target Linux; PAX decimal parsed exactly, never via float",
+    "xattrs": "must be {}, ACL/xattr unsupported in current tmpfs; reject before losing data"
+  },
+  "file_required": {
+    "byte_length": "actual integer bytes",
+    "sha256": "actual regular contents SHA256"
+  },
+  "symlink_required": {
+    "target_base64": "original filesystem link bytes, never followed during import/export; no archive extraction through link ancestor"
+  },
+  "hardlink_required": {
+    "target": "canonical regular original member, same inode group and consistent metadata; count logical storage once"
+  },
+  "complete_set": "No ignored files/empty dirs lost. Every archive member and actual private tree member corresponds exactly once; all expected hashes/lengths from independent files/tar, never candidate booleans. max512entries/16MiB logical includes root and all extra work files.",
+  "empty_initial": "actual original archive containing only . (dir,mode0700,uid1000,gid1000,mtime_ns0,xattrs{}), matching actual original manifest, logical_bytes0, origin empty-initial and original_execution null. No invented empty string/no-file reference.",
+  "external_authority": "S owns original snapshot meaning and authorization. X checks full record/reference/files and preserves raw bytes. PREPARED does not mean stopped; copied archive with missing actual stop cannot authorize F install or old namespace replacement. Session snapshots never installed as Surface/Workspace.",
+  "negative_inputs": [
+    "missing root member",
+    "duplicate member",
+    "wrong actual content same size",
+    "different namespace/session/generation",
+    "wrong archive byte length/hash",
+    "unsupported xattr/ACL",
+    "sparse/special output",
+    "invalid PAX ns",
+    "empty-initial with hidden regular member"
+  ],
+  "raw_member_name": "Raw GNU tar permits exactly one leading ./, removed only for canonical manifest key. Archive bytes are retained unchanged; duplicate names after normalization reject. Empty/internal-dot/dotdot/absolute paths still reject."
+}

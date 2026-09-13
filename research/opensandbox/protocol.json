@@ -1,0 +1,34 @@
+{
+  "questions": [
+    "H02/H04: command 执行的稳定身份、真实 uid/gid 与结果查询由何处保存？",
+    "H05: Interrupt 返回是否足以证明已持有 FD 的普通与脱离进程组子进程不能再写？",
+    "H08: 新 Controller/旧日志文件是否足以按原执行身份查询？"
+  ],
+  "candidate": "components/execd/pkg/runtime 的真实 Controller.Execute/GetCommandStatus/Interrupt（非自造 daemon）",
+  "cases": [
+    "运行当前 uid/gid 的真实命令，写临时对象并输出实际身份；请求不可切换的 root uid 观察启动错误及无效果。",
+    "执行 background 命令获候选产生的 session ID，读取状态和输出；用新 Controller 查同 ID，比较实际日志仍在与内存索引丢失。",
+    "两条子写者轨迹：普通继承进程组、setsid 后再孤儿化的自建子进程。各预开 FD 后记录 ready，再 Interrupt，触发写并从文件端观察。前者停止与后者逃离若有差异直接记录。"
+  ],
+  "limits": [
+    "调用真实共享 runtime 包；外部 Jupyter/数据库后端不使用，不提供替身成功服务。",
+    "不启用 privileged/init-mode，不改宿主权限；这是普通 command 后端边界，不把它混称 IsolatedRunner 或容器隔离。",
+    "fixture 清理只杀自己记下的仍存活 PID；候选 cancellation 状态不作为停止oracle。"
+  ],
+  "id": "OPENSANDBOX-G2-001",
+  "registered_utc": "2026-09-12T18:18:19.602501+00:00",
+  "status": "PREREGISTERED_EXPLORATORY_NOT_COMPONENT_ACCEPTANCE",
+  "source_of_criteria": [
+    "design/g1/alternatives-review.md:H04-H08",
+    "design/g1/research-questions.md",
+    "governance/runtime-acceptance-map.md"
+  ],
+  "commands": [
+    "实验脚本保存在本项目 experiment.py/experiment.mjs/experiment.go；由本项目 run_experiment.py 执行并保存完整命令及退出状态。"
+  ],
+  "stop_conditions": [
+    "每子进程最多45秒；构建最多300秒，超时/依赖失败留存，不计性质通过。",
+    "所有可写 fixture 限本项目 evidence/<batch>/fixture；不读取用户凭据或宿主非fixture文件内容。",
+    "相关错误对照必须真正执行相同候选或明确的无保护fixture，不能从 expected 填观察输出。"
+  ]
+}

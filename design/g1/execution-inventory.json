@@ -1,0 +1,4847 @@
+{
+  "id": "G1-EXECUTION-INVENTORY-v1",
+  "scope": "Exact projection of already frozen cases; no new or changed criterion; independent of runner enumeration",
+  "time_utc": "2026-09-12T17:48:28.360008+00:00",
+  "source_sha256": {
+    "design/g1/cases-durability.json": "fcd8f28d3e9eb245cef55f5716a404e458fff0d9ec3f5f7c75906e2490f3f861",
+    "design/g1/cases-strategy.json": "c29b132edd3a8c09ba399cb3cd3c1183ecc83cfe7e362f7c9ae4342b7ee50a60",
+    "design/g1/cases-boundaries.json": "c6a156b4b779a9c4e2c70c4ca94ca126d9909a4fbfa5cf787b6601257d91d441"
+  },
+  "positive_runs": 53,
+  "negative_runs": 54,
+  "runs": [
+    {
+      "run_id": "durability--DUR-001--correct",
+      "suite": "durability",
+      "case": "DUR-001",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a2"
+        ],
+        [
+          "E3",
+          "initial"
+        ],
+        [
+          "E3",
+          "a1"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-001--bytes_implies_completion",
+      "suite": "durability",
+      "case": "DUR-001",
+      "variant": "bytes_implies_completion",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a2"
+        ],
+        [
+          "E3",
+          "initial"
+        ],
+        [
+          "E3",
+          "a1"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": [
+        "E1",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-002--correct",
+      "suite": "durability",
+      "case": "DUR-002",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E5",
+          "a2"
+        ],
+        [
+          "E6",
+          "a3"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-002--acceptance_starts_model",
+      "suite": "durability",
+      "case": "DUR-002",
+      "variant": "acceptance_starts_model",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E5",
+          "a2"
+        ],
+        [
+          "E6",
+          "a3"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": [
+        "E2",
+        "E5"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-003--correct",
+      "suite": "durability",
+      "case": "DUR-003",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a5"
+        ],
+        [
+          "E4",
+          "a6"
+        ],
+        [
+          "E5",
+          "initial"
+        ],
+        [
+          "E5",
+          "a1"
+        ],
+        [
+          "E5",
+          "a2"
+        ],
+        [
+          "E5",
+          "a3"
+        ],
+        [
+          "E5",
+          "a4"
+        ],
+        [
+          "E5",
+          "a5"
+        ],
+        [
+          "E5",
+          "a6"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-003--lose_request_identity_on_restart",
+      "suite": "durability",
+      "case": "DUR-003",
+      "variant": "lose_request_identity_on_restart",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a5"
+        ],
+        [
+          "E4",
+          "a6"
+        ],
+        [
+          "E5",
+          "initial"
+        ],
+        [
+          "E5",
+          "a1"
+        ],
+        [
+          "E5",
+          "a2"
+        ],
+        [
+          "E5",
+          "a3"
+        ],
+        [
+          "E5",
+          "a4"
+        ],
+        [
+          "E5",
+          "a5"
+        ],
+        [
+          "E5",
+          "a6"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": [
+        "E2",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-004--correct",
+      "suite": "durability",
+      "case": "DUR-004",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E3",
+          "a1"
+        ],
+        [
+          "E4",
+          "a1"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-004--overwrite_conflicting_request",
+      "suite": "durability",
+      "case": "DUR-004",
+      "variant": "overwrite_conflicting_request",
+      "checkpoints": [
+        "initial",
+        "a1"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E3",
+          "a1"
+        ],
+        [
+          "E4",
+          "a1"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": [
+        "E1",
+        "E2"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-005--correct",
+      "suite": "durability",
+      "case": "DUR-005",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a5"
+        ],
+        [
+          "E3",
+          "a5"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ],
+        [
+          "E4",
+          "a4"
+        ],
+        [
+          "E4",
+          "a5"
+        ],
+        [
+          "E5",
+          "initial"
+        ],
+        [
+          "E5",
+          "a1"
+        ],
+        [
+          "E5",
+          "a2"
+        ],
+        [
+          "E5",
+          "a3"
+        ],
+        [
+          "E5",
+          "a4"
+        ],
+        [
+          "E5",
+          "a5"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-005--query_causes_side_effects",
+      "suite": "durability",
+      "case": "DUR-005",
+      "variant": "query_causes_side_effects",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a5"
+        ],
+        [
+          "E3",
+          "a5"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ],
+        [
+          "E4",
+          "a4"
+        ],
+        [
+          "E4",
+          "a5"
+        ],
+        [
+          "E5",
+          "initial"
+        ],
+        [
+          "E5",
+          "a1"
+        ],
+        [
+          "E5",
+          "a2"
+        ],
+        [
+          "E5",
+          "a3"
+        ],
+        [
+          "E5",
+          "a4"
+        ],
+        [
+          "E5",
+          "a5"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": [
+        "E4",
+        "E5"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-006--correct",
+      "suite": "durability",
+      "case": "DUR-006",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a3"
+        ],
+        [
+          "E2",
+          "a3"
+        ],
+        [
+          "E3",
+          "a3"
+        ],
+        [
+          "E4",
+          "a3"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-006--invent_unsaved_result",
+      "suite": "durability",
+      "case": "DUR-006",
+      "variant": "invent_unsaved_result",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a3"
+        ],
+        [
+          "E2",
+          "a3"
+        ],
+        [
+          "E3",
+          "a3"
+        ],
+        [
+          "E4",
+          "a3"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": [
+        "E1",
+        "E2"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-007--correct",
+      "suite": "durability",
+      "case": "DUR-007",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a4"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a5"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ],
+        [
+          "E4",
+          "a4"
+        ],
+        [
+          "E4",
+          "a5"
+        ],
+        [
+          "E5",
+          "initial"
+        ],
+        [
+          "E5",
+          "a1"
+        ],
+        [
+          "E5",
+          "a2"
+        ],
+        [
+          "E5",
+          "a3"
+        ],
+        [
+          "E5",
+          "a4"
+        ],
+        [
+          "E5",
+          "a5"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-007--drop_responsibility_after_result",
+      "suite": "durability",
+      "case": "DUR-007",
+      "variant": "drop_responsibility_after_result",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a4"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a5"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ],
+        [
+          "E4",
+          "a4"
+        ],
+        [
+          "E4",
+          "a5"
+        ],
+        [
+          "E5",
+          "initial"
+        ],
+        [
+          "E5",
+          "a1"
+        ],
+        [
+          "E5",
+          "a2"
+        ],
+        [
+          "E5",
+          "a3"
+        ],
+        [
+          "E5",
+          "a4"
+        ],
+        [
+          "E5",
+          "a5"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": [
+        "E2",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-008--correct",
+      "suite": "durability",
+      "case": "DUR-008",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a3"
+        ],
+        [
+          "E3",
+          "a3"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-008--volatile_next_step_acceptance",
+      "suite": "durability",
+      "case": "DUR-008",
+      "variant": "volatile_next_step_acceptance",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a3"
+        ],
+        [
+          "E3",
+          "a3"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": [
+        "E1",
+        "E2"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-009--correct",
+      "suite": "durability",
+      "case": "DUR-009",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a3"
+        ],
+        [
+          "E2",
+          "a3"
+        ],
+        [
+          "E3",
+          "a3"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-009--sandbox_only_confirmed_content",
+      "suite": "durability",
+      "case": "DUR-009",
+      "variant": "sandbox_only_confirmed_content",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a3"
+        ],
+        [
+          "E2",
+          "a3"
+        ],
+        [
+          "E3",
+          "a3"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": [
+        "E2",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-010--correct",
+      "suite": "durability",
+      "case": "DUR-010",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a2"
+        ],
+        [
+          "E3",
+          "initial"
+        ],
+        [
+          "E3",
+          "a1"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E3",
+          "a3"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-010--retry_unknown_before_query",
+      "suite": "durability",
+      "case": "DUR-010",
+      "variant": "retry_unknown_before_query",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a2"
+        ],
+        [
+          "E3",
+          "initial"
+        ],
+        [
+          "E3",
+          "a1"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E3",
+          "a3"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": [
+        "E3",
+        "E4"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-011--correct",
+      "suite": "durability",
+      "case": "DUR-011",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a2"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E5",
+          "initial"
+        ],
+        [
+          "E5",
+          "a1"
+        ],
+        [
+          "E5",
+          "a2"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-011--discard_unknown_operation_on_query_failure",
+      "suite": "durability",
+      "case": "DUR-011",
+      "variant": "discard_unknown_operation_on_query_failure",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a2"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E5",
+          "initial"
+        ],
+        [
+          "E5",
+          "a1"
+        ],
+        [
+          "E5",
+          "a2"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": [
+        "E2",
+        "E3",
+        "E5"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-012--correct",
+      "suite": "durability",
+      "case": "DUR-012",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "initial"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E2",
+          "a2"
+        ],
+        [
+          "E2",
+          "a3"
+        ],
+        [
+          "E3",
+          "a3"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-012--retry_on_nonfinal_not_found",
+      "suite": "durability",
+      "case": "DUR-012",
+      "variant": "retry_on_nonfinal_not_found",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "initial"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E2",
+          "a2"
+        ],
+        [
+          "E2",
+          "a3"
+        ],
+        [
+          "E3",
+          "a3"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": [
+        "E2",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-013--correct",
+      "suite": "durability",
+      "case": "DUR-013",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a4"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a4"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-013--ignore_preexisting_events",
+      "suite": "durability",
+      "case": "DUR-013",
+      "variant": "ignore_preexisting_events",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a4"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a4"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": [
+        "E1",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-014--correct",
+      "suite": "durability",
+      "case": "DUR-014",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a6"
+        ],
+        [
+          "E2",
+          "a6"
+        ],
+        [
+          "E3",
+          "a6"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-014--scan_subscribe_gap",
+      "suite": "durability",
+      "case": "DUR-014",
+      "variant": "scan_subscribe_gap",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a6"
+        ],
+        [
+          "E2",
+          "a6"
+        ],
+        [
+          "E3",
+          "a6"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": [
+        "E1",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-015--correct",
+      "suite": "durability",
+      "case": "DUR-015",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a5"
+        ],
+        [
+          "E3",
+          "a5"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-015--ignore_future_events",
+      "suite": "durability",
+      "case": "DUR-015",
+      "variant": "ignore_future_events",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a5"
+        ],
+        [
+          "E3",
+          "a5"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": [
+        "E2",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-016--correct",
+      "suite": "durability",
+      "case": "DUR-016",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a4"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a4"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-016--ignore_wait_origin",
+      "suite": "durability",
+      "case": "DUR-016",
+      "variant": "ignore_wait_origin",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a4"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a4"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": [
+        "E1",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-017--correct",
+      "suite": "durability",
+      "case": "DUR-017",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a4"
+        ],
+        [
+          "E2",
+          "a5"
+        ],
+        [
+          "E3",
+          "a5"
+        ],
+        [
+          "E4",
+          "a5"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-017--notification_only_worklist",
+      "suite": "durability",
+      "case": "DUR-017",
+      "variant": "notification_only_worklist",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a4"
+        ],
+        [
+          "E2",
+          "a5"
+        ],
+        [
+          "E3",
+          "a5"
+        ],
+        [
+          "E4",
+          "a5"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": [
+        "E2",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-018--correct",
+      "suite": "durability",
+      "case": "DUR-018",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a4"
+        ],
+        [
+          "E4",
+          "a4"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-018--read_view_marks_processed",
+      "suite": "durability",
+      "case": "DUR-018",
+      "variant": "read_view_marks_processed",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a4"
+        ],
+        [
+          "E4",
+          "a4"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": [
+        "E1",
+        "E2"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-019--correct",
+      "suite": "durability",
+      "case": "DUR-019",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a5"
+        ],
+        [
+          "E2",
+          "a5"
+        ],
+        [
+          "E3",
+          "initial"
+        ],
+        [
+          "E3",
+          "a1"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E3",
+          "a3"
+        ],
+        [
+          "E3",
+          "a4"
+        ],
+        [
+          "E3",
+          "a5"
+        ],
+        [
+          "E4",
+          "a5"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-019--notify_creates_new_business_step",
+      "suite": "durability",
+      "case": "DUR-019",
+      "variant": "notify_creates_new_business_step",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a5"
+        ],
+        [
+          "E2",
+          "a5"
+        ],
+        [
+          "E3",
+          "initial"
+        ],
+        [
+          "E3",
+          "a1"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E3",
+          "a3"
+        ],
+        [
+          "E3",
+          "a4"
+        ],
+        [
+          "E3",
+          "a5"
+        ],
+        [
+          "E4",
+          "a5"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": [
+        "E2",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-020--correct",
+      "suite": "durability",
+      "case": "DUR-020",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a4"
+        ],
+        [
+          "E4",
+          "a4"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-020--expire_promised_record",
+      "suite": "durability",
+      "case": "DUR-020",
+      "variant": "expire_promised_record",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a4"
+        ],
+        [
+          "E4",
+          "a4"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": [
+        "E2",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-021--correct",
+      "suite": "durability",
+      "case": "DUR-021",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a4"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a4"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-021--archive_leaves_stale_reference",
+      "suite": "durability",
+      "case": "DUR-021",
+      "variant": "archive_leaves_stale_reference",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a4"
+        ],
+        [
+          "E2",
+          "a4"
+        ],
+        [
+          "E3",
+          "a4"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": [
+        "E2",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-022--correct",
+      "suite": "durability",
+      "case": "DUR-022",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a2"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E5",
+          "a4"
+        ],
+        [
+          "E6",
+          "a6"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-022--preserve_task_waiter",
+      "suite": "durability",
+      "case": "DUR-022",
+      "variant": "preserve_task_waiter",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "a2"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E5",
+          "a4"
+        ],
+        [
+          "E6",
+          "a6"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": [
+        "E1",
+        "E2"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-023--correct",
+      "suite": "durability",
+      "case": "DUR-023",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E3",
+          "a1"
+        ],
+        [
+          "E4",
+          "a5"
+        ],
+        [
+          "E5",
+          "a5"
+        ],
+        [
+          "E6",
+          "a5"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-023--release_before_durable_wait",
+      "suite": "durability",
+      "case": "DUR-023",
+      "variant": "release_before_durable_wait",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E3",
+          "a1"
+        ],
+        [
+          "E4",
+          "a5"
+        ],
+        [
+          "E5",
+          "a5"
+        ],
+        [
+          "E6",
+          "a5"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": [
+        "E1",
+        "E2",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-024--correct",
+      "suite": "durability",
+      "case": "DUR-024",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ],
+        [
+          "E5",
+          "a3"
+        ],
+        [
+          "E6",
+          "a3"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-024--cancel_request_means_stopped",
+      "suite": "durability",
+      "case": "DUR-024",
+      "variant": "cancel_request_means_stopped",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ],
+        [
+          "E5",
+          "a3"
+        ],
+        [
+          "E6",
+          "a3"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": [
+        "E2"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-025--correct",
+      "suite": "durability",
+      "case": "DUR-025",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "initial"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E2",
+          "a2"
+        ],
+        [
+          "E3",
+          "initial"
+        ],
+        [
+          "E3",
+          "a1"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E4",
+          "a2"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-025--replay_executes_event_payload",
+      "suite": "durability",
+      "case": "DUR-025",
+      "variant": "replay_executes_event_payload",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a2"
+        ],
+        [
+          "E2",
+          "initial"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E2",
+          "a2"
+        ],
+        [
+          "E3",
+          "initial"
+        ],
+        [
+          "E3",
+          "a1"
+        ],
+        [
+          "E3",
+          "a2"
+        ],
+        [
+          "E4",
+          "a2"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": [
+        "E2",
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-026--correct",
+      "suite": "durability",
+      "case": "DUR-026",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E3",
+          "a1"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-026--missing_history_means_success",
+      "suite": "durability",
+      "case": "DUR-026",
+      "variant": "missing_history_means_success",
+      "checkpoints": [
+        "initial",
+        "a1"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a1"
+        ],
+        [
+          "E2",
+          "a1"
+        ],
+        [
+          "E3",
+          "a1"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": [
+        "E1",
+        "E2"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-027--correct",
+      "suite": "durability",
+      "case": "DUR-027",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a3"
+        ],
+        [
+          "E2",
+          "a3"
+        ],
+        [
+          "E3",
+          "a3"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ],
+        [
+          "E5",
+          "initial"
+        ],
+        [
+          "E5",
+          "a1"
+        ],
+        [
+          "E5",
+          "a2"
+        ],
+        [
+          "E5",
+          "a3"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-027--result_implies_automatic_continue",
+      "suite": "durability",
+      "case": "DUR-027",
+      "variant": "result_implies_automatic_continue",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a3"
+        ],
+        [
+          "E2",
+          "a3"
+        ],
+        [
+          "E3",
+          "a3"
+        ],
+        [
+          "E4",
+          "initial"
+        ],
+        [
+          "E4",
+          "a1"
+        ],
+        [
+          "E4",
+          "a2"
+        ],
+        [
+          "E4",
+          "a3"
+        ],
+        [
+          "E5",
+          "initial"
+        ],
+        [
+          "E5",
+          "a1"
+        ],
+        [
+          "E5",
+          "a2"
+        ],
+        [
+          "E5",
+          "a3"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": [
+        "E3"
+      ]
+    },
+    {
+      "run_id": "durability--DUR-028--correct",
+      "suite": "durability",
+      "case": "DUR-028",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a5"
+        ],
+        [
+          "E2",
+          "a5"
+        ],
+        [
+          "E3",
+          "a5"
+        ],
+        [
+          "E4",
+          "a5"
+        ],
+        [
+          "E5",
+          "a6"
+        ],
+        [
+          "E6",
+          "initial"
+        ],
+        [
+          "E6",
+          "a1"
+        ],
+        [
+          "E6",
+          "a2"
+        ],
+        [
+          "E6",
+          "a3"
+        ],
+        [
+          "E6",
+          "a4"
+        ],
+        [
+          "E6",
+          "a5"
+        ],
+        [
+          "E6",
+          "a6"
+        ],
+        [
+          "E7",
+          "initial"
+        ],
+        [
+          "E7",
+          "a1"
+        ],
+        [
+          "E7",
+          "a2"
+        ],
+        [
+          "E7",
+          "a3"
+        ],
+        [
+          "E7",
+          "a4"
+        ],
+        [
+          "E7",
+          "a5"
+        ],
+        [
+          "E7",
+          "a6"
+        ]
+      ],
+      "static_assertions": 7,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "durability--DUR-028--recompute_accepted_decision",
+      "suite": "durability",
+      "case": "DUR-028",
+      "variant": "recompute_accepted_decision",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6"
+      ],
+      "checks": [
+        [
+          "E1",
+          "a5"
+        ],
+        [
+          "E2",
+          "a5"
+        ],
+        [
+          "E3",
+          "a5"
+        ],
+        [
+          "E4",
+          "a5"
+        ],
+        [
+          "E5",
+          "a6"
+        ],
+        [
+          "E6",
+          "initial"
+        ],
+        [
+          "E6",
+          "a1"
+        ],
+        [
+          "E6",
+          "a2"
+        ],
+        [
+          "E6",
+          "a3"
+        ],
+        [
+          "E6",
+          "a4"
+        ],
+        [
+          "E6",
+          "a5"
+        ],
+        [
+          "E6",
+          "a6"
+        ],
+        [
+          "E7",
+          "initial"
+        ],
+        [
+          "E7",
+          "a1"
+        ],
+        [
+          "E7",
+          "a2"
+        ],
+        [
+          "E7",
+          "a3"
+        ],
+        [
+          "E7",
+          "a4"
+        ],
+        [
+          "E7",
+          "a5"
+        ],
+        [
+          "E7",
+          "a6"
+        ]
+      ],
+      "static_assertions": 7,
+      "relevant_assertions": [
+        "E1",
+        "E2",
+        "E3",
+        "E4"
+      ]
+    },
+    {
+      "run_id": "strategy--G1-STR-001--correct",
+      "suite": "strategy",
+      "case": "G1-STR-001",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E001",
+          "a3"
+        ],
+        [
+          "E002",
+          "a3"
+        ],
+        [
+          "E003",
+          "a3"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "strategy--G1-STR-001--hardcode_continue",
+      "suite": "strategy",
+      "case": "G1-STR-001",
+      "variant": "hardcode_continue",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "checks": [
+        [
+          "E001",
+          "a3"
+        ],
+        [
+          "E002",
+          "a3"
+        ],
+        [
+          "E003",
+          "a3"
+        ]
+      ],
+      "static_assertions": 3,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "strategy--G1-STR-002--correct",
+      "suite": "strategy",
+      "case": "G1-STR-002",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "E001",
+          "a4"
+        ],
+        [
+          "E002",
+          "a4"
+        ],
+        [
+          "E003",
+          "a4"
+        ],
+        [
+          "E004",
+          "a4"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "strategy--G1-STR-002--accept_incomplete_final",
+      "suite": "strategy",
+      "case": "G1-STR-002",
+      "variant": "accept_incomplete_final",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "E001",
+          "a4"
+        ],
+        [
+          "E002",
+          "a4"
+        ],
+        [
+          "E003",
+          "a4"
+        ],
+        [
+          "E004",
+          "a4"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "strategy--G1-STR-003--correct",
+      "suite": "strategy",
+      "case": "G1-STR-003",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2"
+      ],
+      "checks": [
+        [
+          "E001",
+          "a2"
+        ],
+        [
+          "E002",
+          "a2"
+        ],
+        [
+          "E003",
+          "a2"
+        ],
+        [
+          "E004",
+          "a2"
+        ],
+        [
+          "E005",
+          "a2"
+        ],
+        [
+          "E006",
+          "a2"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "strategy--G1-STR-003--stop_means_surface_success",
+      "suite": "strategy",
+      "case": "G1-STR-003",
+      "variant": "stop_means_surface_success",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2"
+      ],
+      "checks": [
+        [
+          "E001",
+          "a2"
+        ],
+        [
+          "E002",
+          "a2"
+        ],
+        [
+          "E003",
+          "a2"
+        ],
+        [
+          "E004",
+          "a2"
+        ],
+        [
+          "E005",
+          "a2"
+        ],
+        [
+          "E006",
+          "a2"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-001--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-001",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-001-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E04",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E05",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E06",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E07",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E08",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E09",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E10",
+          "a4"
+        ]
+      ],
+      "static_assertions": 10,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-001--promote_runtime_worker",
+      "suite": "boundaries",
+      "case": "G1-BND-001",
+      "variant": "promote_runtime_worker",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-001-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E04",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E05",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E06",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E07",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E08",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E09",
+          "a4"
+        ],
+        [
+          "G1-BND-001-E10",
+          "a4"
+        ]
+      ],
+      "static_assertions": 10,
+      "relevant_assertions": [
+        "G1-BND-001-E07",
+        "G1-BND-001-E08",
+        "G1-BND-001-E09",
+        "G1-BND-001-E10"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-002--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-002",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-002-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-002-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-002-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-002-E04",
+          "a4"
+        ],
+        [
+          "G1-BND-002-E05",
+          "a4"
+        ],
+        [
+          "G1-BND-002-E06",
+          "a4"
+        ],
+        [
+          "G1-BND-002-E07",
+          "a4"
+        ]
+      ],
+      "static_assertions": 7,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-002--caller_profile_override",
+      "suite": "boundaries",
+      "case": "G1-BND-002",
+      "variant": "caller_profile_override",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-002-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-002-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-002-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-002-E04",
+          "a4"
+        ],
+        [
+          "G1-BND-002-E05",
+          "a4"
+        ],
+        [
+          "G1-BND-002-E06",
+          "a4"
+        ],
+        [
+          "G1-BND-002-E07",
+          "a4"
+        ]
+      ],
+      "static_assertions": 7,
+      "relevant_assertions": [
+        "G1-BND-002-E01",
+        "G1-BND-002-E02",
+        "G1-BND-002-E03",
+        "G1-BND-002-E04"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-003--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-003",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-003-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-003-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-003-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-003-E04",
+          "a4"
+        ],
+        [
+          "G1-BND-003-E05",
+          "a4"
+        ],
+        [
+          "G1-BND-003-E06",
+          "a4"
+        ],
+        [
+          "G1-BND-003-E07",
+          "a4"
+        ]
+      ],
+      "static_assertions": 7,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-003--host_fallback_on_invalid",
+      "suite": "boundaries",
+      "case": "G1-BND-003",
+      "variant": "host_fallback_on_invalid",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-003-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-003-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-003-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-003-E04",
+          "a4"
+        ],
+        [
+          "G1-BND-003-E05",
+          "a4"
+        ],
+        [
+          "G1-BND-003-E06",
+          "a4"
+        ],
+        [
+          "G1-BND-003-E07",
+          "a4"
+        ]
+      ],
+      "static_assertions": 7,
+      "relevant_assertions": [
+        "G1-BND-003-E01",
+        "G1-BND-003-E03",
+        "G1-BND-003-E04",
+        "G1-BND-003-E05"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-004--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-004",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-004-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-004-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-004-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-004-E04",
+          "a4"
+        ],
+        [
+          "G1-BND-004-E05",
+          "a4"
+        ],
+        [
+          "G1-BND-004-E06",
+          "a4"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-004--ambiguous_first_match",
+      "suite": "boundaries",
+      "case": "G1-BND-004",
+      "variant": "ambiguous_first_match",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-004-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-004-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-004-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-004-E04",
+          "a4"
+        ],
+        [
+          "G1-BND-004-E05",
+          "a4"
+        ],
+        [
+          "G1-BND-004-E06",
+          "a4"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": [
+        "G1-BND-004-E01"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-005--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-005",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8"
+      ],
+      "checks": [
+        [
+          "G1-BND-005-E01",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E02",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E03",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E04",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E05",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E06",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E07",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E08",
+          "a8"
+        ]
+      ],
+      "static_assertions": 8,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-005--path_prefix_only",
+      "suite": "boundaries",
+      "case": "G1-BND-005",
+      "variant": "path_prefix_only",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8"
+      ],
+      "checks": [
+        [
+          "G1-BND-005-E01",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E02",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E03",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E04",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E05",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E06",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E07",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E08",
+          "a8"
+        ]
+      ],
+      "static_assertions": 8,
+      "relevant_assertions": [
+        "G1-BND-005-E01",
+        "G1-BND-005-E02",
+        "G1-BND-005-E03",
+        "G1-BND-005-E04",
+        "G1-BND-005-E05",
+        "G1-BND-005-E06"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-005--check_then_reopen_alias",
+      "suite": "boundaries",
+      "case": "G1-BND-005",
+      "variant": "check_then_reopen_alias",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8"
+      ],
+      "checks": [
+        [
+          "G1-BND-005-E01",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E02",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E03",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E04",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E05",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E06",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E07",
+          "a8"
+        ],
+        [
+          "G1-BND-005-E08",
+          "a8"
+        ]
+      ],
+      "static_assertions": 8,
+      "relevant_assertions": [
+        "G1-BND-005-E01",
+        "G1-BND-005-E07"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-006--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-006",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2"
+      ],
+      "checks": [
+        [
+          "G1-BND-006-E01",
+          "a2"
+        ],
+        [
+          "G1-BND-006-E02",
+          "a2"
+        ],
+        [
+          "G1-BND-006-E03",
+          "a2"
+        ],
+        [
+          "G1-BND-006-E04",
+          "a2"
+        ],
+        [
+          "G1-BND-006-E05",
+          "a2"
+        ],
+        [
+          "G1-BND-006-E06",
+          "a2"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-006--route_from_cd",
+      "suite": "boundaries",
+      "case": "G1-BND-006",
+      "variant": "route_from_cd",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2"
+      ],
+      "checks": [
+        [
+          "G1-BND-006-E01",
+          "a2"
+        ],
+        [
+          "G1-BND-006-E02",
+          "a2"
+        ],
+        [
+          "G1-BND-006-E03",
+          "a2"
+        ],
+        [
+          "G1-BND-006-E04",
+          "a2"
+        ],
+        [
+          "G1-BND-006-E05",
+          "a2"
+        ],
+        [
+          "G1-BND-006-E06",
+          "a2"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": [
+        "G1-BND-006-E01",
+        "G1-BND-006-E02"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-007--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-007",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8"
+      ],
+      "checks": [
+        [
+          "G1-BND-007-E01",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E02",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E03",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E04",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E05",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E06",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E07",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E08",
+          "a8"
+        ]
+      ],
+      "static_assertions": 8,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-007--inherit_parent_handles",
+      "suite": "boundaries",
+      "case": "G1-BND-007",
+      "variant": "inherit_parent_handles",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8"
+      ],
+      "checks": [
+        [
+          "G1-BND-007-E01",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E02",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E03",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E04",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E05",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E06",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E07",
+          "a8"
+        ],
+        [
+          "G1-BND-007-E08",
+          "a8"
+        ]
+      ],
+      "static_assertions": 8,
+      "relevant_assertions": [
+        "G1-BND-007-E01",
+        "G1-BND-007-E02",
+        "G1-BND-007-E03",
+        "G1-BND-007-E04"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-008--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-008",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7"
+      ],
+      "checks": [
+        [
+          "G1-BND-008-E01",
+          "a7"
+        ],
+        [
+          "G1-BND-008-E02",
+          "a7"
+        ],
+        [
+          "G1-BND-008-E03",
+          "a7"
+        ],
+        [
+          "G1-BND-008-E04",
+          "a7"
+        ],
+        [
+          "G1-BND-008-E05",
+          "a7"
+        ],
+        [
+          "G1-BND-008-E06",
+          "a7"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-008--owner_record_as_revocation",
+      "suite": "boundaries",
+      "case": "G1-BND-008",
+      "variant": "owner_record_as_revocation",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7"
+      ],
+      "checks": [
+        [
+          "G1-BND-008-E01",
+          "a7"
+        ],
+        [
+          "G1-BND-008-E02",
+          "a7"
+        ],
+        [
+          "G1-BND-008-E03",
+          "a7"
+        ],
+        [
+          "G1-BND-008-E04",
+          "a7"
+        ],
+        [
+          "G1-BND-008-E05",
+          "a7"
+        ],
+        [
+          "G1-BND-008-E06",
+          "a7"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": [
+        "G1-BND-008-E01",
+        "G1-BND-008-E04",
+        "G1-BND-008-E05",
+        "G1-BND-008-E06"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-009--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-009",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6"
+      ],
+      "checks": [
+        [
+          "G1-BND-009-E01",
+          "a6"
+        ],
+        [
+          "G1-BND-009-E02",
+          "a6"
+        ],
+        [
+          "G1-BND-009-E03",
+          "a6"
+        ],
+        [
+          "G1-BND-009-E04",
+          "a6"
+        ],
+        [
+          "G1-BND-009-E05",
+          "a6"
+        ],
+        [
+          "G1-BND-009-E06",
+          "a6"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-009--surface_lock_is_workspace_lock",
+      "suite": "boundaries",
+      "case": "G1-BND-009",
+      "variant": "surface_lock_is_workspace_lock",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6"
+      ],
+      "checks": [
+        [
+          "G1-BND-009-E01",
+          "a6"
+        ],
+        [
+          "G1-BND-009-E02",
+          "a6"
+        ],
+        [
+          "G1-BND-009-E03",
+          "a6"
+        ],
+        [
+          "G1-BND-009-E04",
+          "a6"
+        ],
+        [
+          "G1-BND-009-E05",
+          "a6"
+        ],
+        [
+          "G1-BND-009-E06",
+          "a6"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": [
+        "G1-BND-009-E01",
+        "G1-BND-009-E02"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-010--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-010",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7"
+      ],
+      "checks": [
+        [
+          "G1-BND-010-E01",
+          "a7"
+        ],
+        [
+          "G1-BND-010-E02",
+          "a7"
+        ],
+        [
+          "G1-BND-010-E03",
+          "a7"
+        ],
+        [
+          "G1-BND-010-E04",
+          "a7"
+        ],
+        [
+          "G1-BND-010-E05",
+          "a7"
+        ],
+        [
+          "G1-BND-010-E06",
+          "a7"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-010--parent_exit_as_tree_stop",
+      "suite": "boundaries",
+      "case": "G1-BND-010",
+      "variant": "parent_exit_as_tree_stop",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7"
+      ],
+      "checks": [
+        [
+          "G1-BND-010-E01",
+          "a7"
+        ],
+        [
+          "G1-BND-010-E02",
+          "a7"
+        ],
+        [
+          "G1-BND-010-E03",
+          "a7"
+        ],
+        [
+          "G1-BND-010-E04",
+          "a7"
+        ],
+        [
+          "G1-BND-010-E05",
+          "a7"
+        ],
+        [
+          "G1-BND-010-E06",
+          "a7"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": [
+        "G1-BND-010-E02",
+        "G1-BND-010-E05",
+        "G1-BND-010-E06"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-011--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-011",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "G1-BND-011-E01",
+          "a5"
+        ],
+        [
+          "G1-BND-011-E02",
+          "a5"
+        ],
+        [
+          "G1-BND-011-E03",
+          "a5"
+        ],
+        [
+          "G1-BND-011-E04",
+          "a5"
+        ],
+        [
+          "G1-BND-011-E05",
+          "a5"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-011--ignore_external_edit",
+      "suite": "boundaries",
+      "case": "G1-BND-011",
+      "variant": "ignore_external_edit",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "G1-BND-011-E01",
+          "a5"
+        ],
+        [
+          "G1-BND-011-E02",
+          "a5"
+        ],
+        [
+          "G1-BND-011-E03",
+          "a5"
+        ],
+        [
+          "G1-BND-011-E04",
+          "a5"
+        ],
+        [
+          "G1-BND-011-E05",
+          "a5"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": [
+        "G1-BND-011-E01",
+        "G1-BND-011-E02",
+        "G1-BND-011-E03"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-012--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-012",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8"
+      ],
+      "checks": [
+        [
+          "G1-BND-012-E01",
+          "a8"
+        ],
+        [
+          "G1-BND-012-E02",
+          "a8"
+        ],
+        [
+          "G1-BND-012-E03",
+          "a8"
+        ],
+        [
+          "G1-BND-012-E04",
+          "a8"
+        ],
+        [
+          "G1-BND-012-E05",
+          "a8"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-012--read_latest_during_render",
+      "suite": "boundaries",
+      "case": "G1-BND-012",
+      "variant": "read_latest_during_render",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8"
+      ],
+      "checks": [
+        [
+          "G1-BND-012-E01",
+          "a8"
+        ],
+        [
+          "G1-BND-012-E02",
+          "a8"
+        ],
+        [
+          "G1-BND-012-E03",
+          "a8"
+        ],
+        [
+          "G1-BND-012-E04",
+          "a8"
+        ],
+        [
+          "G1-BND-012-E05",
+          "a8"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": [
+        "G1-BND-012-E01",
+        "G1-BND-012-E02"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-013--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-013",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-013-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-013-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-013-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-013-E04",
+          "a4"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-013--tracked_only_snapshot",
+      "suite": "boundaries",
+      "case": "G1-BND-013",
+      "variant": "tracked_only_snapshot",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-013-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-013-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-013-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-013-E04",
+          "a4"
+        ]
+      ],
+      "static_assertions": 4,
+      "relevant_assertions": [
+        "G1-BND-013-E02",
+        "G1-BND-013-E03"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-014--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-014",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2"
+      ],
+      "checks": [
+        [
+          "G1-BND-014-E01",
+          "a2"
+        ],
+        [
+          "G1-BND-014-E02",
+          "a2"
+        ],
+        [
+          "G1-BND-014-E03",
+          "a2"
+        ],
+        [
+          "G1-BND-014-E04",
+          "a2"
+        ],
+        [
+          "G1-BND-014-E05",
+          "a2"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-014--rollback_erases_history",
+      "suite": "boundaries",
+      "case": "G1-BND-014",
+      "variant": "rollback_erases_history",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2"
+      ],
+      "checks": [
+        [
+          "G1-BND-014-E01",
+          "a2"
+        ],
+        [
+          "G1-BND-014-E02",
+          "a2"
+        ],
+        [
+          "G1-BND-014-E03",
+          "a2"
+        ],
+        [
+          "G1-BND-014-E04",
+          "a2"
+        ],
+        [
+          "G1-BND-014-E05",
+          "a2"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": [
+        "G1-BND-014-E02",
+        "G1-BND-014-E03"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-015--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-015",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-015-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E04",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E05",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E06",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E07",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E08",
+          "a4"
+        ]
+      ],
+      "static_assertions": 8,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-015--event_name_is_authority",
+      "suite": "boundaries",
+      "case": "G1-BND-015",
+      "variant": "event_name_is_authority",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-015-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E04",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E05",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E06",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E07",
+          "a4"
+        ],
+        [
+          "G1-BND-015-E08",
+          "a4"
+        ]
+      ],
+      "static_assertions": 8,
+      "relevant_assertions": [
+        "G1-BND-015-E01",
+        "G1-BND-015-E02"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-016--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-016",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "G1-BND-016-E01",
+          "a5"
+        ],
+        [
+          "G1-BND-016-E02",
+          "a5"
+        ],
+        [
+          "G1-BND-016-E03",
+          "a5"
+        ],
+        [
+          "G1-BND-016-E04",
+          "a5"
+        ],
+        [
+          "G1-BND-016-E05",
+          "a5"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-016--view_is_authority",
+      "suite": "boundaries",
+      "case": "G1-BND-016",
+      "variant": "view_is_authority",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "G1-BND-016-E01",
+          "a5"
+        ],
+        [
+          "G1-BND-016-E02",
+          "a5"
+        ],
+        [
+          "G1-BND-016-E03",
+          "a5"
+        ],
+        [
+          "G1-BND-016-E04",
+          "a5"
+        ],
+        [
+          "G1-BND-016-E05",
+          "a5"
+        ]
+      ],
+      "static_assertions": 5,
+      "relevant_assertions": [
+        "G1-BND-016-E01",
+        "G1-BND-016-E02"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-017--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-017",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8"
+      ],
+      "checks": [
+        [
+          "G1-BND-017-E01",
+          "a8"
+        ],
+        [
+          "G1-BND-017-E02",
+          "a8"
+        ],
+        [
+          "G1-BND-017-E03",
+          "a8"
+        ],
+        [
+          "G1-BND-017-E04",
+          "a8"
+        ],
+        [
+          "G1-BND-017-E05",
+          "a8"
+        ],
+        [
+          "G1-BND-017-E06",
+          "a8"
+        ],
+        [
+          "G1-BND-017-E07",
+          "a8"
+        ]
+      ],
+      "static_assertions": 7,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-017--stale_registration_cache",
+      "suite": "boundaries",
+      "case": "G1-BND-017",
+      "variant": "stale_registration_cache",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8"
+      ],
+      "checks": [
+        [
+          "G1-BND-017-E01",
+          "a8"
+        ],
+        [
+          "G1-BND-017-E02",
+          "a8"
+        ],
+        [
+          "G1-BND-017-E03",
+          "a8"
+        ],
+        [
+          "G1-BND-017-E04",
+          "a8"
+        ],
+        [
+          "G1-BND-017-E05",
+          "a8"
+        ],
+        [
+          "G1-BND-017-E06",
+          "a8"
+        ],
+        [
+          "G1-BND-017-E07",
+          "a8"
+        ]
+      ],
+      "static_assertions": 7,
+      "relevant_assertions": [
+        "G1-BND-017-E02",
+        "G1-BND-017-E03"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-018--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-018",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8"
+      ],
+      "checks": [
+        [
+          "G1-BND-018-E01",
+          "a8"
+        ],
+        [
+          "G1-BND-018-E02",
+          "a8"
+        ],
+        [
+          "G1-BND-018-E03",
+          "a8"
+        ],
+        [
+          "G1-BND-018-E04",
+          "a8"
+        ],
+        [
+          "G1-BND-018-E05",
+          "a8"
+        ],
+        [
+          "G1-BND-018-E06",
+          "a8"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-018--latest_harness_each_phase",
+      "suite": "boundaries",
+      "case": "G1-BND-018",
+      "variant": "latest_harness_each_phase",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8"
+      ],
+      "checks": [
+        [
+          "G1-BND-018-E01",
+          "a8"
+        ],
+        [
+          "G1-BND-018-E02",
+          "a8"
+        ],
+        [
+          "G1-BND-018-E03",
+          "a8"
+        ],
+        [
+          "G1-BND-018-E04",
+          "a8"
+        ],
+        [
+          "G1-BND-018-E05",
+          "a8"
+        ],
+        [
+          "G1-BND-018-E06",
+          "a8"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": [
+        "G1-BND-018-E02",
+        "G1-BND-018-E03",
+        "G1-BND-018-E04"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-018--missing-pinned-harness--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-018--missing-pinned-harness",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-018-MISSING-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-018-MISSING-E02",
+          "a4"
+        ]
+      ],
+      "static_assertions": 2,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-018--missing-pinned-harness--latest_harness_each_phase",
+      "suite": "boundaries",
+      "case": "G1-BND-018--missing-pinned-harness",
+      "variant": "latest_harness_each_phase",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-018-MISSING-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-018-MISSING-E02",
+          "a4"
+        ]
+      ],
+      "static_assertions": 2,
+      "relevant_assertions": [
+        "G1-BND-018-MISSING-E01"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-019--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-019",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-019-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-019-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-019-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-019-E04",
+          "a4"
+        ],
+        [
+          "G1-BND-019-E05",
+          "a4"
+        ],
+        [
+          "G1-BND-019-E06",
+          "a4"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-019--trim_deletes_raw",
+      "suite": "boundaries",
+      "case": "G1-BND-019",
+      "variant": "trim_deletes_raw",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4"
+      ],
+      "checks": [
+        [
+          "G1-BND-019-E01",
+          "a4"
+        ],
+        [
+          "G1-BND-019-E02",
+          "a4"
+        ],
+        [
+          "G1-BND-019-E03",
+          "a4"
+        ],
+        [
+          "G1-BND-019-E04",
+          "a4"
+        ],
+        [
+          "G1-BND-019-E05",
+          "a4"
+        ],
+        [
+          "G1-BND-019-E06",
+          "a4"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": [
+        "G1-BND-019-E01",
+        "G1-BND-019-E04",
+        "G1-BND-019-E05"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-020--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-020",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "G1-BND-020-E01",
+          "a5"
+        ],
+        [
+          "G1-BND-020-E02",
+          "a5"
+        ],
+        [
+          "G1-BND-020-E03",
+          "a5"
+        ],
+        [
+          "G1-BND-020-E04",
+          "a5"
+        ],
+        [
+          "G1-BND-020-E05",
+          "a5"
+        ],
+        [
+          "G1-BND-020-E06",
+          "a5"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-020--trim_drops_unknown",
+      "suite": "boundaries",
+      "case": "G1-BND-020",
+      "variant": "trim_drops_unknown",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "G1-BND-020-E01",
+          "a5"
+        ],
+        [
+          "G1-BND-020-E02",
+          "a5"
+        ],
+        [
+          "G1-BND-020-E03",
+          "a5"
+        ],
+        [
+          "G1-BND-020-E04",
+          "a5"
+        ],
+        [
+          "G1-BND-020-E05",
+          "a5"
+        ],
+        [
+          "G1-BND-020-E06",
+          "a5"
+        ]
+      ],
+      "static_assertions": 6,
+      "relevant_assertions": [
+        "G1-BND-020-E01",
+        "G1-BND-020-E04",
+        "G1-BND-020-E05"
+      ]
+    },
+    {
+      "run_id": "boundaries--G1-BND-021--correct",
+      "suite": "boundaries",
+      "case": "G1-BND-021",
+      "variant": null,
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "G1-BND-021-E01",
+          "a5"
+        ],
+        [
+          "G1-BND-021-E02",
+          "a5"
+        ],
+        [
+          "G1-BND-021-E03",
+          "a5"
+        ],
+        [
+          "G1-BND-021-E04",
+          "a5"
+        ],
+        [
+          "G1-BND-021-E05",
+          "a5"
+        ],
+        [
+          "G1-BND-021-E06",
+          "a5"
+        ],
+        [
+          "G1-BND-021-E07",
+          "a5"
+        ]
+      ],
+      "static_assertions": 7,
+      "relevant_assertions": []
+    },
+    {
+      "run_id": "boundaries--G1-BND-021--auto_execute_blocks",
+      "suite": "boundaries",
+      "case": "G1-BND-021",
+      "variant": "auto_execute_blocks",
+      "checkpoints": [
+        "initial",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5"
+      ],
+      "checks": [
+        [
+          "G1-BND-021-E01",
+          "a5"
+        ],
+        [
+          "G1-BND-021-E02",
+          "a5"
+        ],
+        [
+          "G1-BND-021-E03",
+          "a5"
+        ],
+        [
+          "G1-BND-021-E04",
+          "a5"
+        ],
+        [
+          "G1-BND-021-E05",
+          "a5"
+        ],
+        [
+          "G1-BND-021-E06",
+          "a5"
+        ],
+        [
+          "G1-BND-021-E07",
+          "a5"
+        ]
+      ],
+      "static_assertions": 7,
+      "relevant_assertions": [
+        "G1-BND-021-E05",
+        "G1-BND-021-E06"
+      ]
+    }
+  ]
+}

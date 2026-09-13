@@ -1,0 +1,34 @@
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.clixml
+.local/
+
+# Rebuildable dependencies
+.venv/
+.venvs/
+node_modules/
+__pycache__/
+*.py[cod]
+research/repos/
+research/.cache/
+research/.venvs/
+research/derived/
+
+# Private runtime state and raw evidence
+**/evidence/
+**/*-evidence/
+**/source-before/
+**/source-after/
+*.sqlite
+*.sqlite3
+*.db
+*.tar
+*.tar.gz
+*.tgz
+*.log
+validation/profiles/*.json
+!validation/profiles/*.example.json

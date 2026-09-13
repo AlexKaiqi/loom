@@ -1,0 +1,3293 @@
+{
+  "suite_id": "G1-DURABILITY-v1",
+  "status": "DRAFT_NOT_FROZEN",
+  "artifact_kind": "finite_model_case_protocol_not_runtime_api",
+  "baseline_commit": "387d47d",
+  "purpose": "先于模型实现定义持久责任、确认、恢复、交付与等待资源的有限用例及独立判据；无真实系统通过结论。",
+  "source_snapshots": {
+    "harness-runtime-revised-v5.md": "700f8ed191ed24e913db40a33d14cbb57579b6f7f8ee6a38fa114c77f8df6865",
+    "design/requirements/v5-a.json": "cf97406b91c53874ee3212cc37341fd621560416e47520b0213e45b89d462a28",
+    "design/requirements/v5-b.json": "3e03a0e79bb2c6cf310762cf780a2fb95b97c91f042730b00bd2076e5530938a"
+  },
+  "finite_domain": {
+    "scope": "每例独立初始化，只包含用例列明的有限身份和值；本模型不代表无限输入或任意故障。",
+    "max_surfaces": 2,
+    "max_waits": 1,
+    "max_events": 2,
+    "max_steps": 2,
+    "max_request_identities": 2,
+    "max_operation_identities": 3,
+    "counter_domain": [
+      0,
+      1,
+      2,
+      "overflow"
+    ],
+    "time_domain": [
+      "promise_active",
+      "promise_expired"
+    ],
+    "opaque_tokens": "R1/M1/S1/W1/E1/I1/C1 等是固定独立内容/版本标签，不是由实现生成预期；恢复内容或授权不匹配时不得计入对应可解析集合。",
+    "scheduler": {
+      "fair": true,
+      "max_enabled_transitions_per_settle": 8,
+      "budget_is": "有限探索界限，非服务时限/SLA",
+      "bound_exhausted": "INCONCLUSIVE_NOT_PASS",
+      "fair_stall_or_cycle_with_accepted_work": "MODEL_FAIL",
+      "note": "冻结前若抽象阶段合法需要更多步，应依模型结构修订界限并保留版本，不以未跑到目标就算成功。"
+    }
+  },
+  "shared_assumptions": [
+    "此批检查控制与交接逻辑；依赖设施已经确认的持久事实在声明崩溃范围内保留，不假设跨设施原子事务。",
+    "独立环境 fixture 提供请求受理/存储确认、目标端效果、查询、执行器停止和资源观测；被测控制模型的声明不能直接修改这些观测。",
+    "请求及决定身份在预定有效范围内稳定；不承诺所有传输/执行尝试端到端恰好一次。",
+    "所有合法输入的授权/格式检查在此批作为已知前提，真实权限攻击由边界用例及后续实测处理。",
+    "除专门案例外，初始未列观测使用 observer_defaults；覆盖按对象递归合并，列表整体替换。",
+    "本批保持有限案例中的回调可控。DUR-007/027 的固定策略只属于各自 fixture，DUR-028 明确容许普通代码候选变化。",
+    "安全暂停只适用预先定义的未知结果；已确认状态在承诺范围内缺失、已受理责任永久停住不能因报告暂停通过。",
+    "默认 s1/s2 是已准备且授权有效的 fixture 对象；登记用例显式覆盖 s1=false。初始 saved_result 非空时，其内容已存在于独立持久 fixture，并列入初始确认/可解析集合。"
+  ],
+  "observer_defaults": {
+    "request": {},
+    "registration": {
+      "s1": true,
+      "s2": true
+    },
+    "decision": {},
+    "logical_request_count": 0,
+    "launch_count": 0,
+    "step2_launch_count": 0,
+    "next_step_accepted": 0,
+    "saved_result": null,
+    "volatile_result": null,
+    "confirmed_refs": [],
+    "resolvable_refs": [],
+    "pending_responsibility": [],
+    "recoverable_responsibility": false,
+    "completion_claim": false,
+    "answer_saved": false,
+    "recovery_status": "not_requested",
+    "model_call_count": 0,
+    "external_effect_count": 0,
+    "blind_retry_count": 0,
+    "execution_status": "absent",
+    "external_operation_identity": null,
+    "active_operation_identity": null,
+    "query_status": "not_requested",
+    "old_operation_may_still_run": false,
+    "events": [],
+    "event_bindings": {},
+    "delivery_responsibility_count": 0,
+    "delivered_payloads": [],
+    "replayed_event_ids": [],
+    "input_view": [],
+    "event_processing_completed": false,
+    "wait": {
+      "phase": "absent",
+      "origin": 0,
+      "match": "E",
+      "target": "s2"
+    },
+    "required_state_saved": true,
+    "persistence_ack_available": true,
+    "resources": {
+      "agent": 0,
+      "connection": 0,
+      "sandbox": 0,
+      "shared_service": 1
+    },
+    "promise_active": true,
+    "record_locations": {},
+    "cancel_requested": false,
+    "observed_process_alive": false,
+    "observed_child_alive": false,
+    "conflict_reported": false,
+    "harness_policy": "no_automatic_continuation",
+    "harness_candidate": null,
+    "requested_historical_ref": null
+  },
+  "observer_rules": {
+    "state_is": "归一化观测视图，不规定生产存储字段；对任一实现的观察适配须事先定义且不能从 expected 复制。",
+    "at": "aN 指该动作及其直接转移完成后的检查点；all 包含初始状态和每个动作后的状态。",
+    "path": "点分对象路径。已声明 request/decision/registration/event_bindings 映射内不存在身份返回 null；未知字段路径为协议错误，不能静默返回 null。",
+    "comparators": {
+      "eq": "类型敏感相等",
+      "ne": "类型敏感不相等",
+      "contains": "数组含指定元素",
+      "set_eq": "数组内容按集合相等；源数组重复身份是否允许由独立计数/关系约束另验"
+    },
+    "confirmed_refs": "观察器从 fixture 确认历史得到曾确认的内容身份，不由恢复器成功声明构造。",
+    "resolvable_refs": "仅当对应权威 fixture 在当前授权/版本下能返回该固定原内容时包含该身份；仅有路径/摘要/ID 不够。",
+    "recoverable_responsibility": "观察器检查存在持久依据覆盖当前未决决定或后续安排；不能由模型自由赋 true。",
+    "counts": "logical_request_count 和 delivery_responsibility_count 从实际接受的不同逻辑身份/关系计数；external_effect_count/model_call_count 从独立环境轨迹计数，不从 Runtime 日志声称计数。",
+    "runtime_reports": "request.caller_view、recovery_status、execution_status、completion_claim 是待对照实际环境的报告，不作为它们自身正确性的证据。",
+    "case_success": "全部 expected 成立且轨迹没有未解析动作、界限耗尽或公平停滞；必须另跑 known_bad_variant 并观测至少一个 must_violate 项失败。",
+    "mutation": "known_bad_variant 改变通用转移/观察来源，而不按 case ID 硬编码错误；不修改 expected。"
+  },
+  "action_semantics": {
+    "transport_write": "仅由传输 fixture 确认字节写出；receiver_accepts=false 时不生成接收端受理事实。",
+    "accept_request": "使接收端对合法请求完成抽象持久受理，建立原身份/内容关联；不自动完成操作或交付回执。",
+    "lose_reply": "对应服务端阶段的回执未到客户端，caller_view 变为 unknown；不改变服务端真实阶段。",
+    "complete_registration": "完成被受理登记的对象与 Harness 绑定，并产生可核对完成事实；不启动模型。",
+    "explicit_start": "外部明确请求启动已合法登记对象；本有限轨迹只提交一次有效启动。",
+    "resubmit": "以给定原请求身份和内容重交；同内容关联原请求，不同内容须冲突且不覆写。",
+    "query_request": "按原请求身份读取服务端现有受理/完成事实并更新客户端认知，不重做操作。",
+    "crash": "清除 args.domain 指定的易失进程/连接/缓存/沙箱；保留故障范围承诺持久的依赖事实。cut 为插入位置注释，不改变阶段转移规则。",
+    "restart": "重新建立共享运行机制；不能凭启动本身伪造任务完成、模型结果或受理责任。",
+    "recover_saved_state": "从承诺保存的引用/身份恢复实际可取内容和阶段；缺失时区分承诺内失败与已约定范围外缺失，不从旧易失内存猜测。",
+    "save_result": "权威结果设施确认给定实际结果与操作/版本关联已保存；普通结果不是本次调用终态。",
+    "settle_enabled_recovery": "公平驱动该用例已启用的恢复、外部解释、交付或启动转移，直到有限目标的稳定状态；不得按 case ID/expected 写状态。参见调度与界限规则。",
+    "query_external": "由独立目标端 fixture 按原 operation 返回给定查询事实；found_completed、unavailable、not_found_nonfinal 有不同语义。",
+    "recover_execution_result": "使用已查询到的同身份确定结果建立恢复引用；不能新发原操作。",
+    "request_safe_continuation": "尝试继续未知操作；safe_retry_basis=false 时不得重试且须保留可追查的暂停依据。",
+    "external_effect_occurs": "独立目标环境记录实际效果一次；可能来自未停止的旧请求/子进程，不由 Runtime 成功声明驱动。",
+    "record_event": "权威事件 fixture 保存给定身份/位置/类型/载荷；位置仅在本有限单流内有序；通知与保存分开。",
+    "begin_wait": "给出外部条件、目标和包含式历史起点，进入准备阶段；不是接受等待或创建模型业务等待命令。",
+    "accept_wait": "确认外部等待责任及其必要起点/引用已持久接受；与资源实际释放及正式 declare_waiting 分开。",
+    "scan_history": "以指定范围观察已有事件；扫描结果本身不是唯一未来交付依据，也不消费责任。",
+    "notify": "发出指定已保存事件的可丢失唤起提示；不新造事件或业务身份。",
+    "drop_notification": "丢掉对应提示而不删除已保存事件、等待或受理责任。",
+    "read_input_view": "读取本次已交付文件视图；不确认处理完成、不删除结果或责任。",
+    "request_expiry": "请求清除指定记录；必须遵守仍有效恢复承诺和责任引用，可拒绝或保留可读归档，不可静默缩范围。",
+    "archive_record": "把权威记录迁移到抽象新位置，内容/身份及获授权可解析引用仍须成立；不是固定产品功能。",
+    "release_task_resources": "请求并由环境 fixture 核对任务进程、连接、沙箱释放；executor_confirms 表示确有外部完成事实，不等于调用请求自身成功。",
+    "declare_waiting": "报告任务已经进入本模型的稳定等待；必须先保存必要依据并完成该任务资源释放。",
+    "request_enter_wait": "请求准备等待；保存确认 fixture 不可用时不能报告等待已安全接受或主动销毁唯一未保存状态。",
+    "confirm_required_state_saved": "由持久设施 fixture 确认给定必要引用已保存，不从被测模型的自述产生。",
+    "request_cancel": "记录取消请求，不直接更改依赖侧真实进程生存或确认结束。",
+    "executor_confirms_stop": "由执行器 fixture 确认目标执行及参数指定子进程已实际停止，更新可核对结束事实。",
+    "replay_events": "按范围重新读取已记录事实，不执行其正文描述动作；观察集合可去重，传输可重复。",
+    "request_out_of_scope_history": "请求已明确处于保留承诺外且无未结责任依赖的历史；缺失须报告，不能伪造空历史恢复成功。",
+    "accept_decision": "持久接受外部定义给出的决定身份、内容、源结果、版本及执行身份；一般解释代码不假定恒定。",
+    "set_harness_candidate": "独立 fixture 改变如果再次求值外部代码会返回的候选；不得改写已接受决定。",
+    "propose_decision": "再次提交同一稳定决定身份与给定内容；不同于已接受内容时冲突，不能用新执行身份逃避原责任。"
+  },
+  "unverified_real_world_gaps": [
+    "真实 fsync/持久副本/消息配置与崩溃数据保留",
+    "Session 模型结果保存、继续点和执行身份查询",
+    "外部目标查询一致性、安全重试/补偿与回调副作用",
+    "OS 进程/子进程、连接、沙箱的任务归属及实际释放",
+    "保留/归档期限、读取授权、版本内容和引用生命周期",
+    "生产 Linux 条件、唤起时延、吞吐/成本与容量；有限转移次数不提供这些结论"
+  ],
+  "cases": [
+    {
+      "id": "DUR-001",
+      "title": "写出字节不等于受理",
+      "source_requirement_ids": [
+        "V5-A081",
+        "V5-A083",
+        "V5-A086"
+      ],
+      "properties": [
+        "P09"
+      ],
+      "initial_state": {
+        "request": {
+          "r1": {
+            "phase": "absent",
+            "caller_view": "not_submitted",
+            "payload": "A"
+          }
+        },
+        "registration": {
+          "s1": false
+        },
+        "launch_count": 0
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "transport_write",
+          "args": {
+            "request": "r1",
+            "receiver_accepts": false
+          }
+        },
+        {
+          "id": "a2",
+          "op": "lose_reply",
+          "args": {
+            "request": "r1"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a1",
+          "path": "request.r1.phase",
+          "op": "eq",
+          "value": "absent",
+          "why": "无接收端受理事实"
+        },
+        {
+          "id": "E2",
+          "at": "a2",
+          "path": "request.r1.caller_view",
+          "op": "eq",
+          "value": "unknown",
+          "why": "无回执不能推断受理或完成"
+        },
+        {
+          "id": "E3",
+          "at": "all",
+          "path": "registration.s1",
+          "op": "eq",
+          "value": false,
+          "why": "传输成功不完成登记"
+        },
+        {
+          "id": "E4",
+          "at": "all",
+          "path": "launch_count",
+          "op": "eq",
+          "value": 0,
+          "why": "没有明确启动"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "将 transport_write 成功直接映射为请求 completed 和登记存在",
+        "should_fail_because": "请求没有被接收端校验受理，却获得完成事实",
+        "must_violate": [
+          "E1",
+          "E3"
+        ],
+        "name": "bytes_implies_completion"
+      },
+      "assumptions": [
+        "此例接收端未接受请求；发送端写成功由独立传输观察提供"
+      ],
+      "gap": [
+        "真实传输完整性、拒绝与回执仍需组件验证"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-002",
+      "title": "受理、登记完成与启动三个阶段",
+      "source_requirement_ids": [
+        "V5-A083",
+        "V5-A100",
+        "V5-B032",
+        "V5-B065"
+      ],
+      "properties": [
+        "P09"
+      ],
+      "initial_state": {
+        "request": {
+          "r1": {
+            "phase": "absent",
+            "caller_view": "not_submitted",
+            "payload": "A"
+          }
+        },
+        "registration": {
+          "s1": false
+        },
+        "launch_count": 0
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "accept_request",
+          "args": {
+            "request": "r1",
+            "payload": "A",
+            "kind": "register",
+            "surface": "s1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "complete_registration",
+          "args": {
+            "request": "r1",
+            "surface": "s1",
+            "harness": "h1"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "explicit_start",
+          "args": {
+            "surface": "s1",
+            "harness": "h1"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a1",
+          "path": "request.r1.phase",
+          "op": "eq",
+          "value": "accepted",
+          "why": "受理尚非操作完成"
+        },
+        {
+          "id": "E2",
+          "at": "a1",
+          "path": "registration.s1",
+          "op": "eq",
+          "value": false,
+          "why": "对象尚未登记"
+        },
+        {
+          "id": "E3",
+          "at": "a2",
+          "path": "request.r1.phase",
+          "op": "eq",
+          "value": "completed",
+          "why": "有真实登记完成事实"
+        },
+        {
+          "id": "E4",
+          "at": "a2",
+          "path": "registration.s1",
+          "op": "eq",
+          "value": true,
+          "why": "完成对象可核对"
+        },
+        {
+          "id": "E5",
+          "at": "a2",
+          "path": "launch_count",
+          "op": "eq",
+          "value": 0,
+          "why": "登记不自动启动"
+        },
+        {
+          "id": "E6",
+          "at": "a3",
+          "path": "launch_count",
+          "op": "eq",
+          "value": 1,
+          "why": "明确请求启动一次"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "受理即创建登记且自动启动模型",
+        "should_fail_because": "混淆受理、操作完成和启动",
+        "must_violate": [
+          "E2",
+          "E5"
+        ],
+        "name": "acceptance_starts_model"
+      },
+      "assumptions": [
+        "请求合法且对象/绑定校验成功；h1 仅是有限域标签"
+      ],
+      "gap": [
+        "实际登记校验、启动入口与回执语义待实现验证"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-003",
+      "title": "保存后丢回执与相同身份重试",
+      "source_requirement_ids": [
+        "V5-A083",
+        "V5-A084"
+      ],
+      "properties": [
+        "P09"
+      ],
+      "initial_state": {
+        "request": {
+          "r1": {
+            "phase": "absent",
+            "caller_view": "not_submitted",
+            "payload": "A"
+          }
+        },
+        "logical_request_count": 0,
+        "registration": {
+          "s1": false
+        },
+        "launch_count": 0
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "accept_request",
+          "args": {
+            "request": "r1",
+            "payload": "A",
+            "kind": "register",
+            "surface": "s1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "lose_reply",
+          "args": {
+            "request": "r1"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "crash",
+          "args": {
+            "domain": "runtime_volatile"
+          }
+        },
+        {
+          "id": "a4",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a5",
+          "op": "resubmit",
+          "args": {
+            "request": "r1",
+            "payload": "A"
+          }
+        },
+        {
+          "id": "a6",
+          "op": "complete_registration",
+          "args": {
+            "request": "r1",
+            "surface": "s1",
+            "harness": "h1"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a2",
+          "path": "request.r1.caller_view",
+          "op": "eq",
+          "value": "unknown",
+          "why": "客户端不能知道已受理"
+        },
+        {
+          "id": "E2",
+          "at": "a4",
+          "path": "request.r1.phase",
+          "op": "eq",
+          "value": "accepted",
+          "why": "服务端保存事实在重启后仍在"
+        },
+        {
+          "id": "E3",
+          "at": "a5",
+          "path": "logical_request_count",
+          "op": "eq",
+          "value": 1,
+          "why": "重试关联同一逻辑请求"
+        },
+        {
+          "id": "E4",
+          "at": "a6",
+          "path": "request.r1.phase",
+          "op": "eq",
+          "value": "completed",
+          "why": "原请求可完成"
+        },
+        {
+          "id": "E5",
+          "at": "all",
+          "path": "launch_count",
+          "op": "eq",
+          "value": 0,
+          "why": "登记重试不隐含启动"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "丢回执后新建 r2 或在重启时遗失 r1 的身份记录",
+        "should_fail_because": "产生新的逻辑操作或丢失已受理身份",
+        "must_violate": [
+          "E2",
+          "E3"
+        ],
+        "name": "lose_request_identity_on_restart"
+      },
+      "assumptions": [
+        "重试发生在预先约定的身份有效期内；只约束逻辑请求关联，不承诺所有内部执行尝试恰好一次"
+      ],
+      "gap": [
+        "身份等同性、去重范围和保存期限待组件验证"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-004",
+      "title": "同身份不同内容必须冲突",
+      "source_requirement_ids": [
+        "V5-A084"
+      ],
+      "properties": [
+        "P09"
+      ],
+      "initial_state": {
+        "request": {
+          "r1": {
+            "phase": "accepted",
+            "caller_view": "unknown",
+            "payload": "A"
+          }
+        },
+        "logical_request_count": 1,
+        "registration": {
+          "s1": false
+        },
+        "conflict_reported": false
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "resubmit",
+          "args": {
+            "request": "r1",
+            "payload": "B"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a1",
+          "path": "conflict_reported",
+          "op": "eq",
+          "value": true,
+          "why": "B 与同身份保存的 A 不同"
+        },
+        {
+          "id": "E2",
+          "at": "a1",
+          "path": "request.r1.payload",
+          "op": "eq",
+          "value": "A",
+          "why": "冲突不能覆写原请求"
+        },
+        {
+          "id": "E3",
+          "at": "a1",
+          "path": "logical_request_count",
+          "op": "eq",
+          "value": 1,
+          "why": "不能悄悄创建第二逻辑请求"
+        },
+        {
+          "id": "E4",
+          "at": "a1",
+          "path": "registration.s1",
+          "op": "eq",
+          "value": false,
+          "why": "冲突请求无登记效果"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "按最后一次内容覆盖 r1 并返回成功",
+        "should_fail_because": "相同身份的含义改变，旧确认不再可追溯",
+        "must_violate": [
+          "E1",
+          "E2"
+        ],
+        "name": "overwrite_conflicting_request"
+      },
+      "assumptions": [],
+      "gap": [],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-005",
+      "title": "操作完成回执丢失可以查询原完成事实",
+      "source_requirement_ids": [
+        "V5-A083",
+        "V5-A084",
+        "V5-A100",
+        "V5-B032"
+      ],
+      "properties": [
+        "P09"
+      ],
+      "initial_state": {
+        "request": {
+          "r1": {
+            "phase": "accepted",
+            "caller_view": "unknown",
+            "payload": "A"
+          }
+        },
+        "registration": {
+          "s1": false
+        },
+        "logical_request_count": 1,
+        "launch_count": 0
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "complete_registration",
+          "args": {
+            "request": "r1",
+            "surface": "s1",
+            "harness": "h1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "lose_reply",
+          "args": {
+            "request": "r1"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "crash",
+          "args": {
+            "domain": "runtime_volatile"
+          }
+        },
+        {
+          "id": "a4",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a5",
+          "op": "query_request",
+          "args": {
+            "request": "r1"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a2",
+          "path": "request.r1.caller_view",
+          "op": "eq",
+          "value": "unknown",
+          "why": "服务端完成与客户端认知分开"
+        },
+        {
+          "id": "E2",
+          "at": "a5",
+          "path": "request.r1.caller_view",
+          "op": "eq",
+          "value": "completed",
+          "why": "从原身份确认实际完成"
+        },
+        {
+          "id": "E3",
+          "at": "a5",
+          "path": "registration.s1",
+          "op": "eq",
+          "value": true,
+          "why": "实际对象仍存在"
+        },
+        {
+          "id": "E4",
+          "at": "all",
+          "path": "logical_request_count",
+          "op": "eq",
+          "value": 1,
+          "why": "查询不重建逻辑请求"
+        },
+        {
+          "id": "E5",
+          "at": "all",
+          "path": "launch_count",
+          "op": "eq",
+          "value": 0,
+          "why": "完成确认不是首次启动"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "查询未知回执时重建请求或自动启动",
+        "should_fail_because": "查询不能重做登记或启动",
+        "must_violate": [
+          "E4",
+          "E5"
+        ],
+        "name": "query_causes_side_effects"
+      },
+      "assumptions": [],
+      "gap": [],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-006",
+      "title": "未保存结果不能由易失内容猜测恢复",
+      "source_requirement_ids": [
+        "V5-A010",
+        "V5-B084",
+        "V5-B085"
+      ],
+      "properties": [
+        "P07",
+        "P11"
+      ],
+      "initial_state": {
+        "volatile_result": "R1",
+        "saved_result": null,
+        "confirmed_refs": [],
+        "completion_claim": false,
+        "pending_responsibility": [
+          "step1:resolve_result"
+        ]
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "crash",
+          "args": {
+            "domain": "task_and_runtime_volatile"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a3",
+          "op": "recover_saved_state",
+          "args": {}
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a3",
+          "path": "saved_result",
+          "op": "eq",
+          "value": null,
+          "why": "未保存的 R1 不是可恢复事实"
+        },
+        {
+          "id": "E2",
+          "at": "a3",
+          "path": "confirmed_refs",
+          "op": "set_eq",
+          "value": [],
+          "why": "不能补造确认"
+        },
+        {
+          "id": "E3",
+          "at": "a3",
+          "path": "completion_claim",
+          "op": "eq",
+          "value": false,
+          "why": "未知不是完成"
+        },
+        {
+          "id": "E4",
+          "at": "a3",
+          "path": "pending_responsibility",
+          "op": "contains",
+          "value": "step1:resolve_result",
+          "why": "原受理任务的核对责任仍在"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "根据缓存摘要或预期答案恢复为 saved_result=R1",
+        "should_fail_because": "从未确认的瞬时状态伪造持久事实",
+        "must_violate": [
+          "E1",
+          "E2"
+        ],
+        "name": "invent_unsaved_result"
+      },
+      "assumptions": [
+        "此例只有 R1 的易失接收，无持久确认；已受理 step1 责任已持久"
+      ],
+      "gap": [
+        "是否可再次推理取决于外部副作用与 Session 契约，此例不预设重试政策"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-007",
+      "title": "结果保存后至继续登记前崩溃",
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-B025",
+        "V5-B028",
+        "V5-B040",
+        "V5-B085"
+      ],
+      "properties": [
+        "P07",
+        "P10",
+        "P11"
+      ],
+      "initial_state": {
+        "saved_result": null,
+        "confirmed_refs": [],
+        "pending_responsibility": [
+          "step1:resolve_result"
+        ],
+        "next_step_accepted": 0,
+        "external_effect_count": 1,
+        "model_call_count": 1,
+        "harness_policy": "continue_after_R1"
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "save_result",
+          "args": {
+            "result": "R1",
+            "operation": "op1",
+            "harness_version": "h1v1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "crash",
+          "args": {
+            "domain": "task_and_runtime_volatile",
+            "cut": "before_continuation_acceptance"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a4",
+          "op": "recover_saved_state",
+          "args": {}
+        },
+        {
+          "id": "a5",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a4",
+          "path": "saved_result",
+          "op": "eq",
+          "value": "R1",
+          "why": "确认的原结果必须可取得"
+        },
+        {
+          "id": "E2",
+          "at": "a4",
+          "path": "recoverable_responsibility",
+          "op": "eq",
+          "value": true,
+          "why": "保存结果不能造成无后续依据的孤儿"
+        },
+        {
+          "id": "E3",
+          "at": "a5",
+          "path": "next_step_accepted",
+          "op": "eq",
+          "value": 1,
+          "why": "h1 明确继续，恢复须完成持久交接"
+        },
+        {
+          "id": "E4",
+          "at": "all",
+          "path": "external_effect_count",
+          "op": "eq",
+          "value": 1,
+          "why": "不能重做 op1 代替交接"
+        },
+        {
+          "id": "E5",
+          "at": "all",
+          "path": "model_call_count",
+          "op": "eq",
+          "value": 1,
+          "why": "已保存模型结果不重新推理"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "save_result 后提前清除 step1 责任，但下一步仅放入尚未持久的内存",
+        "should_fail_because": "崩溃间隙既无原责任也无继续责任，恢复停住",
+        "must_violate": [
+          "E2",
+          "E3"
+        ],
+        "name": "drop_responsibility_after_result"
+      },
+      "assumptions": [
+        "h1 的此例反馈决定是有限固定函数：R1 后继续；模型生成 R1 不要求一般确定性",
+        "此 fixture 的解释无回调副作用，且尚无已接受或未决决定提交；不得据此允许一般 Harness 在不确定边界重算。"
+      ],
+      "gap": [
+        "允许原责任重放解释或原子交接等不同实现；不要求选定任何存储事务机制"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-008",
+      "title": "已受理下一步在启动前崩溃",
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A092",
+        "V5-B028"
+      ],
+      "properties": [
+        "P07",
+        "P10"
+      ],
+      "initial_state": {
+        "saved_result": "R1",
+        "confirmed_refs": [
+          "R1"
+        ],
+        "next_step_accepted": 1,
+        "pending_responsibility": [
+          "step2:launch"
+        ],
+        "step2_launch_count": 0,
+        "external_effect_count": 1,
+        "resolvable_refs": [
+          "R1"
+        ]
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "crash",
+          "args": {
+            "domain": "task_and_runtime_volatile",
+            "cut": "after_next_accept_before_launch"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a3",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a2",
+          "path": "next_step_accepted",
+          "op": "eq",
+          "value": 1,
+          "why": "受理责任持久存在"
+        },
+        {
+          "id": "E2",
+          "at": "a3",
+          "path": "step2_launch_count",
+          "op": "eq",
+          "value": 1,
+          "why": "在此有限公平运行中实施已受理下一步"
+        },
+        {
+          "id": "E3",
+          "at": "a3",
+          "path": "saved_result",
+          "op": "eq",
+          "value": "R1",
+          "why": "结果不因责任转交被删"
+        },
+        {
+          "id": "E4",
+          "at": "all",
+          "path": "external_effect_count",
+          "op": "eq",
+          "value": 1,
+          "why": "不重复上一步副作用"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "下一步登记只在工作进程内存中，重启后任务被当作已完成",
+        "should_fail_because": "已受理推进永久消失",
+        "must_violate": [
+          "E1",
+          "E2"
+        ],
+        "name": "volatile_next_step_acceptance"
+      },
+      "assumptions": [
+        "仅有一次恢复调度且 step2 尚未开始；launch_count=1 不外推任意重试场景恰好一次"
+      ],
+      "gap": [
+        "真实调度公平性及启动确认语义待运行验证"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-009",
+      "title": "已确认恢复集合跨全部易失域丢失仍保留",
+      "source_requirement_ids": [
+        "V5-A010",
+        "V5-A042",
+        "V5-A050",
+        "V5-B084",
+        "V5-B085"
+      ],
+      "properties": [
+        "P07"
+      ],
+      "initial_state": {
+        "confirmed_refs": [
+          "M1",
+          "S1",
+          "W1",
+          "E1",
+          "I1",
+          "C1"
+        ],
+        "resolvable_refs": [
+          "M1",
+          "S1",
+          "W1",
+          "E1",
+          "I1",
+          "C1"
+        ],
+        "pending_responsibility": [
+          "step2:launch"
+        ],
+        "model_call_count": 1,
+        "recovery_status": "not_requested"
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "crash",
+          "args": {
+            "domain": "all_volatile_and_sandbox"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a3",
+          "op": "recover_saved_state",
+          "args": {}
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a3",
+          "path": "confirmed_refs",
+          "op": "set_eq",
+          "value": [
+            "M1",
+            "S1",
+            "W1",
+            "E1",
+            "I1",
+            "C1"
+          ],
+          "why": "独立固定的模型结果/两域版本/执行身份/输入/责任均曾确认"
+        },
+        {
+          "id": "E2",
+          "at": "a3",
+          "path": "resolvable_refs",
+          "op": "set_eq",
+          "value": [
+            "M1",
+            "S1",
+            "W1",
+            "E1",
+            "I1",
+            "C1"
+          ],
+          "why": "标识存在不能代替内容可取回"
+        },
+        {
+          "id": "E3",
+          "at": "a3",
+          "path": "recovery_status",
+          "op": "eq",
+          "value": "recovered",
+          "why": "此例在承诺范围内且存储完好，不允许泛化暂停"
+        },
+        {
+          "id": "E4",
+          "at": "all",
+          "path": "model_call_count",
+          "op": "eq",
+          "value": 1,
+          "why": "不重新推理填空"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "保留版本号和成功摘要却把 Workspace 内容或模型结果留在沙箱；重启后以 paused 代替恢复",
+        "should_fail_because": "已经确认状态在承诺范围内丢失，报告暂停也不能通过",
+        "must_violate": [
+          "E2",
+          "E3"
+        ],
+        "name": "sandbox_only_confirmed_content"
+      },
+      "assumptions": [
+        "故障模型保留已兑现持久性的存储；无介质永久毁损和无保留承诺外数据"
+      ],
+      "gap": [
+        "真实存储持久性、版本可取得性和恢复配置必须另行实测"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-010",
+      "title": "未知副作用查询发现已完成，不重做",
+      "source_requirement_ids": [
+        "V5-B015",
+        "V5-B020",
+        "V5-B041",
+        "V5-B086"
+      ],
+      "properties": [
+        "P11",
+        "P07"
+      ],
+      "initial_state": {
+        "execution_status": "unknown",
+        "external_effect_count": 1,
+        "external_operation_identity": "op1",
+        "query_status": "not_requested",
+        "saved_result": null,
+        "blind_retry_count": 0
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "query_external",
+          "args": {
+            "operation": "op1",
+            "answer": "found_completed",
+            "result": "R1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "recover_execution_result",
+          "args": {
+            "operation": "op1"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a2",
+          "path": "query_status",
+          "op": "eq",
+          "value": "found_completed",
+          "why": "查询按原身份确认外部事实"
+        },
+        {
+          "id": "E2",
+          "at": "a2",
+          "path": "saved_result",
+          "op": "eq",
+          "value": "R1",
+          "why": "恢复查询得到的原结果"
+        },
+        {
+          "id": "E3",
+          "at": "all",
+          "path": "external_effect_count",
+          "op": "eq",
+          "value": 1,
+          "why": "不重复已发生效果"
+        },
+        {
+          "id": "E4",
+          "at": "all",
+          "path": "blind_retry_count",
+          "op": "eq",
+          "value": 0,
+          "why": "先核对不盲目重做"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "把本地未记录结果视作未执行，直接再次发送 op1",
+        "should_fail_because": "真实目标端产生重复效果",
+        "must_violate": [
+          "E3",
+          "E4"
+        ],
+        "name": "retry_unknown_before_query"
+      },
+      "assumptions": [
+        "外部 fixture 的 effect_count 独立于 Runtime 状态；查询回答对应实际同身份操作"
+      ],
+      "gap": [
+        "真实目标端查询可信度、结果引用和去重范围待实测"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-011",
+      "title": "未知副作用无法查询时暂停并保留责任",
+      "source_requirement_ids": [
+        "V5-B020",
+        "V5-B079",
+        "V5-B086"
+      ],
+      "properties": [
+        "P11",
+        "P07"
+      ],
+      "initial_state": {
+        "execution_status": "unknown",
+        "external_effect_count": 1,
+        "query_status": "not_requested",
+        "blind_retry_count": 0,
+        "pending_responsibility": [
+          "op1:resolve"
+        ],
+        "recovery_status": "not_requested",
+        "completion_claim": false
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "query_external",
+          "args": {
+            "operation": "op1",
+            "answer": "unavailable"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "request_safe_continuation",
+          "args": {
+            "operation": "op1",
+            "safe_retry_basis": false
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a2",
+          "path": "recovery_status",
+          "op": "eq",
+          "value": "paused_unknown",
+          "why": "无安全依据时暂停"
+        },
+        {
+          "id": "E2",
+          "at": "a2",
+          "path": "pending_responsibility",
+          "op": "contains",
+          "value": "op1:resolve",
+          "why": "暂停仍保留未知结果及追查依据"
+        },
+        {
+          "id": "E3",
+          "at": "a2",
+          "path": "completion_claim",
+          "op": "eq",
+          "value": false,
+          "why": "安全暂停不是业务完成"
+        },
+        {
+          "id": "E4",
+          "at": "all",
+          "path": "external_effect_count",
+          "op": "eq",
+          "value": 1,
+          "why": "未扩大外部效果"
+        },
+        {
+          "id": "E5",
+          "at": "all",
+          "path": "blind_retry_count",
+          "op": "eq",
+          "value": 0,
+          "why": "不得因查询失败而盲试"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "查询失败后清除未知责任并宣布成功，或自动重试",
+        "should_fail_because": "未知被抹去或出现未经依据的效果",
+        "must_violate": [
+          "E2",
+          "E3",
+          "E5"
+        ],
+        "name": "discard_unknown_operation_on_query_failure"
+      },
+      "assumptions": [
+        "此例是预定未知结果安全性质，不是 DUR-009 已确认数据恢复的替代"
+      ],
+      "gap": [
+        "真实查询不可用原因、可恢复暂停记录和再次核对入口待实现验证"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-012",
+      "title": "暂时查无结果不等于安全重试",
+      "source_requirement_ids": [
+        "V5-B015",
+        "V5-B016",
+        "V5-B086"
+      ],
+      "properties": [
+        "P11"
+      ],
+      "initial_state": {
+        "execution_status": "unknown",
+        "external_effect_count": 0,
+        "query_status": "not_requested",
+        "old_operation_may_still_run": true,
+        "blind_retry_count": 0,
+        "recovery_status": "not_requested"
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "query_external",
+          "args": {
+            "operation": "op1",
+            "answer": "not_found_nonfinal"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "request_safe_continuation",
+          "args": {
+            "operation": "op1",
+            "safe_retry_basis": false
+          }
+        },
+        {
+          "id": "a3",
+          "op": "external_effect_occurs",
+          "args": {
+            "operation": "op1",
+            "origin": "old_inflight"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a2",
+          "path": "recovery_status",
+          "op": "eq",
+          "value": "paused_unknown",
+          "why": "非终局 not-found 未排除旧操作仍在运行"
+        },
+        {
+          "id": "E2",
+          "at": "all",
+          "path": "blind_retry_count",
+          "op": "eq",
+          "value": 0,
+          "why": "查询缺项不自动提供安全重试依据"
+        },
+        {
+          "id": "E3",
+          "at": "a3",
+          "path": "external_effect_count",
+          "op": "eq",
+          "value": 1,
+          "why": "只有原延迟操作的效果"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "收到任何 not-found 就认定 op1 从未执行并重新发送",
+        "should_fail_because": "旧操作稍后落地，重试造成两个效果",
+        "must_violate": [
+          "E2",
+          "E3"
+        ],
+        "name": "retry_on_nonfinal_not_found"
+      },
+      "assumptions": [
+        "查询为非终局视图且旧操作可能晚到；不反对有确定未启动/强去重依据的合法重试"
+      ],
+      "gap": [
+        "真实查询一致性和执行终止证明在 G2/G3 核实"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-013",
+      "title": "目标条件发生于登记等待之前",
+      "source_requirement_ids": [
+        "V5-A094",
+        "V5-A095",
+        "V5-A096",
+        "V5-B081"
+      ],
+      "properties": [
+        "P10",
+        "P07"
+      ],
+      "initial_state": {
+        "events": [],
+        "wait": {
+          "phase": "absent",
+          "origin": 0,
+          "match": "E",
+          "target": "s2"
+        },
+        "event_bindings": {},
+        "delivery_responsibility_count": 0
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "record_event",
+          "args": {
+            "event": "e1",
+            "position": 1,
+            "kind": "E",
+            "payload": "data1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "begin_wait",
+          "args": {
+            "wait": "w1",
+            "origin": 0,
+            "match": "E",
+            "target": "s2"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "accept_wait",
+          "args": {
+            "wait": "w1"
+          }
+        },
+        {
+          "id": "a4",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a4",
+          "path": "event_bindings.e1",
+          "op": "eq",
+          "value": "s2:step1",
+          "why": "起点包含的历史事件应交给指定目标"
+        },
+        {
+          "id": "E2",
+          "at": "a4",
+          "path": "delivery_responsibility_count",
+          "op": "eq",
+          "value": 1,
+          "why": "同一有限匹配产生一个逻辑交付关系"
+        },
+        {
+          "id": "E3",
+          "at": "a4",
+          "path": "delivered_payloads",
+          "op": "contains",
+          "value": "data1",
+          "why": "信息内容可核对"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "等待只监听登记后的实时事件",
+        "should_fail_because": "合法起点内已发生条件永远遗漏",
+        "must_violate": [
+          "E1",
+          "E3"
+        ],
+        "name": "ignore_preexisting_events"
+      },
+      "assumptions": [
+        "此例外部代码条件为从位置0起的首个 E 事件；位置只在单一流范围内有序"
+      ],
+      "gap": [
+        "跨来源条件、真实历史读取与保留能力待验证"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-014",
+      "title": "检查后登记之间发生条件",
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A095",
+        "V5-B081"
+      ],
+      "properties": [
+        "P10",
+        "P07"
+      ],
+      "initial_state": {
+        "events": [],
+        "wait": {
+          "phase": "absent",
+          "origin": 0,
+          "match": "E",
+          "target": "s2"
+        },
+        "event_bindings": {},
+        "delivery_responsibility_count": 0
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "scan_history",
+          "args": {
+            "wait": "w1",
+            "origin": 0,
+            "match": "E"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "begin_wait",
+          "args": {
+            "wait": "w1",
+            "origin": 0,
+            "match": "E",
+            "target": "s2"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "record_event",
+          "args": {
+            "event": "e1",
+            "position": 1,
+            "kind": "E",
+            "payload": "data1"
+          }
+        },
+        {
+          "id": "a4",
+          "op": "drop_notification",
+          "args": {
+            "event": "e1"
+          }
+        },
+        {
+          "id": "a5",
+          "op": "accept_wait",
+          "args": {
+            "wait": "w1"
+          }
+        },
+        {
+          "id": "a6",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a6",
+          "path": "event_bindings.e1",
+          "op": "eq",
+          "value": "s2:step1",
+          "why": "检查和登记间隙仍可恢复匹配"
+        },
+        {
+          "id": "E2",
+          "at": "a6",
+          "path": "delivery_responsibility_count",
+          "op": "eq",
+          "value": 1,
+          "why": "不能因通知丢失删除交付"
+        },
+        {
+          "id": "E3",
+          "at": "a6",
+          "path": "delivered_payloads",
+          "op": "contains",
+          "value": "data1",
+          "why": "实际输入不遗漏"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "scan_history 空结果后仅切到实时通知且不保存可续读起点",
+        "should_fail_because": "e1 恰落在两个观察边界之间",
+        "must_violate": [
+          "E1",
+          "E3"
+        ],
+        "name": "scan_subscribe_gap"
+      },
+      "assumptions": [
+        "接受等待保存其起点；不要求 scan/register 原子事务"
+      ],
+      "gap": [
+        "真实消息设施读取一致性、消费起点和唤起机制待实测"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-015",
+      "title": "条件发生于等待受理之后",
+      "source_requirement_ids": [
+        "V5-A095",
+        "V5-A096",
+        "V5-B081"
+      ],
+      "properties": [
+        "P10",
+        "P07"
+      ],
+      "initial_state": {
+        "events": [],
+        "wait": {
+          "phase": "absent",
+          "origin": 0,
+          "match": "E",
+          "target": "s2"
+        },
+        "event_bindings": {},
+        "delivery_responsibility_count": 0
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "begin_wait",
+          "args": {
+            "wait": "w1",
+            "origin": 0,
+            "match": "E",
+            "target": "s2"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "accept_wait",
+          "args": {
+            "wait": "w1"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "record_event",
+          "args": {
+            "event": "e1",
+            "position": 1,
+            "kind": "E",
+            "payload": "data1"
+          }
+        },
+        {
+          "id": "a4",
+          "op": "notify",
+          "args": {
+            "event": "e1"
+          }
+        },
+        {
+          "id": "a5",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a2",
+          "path": "wait.phase",
+          "op": "eq",
+          "value": "accepted",
+          "why": "受理等待有持久责任"
+        },
+        {
+          "id": "E2",
+          "at": "a5",
+          "path": "event_bindings.e1",
+          "op": "eq",
+          "value": "s2:step1",
+          "why": "按外部条件唤起目标"
+        },
+        {
+          "id": "E3",
+          "at": "a5",
+          "path": "delivery_responsibility_count",
+          "op": "eq",
+          "value": 1,
+          "why": "目标输入有可追溯关系"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "只扫描登记前历史而从不续读后续事件",
+        "should_fail_because": "已受理等待无法响应将来条件",
+        "must_violate": [
+          "E2",
+          "E3"
+        ],
+        "name": "ignore_future_events"
+      },
+      "assumptions": [],
+      "gap": [],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-016",
+      "title": "明确起点排除不属于本次等待的旧事件",
+      "source_requirement_ids": [
+        "V5-A090",
+        "V5-A095"
+      ],
+      "properties": [
+        "P10"
+      ],
+      "initial_state": {
+        "events": [
+          {
+            "id": "e0",
+            "position": 0,
+            "kind": "E",
+            "payload": "old"
+          }
+        ],
+        "wait": {
+          "phase": "absent",
+          "origin": 1,
+          "match": "E",
+          "target": "s2"
+        },
+        "event_bindings": {},
+        "delivery_responsibility_count": 0
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "begin_wait",
+          "args": {
+            "wait": "w1",
+            "origin": 1,
+            "match": "E",
+            "target": "s2"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "accept_wait",
+          "args": {
+            "wait": "w1"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "record_event",
+          "args": {
+            "event": "e1",
+            "position": 1,
+            "kind": "E",
+            "payload": "new"
+          }
+        },
+        {
+          "id": "a4",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a4",
+          "path": "event_bindings.e0",
+          "op": "eq",
+          "value": null,
+          "why": "e0 不在预定包含式起点内"
+        },
+        {
+          "id": "E2",
+          "at": "a4",
+          "path": "event_bindings.e1",
+          "op": "eq",
+          "value": "s2:step1",
+          "why": "e1 在范围内"
+        },
+        {
+          "id": "E3",
+          "at": "a4",
+          "path": "delivered_payloads",
+          "op": "set_eq",
+          "value": [
+            "new"
+          ],
+          "why": "不把范围外旧内容用于推进"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "为避免漏事件而无条件回放全部历史",
+        "should_fail_because": "解决漏交付不能以消除输入范围和起点为代价",
+        "must_violate": [
+          "E1",
+          "E3"
+        ],
+        "name": "ignore_wait_origin"
+      },
+      "assumptions": [
+        "本有限词汇 origin 是包含式下界；这是模拟语义选择，不冻结真实 API 的序号表达"
+      ],
+      "gap": [
+        "实际过滤、身份来源和历史缺失报告待验证"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-017",
+      "title": "通知丢失且底座重启仍恢复等待交付",
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A094",
+        "V5-A096",
+        "V5-B034",
+        "V5-B081"
+      ],
+      "properties": [
+        "P07",
+        "P10"
+      ],
+      "initial_state": {
+        "events": [],
+        "wait": {
+          "phase": "accepted",
+          "origin": 0,
+          "match": "E",
+          "target": "s2"
+        },
+        "event_bindings": {},
+        "delivery_responsibility_count": 0,
+        "resources": {
+          "agent": 0,
+          "connection": 0,
+          "sandbox": 0,
+          "shared_service": 1
+        }
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "record_event",
+          "args": {
+            "event": "e1",
+            "position": 1,
+            "kind": "E",
+            "payload": "data1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "drop_notification",
+          "args": {
+            "event": "e1"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "crash",
+          "args": {
+            "domain": "runtime_volatile"
+          }
+        },
+        {
+          "id": "a4",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a5",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a4",
+          "path": "wait.phase",
+          "op": "eq",
+          "value": "accepted",
+          "why": "等待责任不在原进程中消失"
+        },
+        {
+          "id": "E2",
+          "at": "a5",
+          "path": "event_bindings.e1",
+          "op": "eq",
+          "value": "s2:step1",
+          "why": "恢复不依赖丢失的唤起提示"
+        },
+        {
+          "id": "E3",
+          "at": "a5",
+          "path": "delivery_responsibility_count",
+          "op": "eq",
+          "value": 1,
+          "why": "持久输入与责任可重建"
+        },
+        {
+          "id": "E4",
+          "at": "a5",
+          "path": "delivered_payloads",
+          "op": "contains",
+          "value": "data1",
+          "why": "传递真实匹配内容"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "将通知队列/内存回调作为唯一待办来源",
+        "should_fail_because": "持久事件虽然存在，却无人恢复受理责任",
+        "must_violate": [
+          "E2",
+          "E3"
+        ],
+        "name": "notification_only_worklist"
+      },
+      "assumptions": [
+        "存储与事件记录在承诺故障范围内保留；恢复调度有限公平"
+      ],
+      "gap": [
+        "真实重启发现路径和故障后的延迟/容量另验"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-018",
+      "title": "读取事件视图不是消费完成",
+      "source_requirement_ids": [
+        "V5-A092",
+        "V5-A093"
+      ],
+      "properties": [
+        "P07",
+        "P10"
+      ],
+      "initial_state": {
+        "events": [
+          {
+            "id": "e1",
+            "position": 1,
+            "kind": "E",
+            "payload": "data1"
+          }
+        ],
+        "event_bindings": {
+          "e1": "s2:step1"
+        },
+        "pending_responsibility": [
+          "s2:step1:process_e1"
+        ],
+        "input_view": [
+          "e1"
+        ],
+        "event_processing_completed": false,
+        "saved_result": null
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "read_input_view",
+          "args": {
+            "step": "s2:step1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "crash",
+          "args": {
+            "domain": "task_and_runtime_volatile"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a4",
+          "op": "recover_saved_state",
+          "args": {}
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a1",
+          "path": "event_processing_completed",
+          "op": "eq",
+          "value": false,
+          "why": "读视图不代表处理完成"
+        },
+        {
+          "id": "E2",
+          "at": "a4",
+          "path": "pending_responsibility",
+          "op": "contains",
+          "value": "s2:step1:process_e1",
+          "why": "未处理责任必须保留"
+        },
+        {
+          "id": "E3",
+          "at": "a4",
+          "path": "event_bindings.e1",
+          "op": "eq",
+          "value": "s2:step1",
+          "why": "输入与推进关联可恢复"
+        },
+        {
+          "id": "E4",
+          "at": "a4",
+          "path": "saved_result",
+          "op": "eq",
+          "value": null,
+          "why": "没有结果不能伪造完成"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "文件读取或连接关闭时自动确认 e1 已处理并清理责任",
+        "should_fail_because": "尚未产出结果的工作被吞掉",
+        "must_violate": [
+          "E1",
+          "E2"
+        ],
+        "name": "read_view_marks_processed"
+      },
+      "assumptions": [],
+      "gap": [],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-019",
+      "title": "重复通知不重做已处理输入的实际动作",
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A084",
+        "V5-A092"
+      ],
+      "properties": [
+        "P07",
+        "P09",
+        "P10",
+        "P11"
+      ],
+      "initial_state": {
+        "events": [
+          {
+            "id": "e1",
+            "position": 1,
+            "kind": "E",
+            "payload": "data1"
+          }
+        ],
+        "event_bindings": {
+          "e1": "s2:step1"
+        },
+        "delivery_responsibility_count": 1,
+        "event_processing_completed": true,
+        "saved_result": "R1",
+        "external_effect_count": 1,
+        "pending_responsibility": [],
+        "confirmed_refs": [
+          "R1"
+        ],
+        "resolvable_refs": [
+          "R1"
+        ]
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "notify",
+          "args": {
+            "event": "e1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "notify",
+          "args": {
+            "event": "e1"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "crash",
+          "args": {
+            "domain": "runtime_volatile"
+          }
+        },
+        {
+          "id": "a4",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a5",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a5",
+          "path": "event_bindings.e1",
+          "op": "eq",
+          "value": "s2:step1",
+          "why": "重复输入仍关联原推进"
+        },
+        {
+          "id": "E2",
+          "at": "a5",
+          "path": "delivery_responsibility_count",
+          "op": "eq",
+          "value": 1,
+          "why": "不能生成新的逻辑处理责任"
+        },
+        {
+          "id": "E3",
+          "at": "all",
+          "path": "external_effect_count",
+          "op": "eq",
+          "value": 1,
+          "why": "已确认完成效果不得因重复通知重做"
+        },
+        {
+          "id": "E4",
+          "at": "a5",
+          "path": "saved_result",
+          "op": "eq",
+          "value": "R1",
+          "why": "原执行结果仍可复用"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "每条通知都新建 Step 并执行同一副作用",
+        "should_fail_because": "把可重复通知当作新的业务请求",
+        "must_violate": [
+          "E2",
+          "E3"
+        ],
+        "name": "notify_creates_new_business_step"
+      },
+      "assumptions": [
+        "e1 原处理与效果已经确认，此例没有未决执行；允许重复传输或查询尝试"
+      ],
+      "gap": [
+        "实际去重位置、保留期及外部效果确认另行实测"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-020",
+      "title": "恢复承诺仍有效时不能过期删除依据",
+      "source_requirement_ids": [
+        "V5-A071",
+        "V5-A090",
+        "V5-B085"
+      ],
+      "properties": [
+        "P07",
+        "P10"
+      ],
+      "initial_state": {
+        "promise_active": true,
+        "confirmed_refs": [
+          "E1",
+          "I1",
+          "R1"
+        ],
+        "resolvable_refs": [
+          "E1",
+          "I1",
+          "R1"
+        ],
+        "pending_responsibility": [
+          "step2:launch"
+        ],
+        "recovery_status": "not_requested"
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "request_expiry",
+          "args": {
+            "record": "E1",
+            "promise_active": true
+          }
+        },
+        {
+          "id": "a2",
+          "op": "crash",
+          "args": {
+            "domain": "all_volatile_and_sandbox"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a4",
+          "op": "recover_saved_state",
+          "args": {}
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a1",
+          "path": "promise_active",
+          "op": "eq",
+          "value": true,
+          "why": "清理不能悄悄缩短已承诺范围"
+        },
+        {
+          "id": "E2",
+          "at": "a4",
+          "path": "resolvable_refs",
+          "op": "set_eq",
+          "value": [
+            "E1",
+            "I1",
+            "R1"
+          ],
+          "why": "仍需可定位所有被责任依赖的原内容"
+        },
+        {
+          "id": "E3",
+          "at": "a4",
+          "path": "recovery_status",
+          "op": "eq",
+          "value": "recovered",
+          "why": "承诺范围内不能用明确报错代替必要恢复"
+        },
+        {
+          "id": "E4",
+          "at": "a4",
+          "path": "pending_responsibility",
+          "op": "contains",
+          "value": "step2:launch",
+          "why": "清理不抹去受理责任"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "按 TTL 删除 E1，恢复时返回清楚的缺历史错误或泛化暂停即可算通过",
+        "should_fail_because": "虽然报错清楚，仍破坏了有效恢复承诺",
+        "must_violate": [
+          "E2",
+          "E3"
+        ],
+        "name": "expire_promised_record"
+      },
+      "assumptions": [
+        "清理请求在有效保留承诺内；可拒绝清理或保留等价可授权访问的归档，不固定实现"
+      ],
+      "gap": [
+        "真实保留/归档配置及依赖引用生命周期待实测"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-021",
+      "title": "归档可改变位置但不改变恢复内容与身份",
+      "source_requirement_ids": [
+        "V5-A071",
+        "V5-B084",
+        "V5-B085"
+      ],
+      "properties": [
+        "P07",
+        "P10"
+      ],
+      "initial_state": {
+        "promise_active": true,
+        "confirmed_refs": [
+          "E1",
+          "R1"
+        ],
+        "resolvable_refs": [
+          "E1",
+          "R1"
+        ],
+        "record_locations": {
+          "E1": "hot",
+          "R1": "hot"
+        },
+        "recovery_status": "not_requested"
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "archive_record",
+          "args": {
+            "record": "E1",
+            "destination": "archive",
+            "content_identity": "E1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "crash",
+          "args": {
+            "domain": "all_volatile_and_sandbox"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a4",
+          "op": "recover_saved_state",
+          "args": {}
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a4",
+          "path": "confirmed_refs",
+          "op": "set_eq",
+          "value": [
+            "E1",
+            "R1"
+          ],
+          "why": "归档不重写逻辑身份"
+        },
+        {
+          "id": "E2",
+          "at": "a4",
+          "path": "resolvable_refs",
+          "op": "set_eq",
+          "value": [
+            "E1",
+            "R1"
+          ],
+          "why": "新位置仍可按获授权引用取得原内容"
+        },
+        {
+          "id": "E3",
+          "at": "a4",
+          "path": "recovery_status",
+          "op": "eq",
+          "value": "recovered",
+          "why": "丢原缓存仍可恢复"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "移动字节到归档但保留指向已删除热路径的引用，并宣称已归档即安全",
+        "should_fail_because": "内容物理存在却无法从恢复依据定位",
+        "must_violate": [
+          "E2",
+          "E3"
+        ],
+        "name": "archive_leaves_stale_reference"
+      },
+      "assumptions": [
+        "archive 只是抽象位置标签，不要求专门归档服务"
+      ],
+      "gap": [
+        "真实归档访问权限、引用重定向和内容校验待实现验证"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-022",
+      "title": "等待期任务资源归零而共享底座可保留",
+      "source_requirement_ids": [
+        "V5-A008",
+        "V5-A050",
+        "V5-A051",
+        "V5-A096",
+        "V5-B080"
+      ],
+      "properties": [
+        "P06",
+        "P07",
+        "P10"
+      ],
+      "initial_state": {
+        "wait": {
+          "phase": "accepted",
+          "origin": 0,
+          "match": "E",
+          "target": "s2"
+        },
+        "required_state_saved": true,
+        "pending_responsibility": [
+          "w1:wait"
+        ],
+        "resources": {
+          "agent": 1,
+          "connection": 1,
+          "sandbox": 1,
+          "shared_service": 1
+        },
+        "events": [],
+        "event_bindings": {},
+        "delivery_responsibility_count": 0
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "release_task_resources",
+          "args": {
+            "task": "t1",
+            "executor_confirms": true
+          }
+        },
+        {
+          "id": "a2",
+          "op": "declare_waiting",
+          "args": {
+            "task": "t1"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "crash",
+          "args": {
+            "domain": "runtime_volatile"
+          }
+        },
+        {
+          "id": "a4",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a5",
+          "op": "record_event",
+          "args": {
+            "event": "e1",
+            "position": 1,
+            "kind": "E",
+            "payload": "data1"
+          }
+        },
+        {
+          "id": "a6",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a2",
+          "path": "resources.agent",
+          "op": "eq",
+          "value": 0,
+          "why": "任务专属 Agent 不能搬到 Runtime 域继续常驻"
+        },
+        {
+          "id": "E2",
+          "at": "a2",
+          "path": "resources.connection",
+          "op": "eq",
+          "value": 0,
+          "why": "不靠任务专属长连接等待"
+        },
+        {
+          "id": "E3",
+          "at": "a2",
+          "path": "resources.sandbox",
+          "op": "eq",
+          "value": 0,
+          "why": "释放任务沙箱"
+        },
+        {
+          "id": "E4",
+          "at": "a2",
+          "path": "resources.shared_service",
+          "op": "eq",
+          "value": 1,
+          "why": "共享服务允许常驻"
+        },
+        {
+          "id": "E5",
+          "at": "a4",
+          "path": "pending_responsibility",
+          "op": "contains",
+          "value": "w1:wait",
+          "why": "释放和重启不丢等待依据"
+        },
+        {
+          "id": "E6",
+          "at": "a6",
+          "path": "event_bindings.e1",
+          "op": "eq",
+          "value": "s2:step1",
+          "why": "无旧任务进程仍能唤起交付"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "只销毁沙箱，保留每个任务的 Agent 或长连接充当等待器",
+        "should_fail_because": "资源计数虽总量较小但不符合任务专属资源归零",
+        "must_violate": [
+          "E1",
+          "E2"
+        ],
+        "name": "preserve_task_waiter"
+      },
+      "assumptions": [
+        "resources 是按任务归属的模型环境观测；共享服务单独计量；唤起后的活跃资源不要求继续为零"
+      ],
+      "gap": [
+        "真实进程树、连接、沙箱、归属计量及释放时限必须用 OS/执行器验证"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-023",
+      "title": "等待确认必须晚于必要状态持久确认",
+      "source_requirement_ids": [
+        "V5-A050",
+        "V5-A096",
+        "V5-B019"
+      ],
+      "properties": [
+        "P06",
+        "P07"
+      ],
+      "initial_state": {
+        "required_state_saved": false,
+        "persistence_ack_available": false,
+        "wait": {
+          "phase": "absent",
+          "origin": 0,
+          "match": "E",
+          "target": "s2"
+        },
+        "resources": {
+          "agent": 1,
+          "connection": 1,
+          "sandbox": 1,
+          "shared_service": 1
+        },
+        "pending_responsibility": [
+          "step1:save_before_wait"
+        ]
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "request_enter_wait",
+          "args": {
+            "wait": "w1",
+            "persistence_ack_available": false
+          }
+        },
+        {
+          "id": "a2",
+          "op": "confirm_required_state_saved",
+          "args": {
+            "refs": [
+              "I1",
+              "R1",
+              "W1"
+            ]
+          }
+        },
+        {
+          "id": "a3",
+          "op": "accept_wait",
+          "args": {
+            "wait": "w1"
+          }
+        },
+        {
+          "id": "a4",
+          "op": "release_task_resources",
+          "args": {
+            "task": "t1",
+            "executor_confirms": true
+          }
+        },
+        {
+          "id": "a5",
+          "op": "declare_waiting",
+          "args": {
+            "task": "t1"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a1",
+          "path": "wait.phase",
+          "op": "ne",
+          "value": "accepted",
+          "why": "依赖持久确认未到，不能声称等待责任已安全接收"
+        },
+        {
+          "id": "E2",
+          "at": "a1",
+          "path": "resources.agent",
+          "op": "eq",
+          "value": 1,
+          "why": "不应主动毁掉唯一未保存状态持有者"
+        },
+        {
+          "id": "E3",
+          "at": "a1",
+          "path": "resources.sandbox",
+          "op": "eq",
+          "value": 1,
+          "why": "无确认不能先释放再补保存"
+        },
+        {
+          "id": "E4",
+          "at": "a5",
+          "path": "required_state_saved",
+          "op": "eq",
+          "value": true,
+          "why": "最终等待以真实保存确认支撑"
+        },
+        {
+          "id": "E5",
+          "at": "a5",
+          "path": "resources.agent",
+          "op": "eq",
+          "value": 0,
+          "why": "确认后释放"
+        },
+        {
+          "id": "E6",
+          "at": "a5",
+          "path": "resources.sandbox",
+          "op": "eq",
+          "value": 0,
+          "why": "确认后释放"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "request_enter_wait 立即把任务标为等待并销毁环境，再异步保存必要状态",
+        "should_fail_because": "保存失败窗口会永久丢失继续依据",
+        "must_violate": [
+          "E1",
+          "E2",
+          "E3"
+        ],
+        "name": "release_before_durable_wait"
+      },
+      "assumptions": [
+        "a1 的保存确认由独立存储 fixture 暂不提供；不是禁止实现同步保存，只禁止伪造未收到的确认"
+      ],
+      "gap": [
+        "保存必要集合、释放安全条件和真实失败交接待验证"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-024",
+      "title": "取消受理不是进程实际停止",
+      "source_requirement_ids": [
+        "V5-A057",
+        "V5-B017",
+        "V5-B018"
+      ],
+      "properties": [
+        "P11",
+        "P06"
+      ],
+      "initial_state": {
+        "cancel_requested": false,
+        "execution_status": "running",
+        "observed_process_alive": true,
+        "observed_child_alive": true,
+        "external_effect_count": 0
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "request_cancel",
+          "args": {
+            "operation": "op1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "external_effect_occurs",
+          "args": {
+            "operation": "op1",
+            "origin": "still_running_child"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "executor_confirms_stop",
+          "args": {
+            "operation": "op1",
+            "include_children": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a1",
+          "path": "cancel_requested",
+          "op": "eq",
+          "value": true,
+          "why": "请求已提出"
+        },
+        {
+          "id": "E2",
+          "at": "a1",
+          "path": "execution_status",
+          "op": "eq",
+          "value": "running",
+          "why": "尚无停止事实不能确认结束"
+        },
+        {
+          "id": "E3",
+          "at": "a2",
+          "path": "external_effect_count",
+          "op": "eq",
+          "value": 1,
+          "why": "取消前后已经发生的效果不得抹去"
+        },
+        {
+          "id": "E4",
+          "at": "a3",
+          "path": "observed_process_alive",
+          "op": "eq",
+          "value": false,
+          "why": "确认主进程停止"
+        },
+        {
+          "id": "E5",
+          "at": "a3",
+          "path": "observed_child_alive",
+          "op": "eq",
+          "value": false,
+          "why": "子进程亦需停住"
+        },
+        {
+          "id": "E6",
+          "at": "a3",
+          "path": "execution_status",
+          "op": "eq",
+          "value": "finished",
+          "why": "最后依据执行器事实确认停止"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "收到取消请求就把执行状态改为 finished，忽略活子进程",
+        "should_fail_because": "运行记录与实际停止事实混淆",
+        "must_violate": [
+          "E2"
+        ],
+        "name": "cancel_request_means_stopped"
+      },
+      "assumptions": [
+        "模型环境允许取消请求后到实际停止前出现一次效果；不把此效果单独认定为取消协议违反"
+      ],
+      "gap": [
+        "真实停止、终止信号、派生进程和不可中断操作另验"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-025",
+      "title": "事件回放只恢复事实，不重做描述的动作",
+      "source_requirement_ids": [
+        "V5-B087",
+        "V5-A092"
+      ],
+      "properties": [
+        "P07",
+        "P10",
+        "P11"
+      ],
+      "initial_state": {
+        "events": [
+          {
+            "id": "e1",
+            "position": 1,
+            "kind": "execution_observation",
+            "payload": "op1_completed"
+          }
+        ],
+        "external_effect_count": 1,
+        "model_call_count": 1,
+        "replayed_event_ids": [],
+        "saved_result": "R1",
+        "confirmed_refs": [
+          "R1"
+        ],
+        "resolvable_refs": [
+          "R1"
+        ]
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "replay_events",
+          "args": {
+            "origin": 0,
+            "through": 1
+          }
+        },
+        {
+          "id": "a2",
+          "op": "replay_events",
+          "args": {
+            "origin": 0,
+            "through": 1
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a2",
+          "path": "replayed_event_ids",
+          "op": "set_eq",
+          "value": [
+            "e1"
+          ],
+          "why": "按同一事实身份恢复读取"
+        },
+        {
+          "id": "E2",
+          "at": "all",
+          "path": "external_effect_count",
+          "op": "eq",
+          "value": 1,
+          "why": "回放记录不重做记录中的操作"
+        },
+        {
+          "id": "E3",
+          "at": "all",
+          "path": "model_call_count",
+          "op": "eq",
+          "value": 1,
+          "why": "回放记录不重新推理"
+        },
+        {
+          "id": "E4",
+          "at": "a2",
+          "path": "saved_result",
+          "op": "eq",
+          "value": "R1",
+          "why": "已有结果不被回放改写"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "将 execution_observation 正文当作命令并在回放时执行",
+        "should_fail_because": "事实恢复被偷换为动作重试",
+        "must_violate": [
+          "E2",
+          "E3"
+        ],
+        "name": "replay_executes_event_payload"
+      },
+      "assumptions": [
+        "replayed_event_ids 是去重后的已观察事实集合；不禁止重复传输或重复读取同一记录"
+      ],
+      "gap": [
+        "实际事件回放与业务消费界面需保证事实/动作责任分离"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-026",
+      "title": "承诺期外缺失也须显式报告，不伪造空历史成功",
+      "source_requirement_ids": [
+        "V5-A071",
+        "V5-A090"
+      ],
+      "properties": [
+        "P10"
+      ],
+      "initial_state": {
+        "promise_active": false,
+        "confirmed_refs": [],
+        "resolvable_refs": [],
+        "pending_responsibility": [],
+        "recovery_status": "not_requested",
+        "completion_claim": false,
+        "requested_historical_ref": "E_old"
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "request_out_of_scope_history",
+          "args": {
+            "record": "E_old",
+            "availability": "expired"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a1",
+          "path": "recovery_status",
+          "op": "eq",
+          "value": "history_unavailable",
+          "why": "已过事先声明期限的缺失须明确报告"
+        },
+        {
+          "id": "E2",
+          "at": "a1",
+          "path": "completion_claim",
+          "op": "eq",
+          "value": false,
+          "why": "缺历史不能说恢复成功"
+        },
+        {
+          "id": "E3",
+          "at": "a1",
+          "path": "resolvable_refs",
+          "op": "set_eq",
+          "value": [],
+          "why": "不猜测或制造历史内容"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "对已过期所需历史返回空输入并报告成功恢复",
+        "should_fail_because": "超范围不承诺保存，不等于允许隐藏缺失",
+        "must_violate": [
+          "E1",
+          "E2"
+        ],
+        "name": "missing_history_means_success"
+      },
+      "assumptions": [
+        "E_old 的恢复承诺此前确已结束，且无已受理责任仍依赖它；否则必须使用 DUR-020 的更强判据"
+      ],
+      "gap": [
+        "真实保留期限告知与读取错误语义待验证"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-027",
+      "title": "保存结果后的停止策略不被恢复器强行继续",
+      "source_requirement_ids": [
+        "V5-B028",
+        "V5-B029",
+        "V5-B031",
+        "V5-B067"
+      ],
+      "properties": [
+        "P07",
+        "P10"
+      ],
+      "initial_state": {
+        "saved_result": "R1",
+        "confirmed_refs": [
+          "R1"
+        ],
+        "harness_policy": "final_after_R1",
+        "pending_responsibility": [
+          "step1:decide"
+        ],
+        "next_step_accepted": 0,
+        "answer_saved": false,
+        "model_call_count": 1,
+        "external_effect_count": 1,
+        "resolvable_refs": [
+          "R1"
+        ]
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "crash",
+          "args": {
+            "domain": "task_and_runtime_volatile",
+            "cut": "before_harness_decision"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a3",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a3",
+          "path": "answer_saved",
+          "op": "eq",
+          "value": true,
+          "why": "恢复解释 h1 的终结结果并保存完整回答"
+        },
+        {
+          "id": "E2",
+          "at": "a3",
+          "path": "pending_responsibility",
+          "op": "set_eq",
+          "value": [],
+          "why": "只有可终结结果保存后才结清本次调用"
+        },
+        {
+          "id": "E3",
+          "at": "a3",
+          "path": "next_step_accepted",
+          "op": "eq",
+          "value": 0,
+          "why": "h1 停止时不得默认再调用模型"
+        },
+        {
+          "id": "E4",
+          "at": "all",
+          "path": "model_call_count",
+          "op": "eq",
+          "value": 1,
+          "why": "使用已有结果"
+        },
+        {
+          "id": "E5",
+          "at": "all",
+          "path": "external_effect_count",
+          "op": "eq",
+          "value": 1,
+          "why": "不重做副作用"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "恢复器遇到任何已保存成功结果都登记下一步，以此避免孤儿",
+        "should_fail_because": "丢责任修复不能把继续策略写死在 Runtime",
+        "must_violate": [
+          "E3"
+        ],
+        "name": "result_implies_automatic_continue"
+      },
+      "assumptions": [
+        "该例 h1 对已保存 R1 的决定是保存最终回答；与 DUR-007 的继续策略形成对照",
+        "此 fixture 的解释无回调副作用，且尚无已接受或未决决定提交；不得据此允许一般 Harness 在不确定边界重算。"
+      ],
+      "gap": [
+        "真实 Harness 解释的版本绑定和完成判别仍需组件/系统证据"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    },
+    {
+      "id": "DUR-028",
+      "title": "已受理决定 A 不因恢复后候选变为 B 而被改写",
+      "source_requirement_ids": [
+        "V5-A073",
+        "V5-A084",
+        "V5-B027",
+        "V5-B028",
+        "V5-B085"
+      ],
+      "properties": [
+        "P07",
+        "P09",
+        "P10",
+        "P11"
+      ],
+      "initial_state": {
+        "saved_result": "R1",
+        "confirmed_refs": [
+          "R1"
+        ],
+        "decision": {
+          "d1": {
+            "phase": "absent",
+            "payload": null,
+            "execution_id": null
+          }
+        },
+        "harness_candidate": "continue:step2",
+        "pending_responsibility": [
+          "step1:decide"
+        ],
+        "next_step_accepted": 0,
+        "step2_launch_count": 0,
+        "active_operation_identity": null,
+        "conflict_reported": false,
+        "external_effect_count": 1,
+        "resolvable_refs": [
+          "R1"
+        ]
+      },
+      "actions": [
+        {
+          "id": "a1",
+          "op": "accept_decision",
+          "args": {
+            "decision": "d1",
+            "payload": "continue:step2",
+            "execution_id": "op2",
+            "source_result": "R1",
+            "harness_version": "h1v1"
+          }
+        },
+        {
+          "id": "a2",
+          "op": "crash",
+          "args": {
+            "domain": "task_and_runtime_volatile",
+            "cut": "after_decision_accept_before_execution"
+          }
+        },
+        {
+          "id": "a3",
+          "op": "set_harness_candidate",
+          "args": {
+            "candidate": "stop",
+            "hypothetical_execution_id": "op3"
+          }
+        },
+        {
+          "id": "a4",
+          "op": "restart",
+          "args": {}
+        },
+        {
+          "id": "a5",
+          "op": "settle_enabled_recovery",
+          "args": {
+            "fair": true
+          }
+        },
+        {
+          "id": "a6",
+          "op": "propose_decision",
+          "args": {
+            "decision": "d1",
+            "payload": "stop",
+            "execution_id": "op3"
+          }
+        }
+      ],
+      "expected": [
+        {
+          "id": "E1",
+          "at": "a5",
+          "path": "decision.d1.payload",
+          "op": "eq",
+          "value": "continue:step2",
+          "why": "已受理的 A 来自持久事实，候选解释 B 不能覆写"
+        },
+        {
+          "id": "E2",
+          "at": "a5",
+          "path": "decision.d1.execution_id",
+          "op": "eq",
+          "value": "op2",
+          "why": "已受理执行身份不得恢复时换新"
+        },
+        {
+          "id": "E3",
+          "at": "a5",
+          "path": "step2_launch_count",
+          "op": "eq",
+          "value": 1,
+          "why": "恢复实施 A 指定的已受理责任，不能因 B 停止而丢弃"
+        },
+        {
+          "id": "E4",
+          "at": "a5",
+          "path": "active_operation_identity",
+          "op": "eq",
+          "value": "op2",
+          "why": "后续执行仍关联已受理身份"
+        },
+        {
+          "id": "E5",
+          "at": "a6",
+          "path": "conflict_reported",
+          "op": "eq",
+          "value": true,
+          "why": "同一 d1 的 B 与 A 冲突"
+        },
+        {
+          "id": "E6",
+          "at": "all",
+          "path": "saved_result",
+          "op": "eq",
+          "value": "R1",
+          "why": "整个过程保持原确认结果"
+        },
+        {
+          "id": "E7",
+          "at": "all",
+          "path": "external_effect_count",
+          "op": "eq",
+          "value": 1,
+          "why": "不重做旧 op1，step2 本例仅启动未产生外部效果"
+        }
+      ],
+      "known_bad_variant": {
+        "change": "恢复时再次调用普通 Harness 代码并以候选 B 替换已接受 A，或者为原下一步分配 op3 新身份",
+        "should_fail_because": "把普通代码当恒定纯函数会改变已受理分支、丢掉责任或破坏副作用查询身份",
+        "must_violate": [
+          "E1",
+          "E2",
+          "E3",
+          "E4"
+        ],
+        "name": "recompute_accepted_decision"
+      },
+      "assumptions": [
+        "harness_candidate 可在两次求值间改变；本例不假设 Harness 是纯函数",
+        "d1 的 A 及 op2 关联在 a1 已得到持久受理；未受理决定的合法重算不在此例豁免已受理事实",
+        "a6 是额外受控冲突提交，用于区别保持旧决定与静默接受新内容"
+      ],
+      "gap": [
+        "真实普通代码回调可能包含副作用，须通过受控记录与身份边界验证；本模型的候选变更不能证明任意代码可安全重执行"
+      ],
+      "status": "DRAFT_NOT_FROZEN"
+    }
+  ]
+}

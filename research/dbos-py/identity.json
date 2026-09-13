@@ -1,0 +1,11 @@
+{
+  "url": "https://github.com/dbos-inc/dbos-transact-py.git",
+  "commit": "83805fd84494c85ea09105443884a2786152d921",
+  "license": "MIT",
+  "license_file_sha256": "546662b7f6b9fa4770f564fa7d8e63c40595c0643380b1723d6adc55552154d5",
+  "source_status": "FIXED_SOURCE_AND_RELATED_EXPERIMENT_COMPLETED_PENDING_INDEPENDENT_REVIEW",
+  "associated_repo": "research/repos/dbos-ts",
+  "experiment": "evidence/run-002",
+  "associated_commit": "594da805891e37bc3bc42aa0976379bbcd4350bf",
+  "associated_scope": "source comparison; counted as one DBOS project; Python supplies related experiment"
+}

@@ -1,0 +1,7 @@
+# Rejected ordinary outbox must not retain a published tool execution
+
+Original M02-event-1 security-real-001 proves the trusted rejection but leaves the sealed tool CID and volume until test cleanup. Existing X schema1 release retains complete original archive/stdout/stderr and accounts spool; original F/R confirmed publication is already independent of the retired container.
+
+Before repair: independently execute the real ToolFixture R/F/X with one ordinary runtime shell writing a reserved-origin payload to the ordinary outbox. Call actual EmitService with original ToolService source; no NATS is required because validation must reject before submit. Expected: UNKNOWN tool responsibility/no positive receipt, one actual installed F archive and original R confirmation, unchanged complete tool output, real X released and exact CID/volume GET404 before cleanup. Original query and repeated execute are read-only UNKNOWN and do not emit/reexecute.
+
+Fix scope: release the sealed original X only after confirmed F/R publication; then process the event delta from retained original bytes. No change to event validation, grants, task protocol, budget or unknown semantics. A failure before confirmed publication still retains the original recovery inputs. Original TS04–06 cover successful two-domain publication and the lost-install-ACK boundary; retain their criteria. This component fixture uses a finite S-format input archive, not real Pi/model evidence; M02 supplies the real Runtime/Pi combination separately.

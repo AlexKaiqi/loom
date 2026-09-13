@@ -1,0 +1,76 @@
+{
+  "schema": "lore-v-cases/v1",
+  "scope": "G3 prepared component contract; no system property pass",
+  "cases": [
+    {
+      "id": "V01",
+      "criterion": "完整原要求/实际原始文件与checker调用后PASS",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "V02",
+      "criterion": "完成声明自报PASS但实际错误产物拒绝",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "V03",
+      "criterion": "原要求漏项/多项/空映射拒绝",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "V04",
+      "criterion": "基线或当前实现/测试/数据/环境字节变化拒绝",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "V05",
+      "criterion": "缺批次/多批次/重复批次拒绝",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "V06",
+      "criterion": "实际零执行/缺用例/未知/重复/skip拒绝",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "V07",
+      "criterion": "真实运行器非零退出或bool退出拒绝",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "V08",
+      "criterion": "组件层证据不能替代系统层",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "V09",
+      "criterion": "实际原始产物缺失/摘要错误拒绝",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "V10",
+      "criterion": "路径穿越/符号链接逃逸拒绝",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "V11",
+      "criterion": "缺observer/checker和异常拒绝",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "V12",
+      "criterion": "空断言/false/非bool/重复断言拒绝",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "V13",
+      "criterion": "重复JSON key/NaN/Infinity拒绝",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "V14",
+      "criterion": "不可信submission命令不执行；重复验收结果稳定且文件不变",
+      "status": "UNVERIFIED"
+    }
+  ]
+}

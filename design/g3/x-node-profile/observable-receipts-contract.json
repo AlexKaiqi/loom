@@ -1,0 +1,77 @@
+{
+  "id": "XN-OBSERVABLE-RECEIPTS-001",
+  "status": "PREREGISTERED_ADDITIVE_PREPARATION",
+  "scope": "Explicit test observation paths for already-required X-owned channel/slot/checkpoint responsibilities; original schema1 response untouched.",
+  "source": [
+    "interface.json bridge.call_receipt",
+    "interface.json slot.requirements",
+    "checkpoint-retention.md"
+  ],
+  "ordinary_response": "Keep original X {binding,result,artifacts}; Node binding adds original Session/profile/slot/channel fields. Existing X artifact fullref remains {path,sha256,size,...scope}, S file references use {path,sha256,bytes}; conversion is test read-only mapping of size, never a new hash identity.",
+  "channel_read": {
+    "required": [
+      "binding",
+      "call_ref",
+      "data_base64",
+      "stream",
+      "byte_offset",
+      "next_byte_offset"
+    ],
+    "meaning": "Original bytes at explicit cursor, no destructive hidden read counter; same call_id exact retry returns original range. All fields compared to independent actual stream original and call body."
+  },
+  "channel_write": {
+    "required": [
+      "binding",
+      "call_ref"
+    ],
+    "meaning": "Original call record references actual issued/partial/confirmed result. Absence of an ACK cannot be replaced by successful bridge cache."
+  },
+  "call_ref": "Actual immutable file ref {path,sha256,size} of original X call receipt representation. query_call returns same original ref/body rather than writing a new equivalent call. Existing record revisions may have different refs; original issued and dispatch evidence retained.",
+  "call_record": {
+    "required": [
+      "call_id",
+      "method",
+      "execution_id",
+      "object_generation",
+      "channel_id",
+      "request_digest",
+      "byte_offset",
+      "data_sha256",
+      "data_bytes",
+      "state",
+      "written_bytes"
+    ],
+    "state": [
+      "ISSUED",
+      "CONFIRMED",
+      "UNKNOWN"
+    ],
+    "meaning": "Complete method-content/range association. For read, data digest/bytes bind returned bytes. For write, digest/bytes bind full requested original bytes and written_bytes reflects known prefix. UNKNOWN/ISSUED no automatic remainder/re-dispatch."
+  },
+  "slot_record_ref": "Original query exposes artifacts.slot as actual file ref or immutable exported read snapshot of original authoritative slot record. Inspection is observational; raw store/transaction evidence at real pre-create/pre-write barriers must independently substantiate original state.",
+  "slot_record": {
+    "required": [
+      "slot_id",
+      "revision",
+      "plan_sha256",
+      "plan",
+      "reservations",
+      "released"
+    ],
+    "reservation_required": [
+      "id",
+      "execution_id",
+      "object_generation",
+      "request_digest",
+      "role",
+      "state",
+      "memory_bytes",
+      "cpu",
+      "writable_bytes",
+      "writable_inodes",
+      "objects"
+    ],
+    "meaning": "Exact original registered plan and X-owned durable reservations. Unknown retains reservation. Actual physical objects and original files are independently inventoried; declared totals never sufficient."
+  },
+  "failure_injection": "Trusted test_context.requested_barrier hooks only at real existing responsibility/write boundaries; driver checks actual corresponding raw state or prefix before killing original process. Missing or prematurely signaled barrier is invalid evidence."
+}

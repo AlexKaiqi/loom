@@ -1,0 +1,40 @@
+{
+  "id": "SYSTEM-ARTIFACT-ORACLE-INDEPENDENT-001",
+  "status": "CHANGES_REQUIRED",
+  "reviewer": "long_task_drift; independent initial review, before repair authorship",
+  "scope": "local artifact oracle preparation and read-only obvious system consistency, not M/System PASS",
+  "utc": "2026-09-12T21:20:43.884573+00:00",
+  "findings": [
+    {
+      "id": "SA01",
+      "status": "OPEN",
+      "location": "validation/system/artifact_oracles.py:links regular expression",
+      "expected": "Actual Markdown link to exact authorized report_location",
+      "actual": "Inline code, fenced code and escaped opening bracket all incorrectly accepted; each actual input/report correct.",
+      "evidence": "design/g3/reviews/system-artifact-oracle-independent-001/markdown-counterexample-result.json"
+    }
+  ],
+  "original_controls": {
+    "status": "PASS",
+    "count": 17,
+    "evidence": "validation/system/evidence/artifact-independent-001/result.json"
+  },
+  "system_review": {
+    "status": "NO_OBVIOUS_NEW_CONTRADICTION_IN_DECLARED_SCOPE",
+    "notes": [
+      "M01 two inputs x3 and X02 six inputs x2 strategies x2 match cases;12 concurrent pairs retain24 samples and fit8-slot ceiling when scheduled by pair.",
+      "Per-slot512+128+128=768MiB,8slots=6GiB; reserved helper and24-container ceiling consistent. X independent2/256MiB is explicitly a separate profile.",
+      "Successor acceptance is not execution eligibility before prior seal/install/release; RestorePlan partial actions and unknown tool effects remain explicit.",
+      "M03/M05 joint-fault trajectory and M06 rollback-action receipt checks are present in both prose/cases; component/control evidence not used as M proof.",
+      "X03 exact sampling point for32 wakes and X04 actual arithmetic/collector mapping still must freeze before G5 implementation; this is preparation scope, not a capacity result."
+    ]
+  },
+  "inputs": {
+    "design/g3/system/artifact-oracle-contract.md": "c2d8bef9c8ed00286e4161c1837df5bd3862ee46d575e91a3cb239e07a5ad098",
+    "validation/system/artifact_oracles.py": "571cabd1b26a78b05809bb3a705949ebab016e060b33f2bc187ebcc10fcf7c60",
+    "validation/system/prepare_artifact_oracles.py": "5bd5095695edbbc07474d66b7f3d8b996e9c92873108f56ccac279d7b04f5d08",
+    "design/g3/system/contract.md": "bdf632b8ffb20d99dafed16236436aaf5675de5dbc79255e0ed852d091de0848",
+    "design/g3/system/cases.json": "feeaee51cbe3ac64b9135e2b87433b44ddd710b53462efa90b17e5c4a02c7585",
+    "design/g3/system/inputs.json": "201b481285aca64dc81c301814eac229bdb9be3e592b8c30bf46d483673df1f0"
+  }
+}

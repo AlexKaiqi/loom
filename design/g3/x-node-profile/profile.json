@@ -1,0 +1,144 @@
+{
+  "id": "fixed-node-pi-session-v1",
+  "status": "PREREGISTERED_INCREMENT_NOT_ENABLED",
+  "domain": "session",
+  "caller": "trusted-S-only",
+  "model_shell_targets": [
+    "runtime",
+    "task"
+  ],
+  "image": "python@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea",
+  "node_version": "24.21.0",
+  "pi_commit": "71dca871bc80b6bc97be37f0ca3189399d651fff",
+  "dependency_manifest": {
+    "path": "design/g3/x-node-profile/dependencies.json",
+    "sha256": "75e72765bd2a10b4812cfec66305240b57dcac1a6ae8e231113a01375d358c02"
+  },
+  "argv_prefix": [
+    "/opt/node/bin/node",
+    "--import",
+    "/opt/lore/research/repos/pi/node_modules/tsx/dist/loader.mjs"
+  ],
+  "argv_entry": "exact authorized ordinary /harness entry plus explicit finite argv; no interpreter rewriting",
+  "network": "none",
+  "read_only_root": true,
+  "task_uid": 1000,
+  "task_gid": 1000,
+  "task_capabilities": [],
+  "keeper_uid": 0,
+  "keeper_capabilities": [],
+  "no_new_privileges": true,
+  "seccomp_sha256": "9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294cae9c76",
+  "memory_bytes": 536870912,
+  "memory_swap_bytes": 536870912,
+  "pids": 64,
+  "cpu": 0.5,
+  "io_mode": "duplex",
+  "environment": {
+    "PATH": "/opt/node/bin:/usr/local/bin:/usr/bin:/bin",
+    "HOME": "/work",
+    "LANG": "C.UTF-8",
+    "TSX_TSCONFIG_PATH": "/opt/lore/config/tsconfig.json"
+  },
+  "write_domains": {
+    "session_work": {
+      "mount": "/work",
+      "kind": "generation-private bounded local tmpfs named volume",
+      "bytes": 16777216,
+      "inodes": 512
+    },
+    "tmp": {
+      "mount": "/tmp",
+      "bytes": 33554432,
+      "inodes": 2048,
+      "flags": [
+        "nosuid",
+        "nodev",
+        "noexec"
+      ]
+    },
+    "shm": {
+      "mount": "/dev/shm",
+      "bytes": 1048576,
+      "inodes": 64
+    }
+  },
+  "streams": {
+    "stdout_bytes": 1048576,
+    "stderr_bytes": 1048576,
+    "combined_bytes": 2097152,
+    "frame_bytes": 1048576,
+    "stdin_write_bytes": 1048576
+  },
+  "checkpoint": {
+    "raw_archive_bytes": 18874368,
+    "logical_bytes": 16777216,
+    "entries": 512,
+    "maximum_overlapping_retained": 2,
+    "owner": "S",
+    "content": "original ordinary Session bytes; X does not parse Pi semantic history"
+  },
+  "deadlines": {
+    "node_action_seconds": 30,
+    "whole_case_seconds": 120,
+    "driver_RPC_seconds": 30,
+    "external_command_seconds": 10
+  },
+  "slot_reservation": {
+    "max_objects": 3,
+    "memory_bytes": 805306368,
+    "session_memory_bytes": 536870912,
+    "tool_memory_bytes": 134217728,
+    "helper_memory_bytes": 134217728,
+    "cpus": {
+      "S": 0.5,
+      "tool": 0.25,
+      "helper": 0.25
+    },
+    "all_active_writable_bytes": 134217728,
+    "all_active_writable_inodes": 8192
+  },
+  "readonly_roles": [
+    "exact Node binary/LICENSE",
+    "fixed selected Pi/TSX/esbuild closure/notices + generated path config",
+    "content-bound Harness code/templates",
+    "content-bound F input/surface/workspace/originals views"
+  ],
+  "forbidden": [
+    "arbitrary host prefix mounts",
+    "host R/F/X DB/control roots",
+    "real provider credentials",
+    "host sockets or inherited control FDs",
+    "network or Docker endpoint",
+    "read-write dependency/input mounts",
+    "implicit host environment",
+    "model shell target=session",
+    "host import of Pi/Harness",
+    "new same-ID execution when channel ACK is unknown"
+  ],
+  "exceptions": {
+    "base_owner": "For internal session domain only, original base and restored snapshot are owner=S refs; normal runtime/task retains F base semantics. X verifies exact trusted source/archive/request/generation but not Session meaning; no F Surface/Workspace install for Session."
+  },
+  "derived_Pi": {
+    "manifest": {
+      "path": "/path/to/loom/research/patches/pi-compaction-enabled-v1/manifest.json",
+      "sha256": "16e07a7eb730990720485a3608fb834bed97b6f10229203838d1038d44647d80"
+    },
+    "acceptance": {
+      "path": "/path/to/loom/research/patches/pi-compaction-enabled-v1/acceptance.json",
+      "sha256": "2a229a79df2feb3575c52322506f1eeeebd61e4c77032241e343463c38e7b89f"
+    },
+    "patch": {
+      "path": "/path/to/loom/research/patches/pi-compaction-enabled-v1/compaction-enabled.patch",
+      "sha256": "518042bf0e0021786396069e7da74d51a0667b76a00e15c521e6f30e8318c53a"
+    },
+    "changed_files": [
+      "packages/agent/src/harness/runtime/drive/response.ts"
+    ],
+    "original_dependency_manifest": {
+      "path": "/path/to/loom/design/g3/x-node-profile/dependency-prior-001/dependencies.json",
+      "sha256": "e0f03bbedca7b03fcc69d3db7dd9dbe0074d710c6586fafc0ab6ff9e191a5df1"
+    },
+    "scope": "Same selected882files/fourlinks and logical /opt targets. Single accepted upstream bug guard only; no projection expansion."
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "status": "G3_PREPARATION_NOT_COMPONENT_PASS",
+  "python": "research/.venvs/runtime-research/bin/python",
+  "base_python": "Python3.10 stdlib",
+  "nats_py": "2.15.0",
+  "server_path": "research/.cache/nats-server/nats-server",
+  "server_sha256": "c2ce368d3080994e3ec94e688d8c749c17000c75aa5edc7bb08dda33345218e9",
+  "server_source_commit": "3c80d8f89eac613bdbae473efb59ec76f8d4ed09",
+  "filesystem": "WSL Ubuntu ext4 only",
+  "network": "random localhost NATS, monitoring and proxy ports; no external network/model/credentials",
+  "dependencies": {
+    "R": "actual ControlStore plus G4 gate required; currently missing",
+    "E": "actual EventService required; currently missing"
+  },
+  "formal": {
+    "cases": 15,
+    "fault_repetitions": 3,
+    "parallel_connections": 4,
+    "messages_per_connection": 8
+  },
+  "licensing": "G2 research/reuse/nats-licenses.json plus research/reuse/linux-tools-licenses.json fixed tools; no new SDK",
+  "observed": {
+    "python": "Python 3.10.12",
+    "kernel": "5.15.167.4-microsoft-standard-WSL2",
+    "platform": "Linux-5.15.167.4-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "uid": 1000,
+    "native_preparation": "validation/components/e/evidence/native-preparation-003/result.json",
+    "missing_entry": "validation/components/e/evidence/missing-components-007/result.json",
+    "receipt_preparation": "validation/components/e/evidence/missing-components-007/receipt-authority-controls/result.json"
+  },
+  "retained_deviations": [
+    "ER01 old facility refs cannot directly satisfy R20 wrapper",
+    "ER02 receipt-preparation004/missing005 mechanical checks did not meet max2 connection limit; missing006 real baseline failed; preserved in history/ER02.md"
+  ],
+  "receipt_scope": "29 reference authority controls on actual NATS plus explicit original-request SQL fixture; no ControlStore/EventService implementation"
+}

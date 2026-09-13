@@ -1,0 +1,126 @@
+{
+  "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+  "ldd": "\tlinux-vdso.so.1 (0x00007ffde0552000)\n\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f3c98bdc000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f3c98976000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f3c98886000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f3c98859000)\n\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f3c98852000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f3c9865e000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007f3c98be5000)\n",
+  "libraries": [
+    {
+      "path": "/lib/x86_64-linux-gnu/libc.so.6",
+      "resolved": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+      "sha256": "fa430b8f298f817a266046af84a77533185ad6fc4406c7d3787b5a0a0c207826",
+      "dpkg_owner": "libc6:amd64: /usr/lib/x86_64-linux-gnu/libc.so.6",
+      "package": "libc6:amd64",
+      "package_version": "libc6:amd64\t2.41-12+deb13u3",
+      "license_files": [
+        {
+          "origin": "/usr/share/doc/libc6/copyright",
+          "local": "research/reuse/linux-license-evidence-001/image-exact-licenses/usr__share__doc__libc6__copyright",
+          "sha256": "f5788886720a2605a946e81d571e6c8162b09f58d2e2ceb8d36e5768fccd850d"
+        }
+      ]
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libdl.so.2",
+      "resolved": "/usr/lib/x86_64-linux-gnu/libdl.so.2",
+      "sha256": "295fa521a03cd2faa99974f378c9e23dd622021ec7d32bcad4f8ea61aec8a872",
+      "dpkg_owner": "libc6:amd64: /usr/lib/x86_64-linux-gnu/libdl.so.2",
+      "package": "libc6:amd64",
+      "package_version": "libc6:amd64\t2.41-12+deb13u3",
+      "license_files": [
+        {
+          "origin": "/usr/share/doc/libc6/copyright",
+          "local": "research/reuse/linux-license-evidence-001/image-exact-licenses/usr__share__doc__libc6__copyright",
+          "sha256": "f5788886720a2605a946e81d571e6c8162b09f58d2e2ceb8d36e5768fccd850d"
+        }
+      ]
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libgcc_s.so.1",
+      "resolved": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+      "sha256": "30c61ab012a4241bed033725a09b61f5fdd3bb7df95ee852d0b096520524c7af",
+      "dpkg_owner": "libgcc-s1:amd64: /usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+      "package": "libgcc-s1:amd64",
+      "package_version": "libgcc-s1:amd64\t14.2.0-19",
+      "license_files": [
+        {
+          "origin": "/usr/share/doc/libgcc-s1/copyright",
+          "local": "research/reuse/linux-license-evidence-001/image-exact-licenses/usr__share__doc__libgcc-s1__copyright",
+          "sha256": "20390f8a6f3b1e4d7cb45dd8652dabb259bbef688cbad839bcdb0b9ba7252f79"
+        }
+      ]
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libm.so.6",
+      "resolved": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+      "sha256": "6d567d53e895273ca14a1f9dc164fc6c8d39aed2f60aa46a733c2784228915f3",
+      "dpkg_owner": "libc6:amd64: /usr/lib/x86_64-linux-gnu/libm.so.6",
+      "package": "libc6:amd64",
+      "package_version": "libc6:amd64\t2.41-12+deb13u3",
+      "license_files": [
+        {
+          "origin": "/usr/share/doc/libc6/copyright",
+          "local": "research/reuse/linux-license-evidence-001/image-exact-licenses/usr__share__doc__libc6__copyright",
+          "sha256": "f5788886720a2605a946e81d571e6c8162b09f58d2e2ceb8d36e5768fccd850d"
+        }
+      ]
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libpthread.so.0",
+      "resolved": "/usr/lib/x86_64-linux-gnu/libpthread.so.0",
+      "sha256": "85e21f7dba0394411d00959176fd18b470e575b0b05f1f4f41e5636802ce0500",
+      "dpkg_owner": "libc6:amd64: /usr/lib/x86_64-linux-gnu/libpthread.so.0",
+      "package": "libc6:amd64",
+      "package_version": "libc6:amd64\t2.41-12+deb13u3",
+      "license_files": [
+        {
+          "origin": "/usr/share/doc/libc6/copyright",
+          "local": "research/reuse/linux-license-evidence-001/image-exact-licenses/usr__share__doc__libc6__copyright",
+          "sha256": "f5788886720a2605a946e81d571e6c8162b09f58d2e2ceb8d36e5768fccd850d"
+        }
+      ]
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libstdc++.so.6",
+      "resolved": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+      "sha256": "972bb2a18b71140dab0240f8a1f68ab3fb1d56bcd4c4f824a91b70888faf5a00",
+      "dpkg_owner": "libstdc++6:amd64: /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+      "package": "libstdc++6:amd64",
+      "package_version": "libstdc++6:amd64\t14.2.0-19",
+      "license_files": [
+        {
+          "origin": "/usr/share/doc/libstdc++6/copyright",
+          "local": "research/reuse/linux-license-evidence-001/image-exact-licenses/usr__share__doc__libstdc++6__copyright",
+          "sha256": "20390f8a6f3b1e4d7cb45dd8652dabb259bbef688cbad839bcdb0b9ba7252f79"
+        }
+      ]
+    },
+    {
+      "path": "/lib64/ld-linux-x86-64.so.2",
+      "resolved": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+      "sha256": "438c546d8e8cc48496bf3a95f753051afd9db66a629a74e31a9ded71586b56e0",
+      "dpkg_owner": "libc6:amd64: /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+      "package": "libc6:amd64",
+      "package_version": "libc6:amd64\t2.41-12+deb13u3",
+      "license_files": [
+        {
+          "origin": "/usr/share/doc/libc6/copyright",
+          "local": "research/reuse/linux-license-evidence-001/image-exact-licenses/usr__share__doc__libc6__copyright",
+          "sha256": "f5788886720a2605a946e81d571e6c8162b09f58d2e2ceb8d36e5768fccd850d"
+        }
+      ]
+    }
+  ],
+  "scope": "Node24 dynamic linkage in fixed Debian image; new use binding, no host Ubuntu ABI equivalence inference",
+  "image": "python@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea",
+  "node_version": "24.21.0",
+  "observed_load_batch": "validation/components/s/evidence/container-preparation-002",
+  "existing_node_license": "research/reuse/pi-license-boundary.json",
+  "entry_changes": "Node stays unmodified RO mount; fixed image provides glibc/GCC runtime components already inventoried, none copied into Lore",
+  "license_conditions": [
+    "glibc LGPL-2.1+ and file-specific terms remain in actual image package copyright",
+    "libstdc++/libgcc GPL-3 with GCC Runtime Library Exception 3.1 where specified; preserve package notices if redistributing",
+    "Unmodified external image execution only. New redistribution/source obligations need scope-specific review."
+  ],
+  "raw_evidence": {
+    "path": "validation/components/s/evidence/node-image-license-001/stdout.json",
+    "sha256": "1bfcfe57801dd42f19f4c6f64e89308b31d389876ce474e774e4622967b2c9fe"
+  }
+}

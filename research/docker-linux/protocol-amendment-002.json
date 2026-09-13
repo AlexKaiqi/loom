@@ -1,0 +1,10 @@
+{
+  "id": "DOCKER-LINUX-G2-AMENDMENT-002",
+  "utc": "2026-09-12T18:54:47.603063+00:00",
+  "original_protocol_sha256": "ad7acd0b5abafd65830b106ee78b66f89ba11ca97f8d6ce76d140aaf26eb7e70",
+  "finding": "DOCKER-R01: original stop says one concurrent container, but preregistered K3 host-PID observation needs writer and read-only observer concurrently. run-001 exceeded original concurrent-container bound despite finite mechanism observations passing.",
+  "original_status": "RESEARCH_STOP_CONDITION_DEVIATION_RETAINED; not retrospectively compliant",
+  "revision": "Only K3 may use at most2 simultaneous containers, one existing writer and one trusted read-only host-PID observer; each128MiB, aggregate<=256MiB; seven total, other process/time/FD/network bounds unchanged. Other cases one at a time.",
+  "independent_reason": "Actual OS observation must occur before writer termination, rather than accepting worker status claim; short-lived independent observer cannot examine a live namespace after it has gone.",
+  "not_changed": "No property, expected process absence/object immutability, source hash, test data or prior records changed. Raw protocol/run-001 preserved. Reviewer records whether its independent run started before this amendment."
+}

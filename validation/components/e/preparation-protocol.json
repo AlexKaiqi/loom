@@ -1,0 +1,28 @@
+{
+  "id": "G3-E-PREPARATION-001",
+  "status": "PREREGISTERED_BEFORE_RUN",
+  "scope": "Only real NATS fixture/proxy and independent oracle readiness; NO E/R component acceptance",
+  "fixed_binary_sha256": "c2ce368d3080994e3ec94e688d8c749c17000c75aa5edc7bb08dda33345218e9",
+  "client": "nats-py 2.15.0",
+  "budget": {
+    "server_processes_concurrent": 1,
+    "connections_concurrent": 2,
+    "proxy_listener": 1,
+    "startup_seconds": 10,
+    "native_publish_timeout_seconds": 0.3,
+    "total_seconds": 40,
+    "max_capacity_attempts": 8,
+    "stream_max_bytes_normal": 8388608,
+    "stream_max_bytes_capacity": 1024
+  },
+  "checks": [
+    "actual server ack for original JSON envelope dropped only by byte proxy; publish raises TimeoutError",
+    "independent direct connection reads exact original seq/subject/data and raw PUB count is 1",
+    "actual server SIGKILL then restart original store preserves exact original bytes",
+    "bounded DiscardNew capacity gives actual APIError and prior message remains",
+    "original and altered/missing history oracle distinguish",
+    "actual same-length file corruption rejected",
+    "all child server processes actually reaped"
+  ],
+  "negative_scope": "Known wrong observer inputs and dropped actual ack, not ideal EventService substitute"
+}

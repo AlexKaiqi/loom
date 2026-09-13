@@ -1,0 +1,429 @@
+{
+  "scope": "S original-reference resolver only; original S003/S018 bytes, no new Engine/provider or S/system acceptance",
+  "api": "resolve_original(snapshots, confirmation_request_id, original_ref, expected_binding)",
+  "error": "SnapshotError code reference_invalid; unrelated exceptions fail the test",
+  "cases": [
+    "SR01 original003 answer exact result/boundary",
+    "SR02 original018 tool exact result/boundary",
+    "SR03 old tool prefix resolved inside later confirmed snapshot",
+    "SR04 later operation exact prior source binding",
+    "SR05 locator identity/scope/path/range/hash changes reject",
+    "SR06 each complete expected binding field change rejects",
+    "SR07 unavailable confirmation/source and quarantine-shaped ID reject",
+    "SR08 raw original result prefix with no boundary returns same saved result and None",
+    "SR09 later boundary locator/source/Harness/input mismatch rejects",
+    "SR10 altered result bytes or post-prefix result/binding mutation rejects",
+    "SR11 broken complete JSONL/source bytes reject",
+    "SR12 no file writes/registry changes/process/network; original source digests unchanged"
+  ],
+  "derived_fixtures": "Controlled private storage copies of original tar bytes/prefix. Real SnapshotStore.confirm/query creates local test storage only; changed fullref is explicitly a storage fault fixture, not evidence of a new X execution or physical checkpoint. Original evidence is never modified.",
+  "fixtures": [
+    {
+      "key": "answer",
+      "root": "/path/to/loom/validation/components/s/evidence/s-host-s003-author-001/cases/S-003/peer-state/x-port/plans/S-originals",
+      "confirmation_request_id": "s-3fda2e362bbb02b1a353dd2a5008cb01ac29a6bfd02850236a3118117944352c",
+      "reference": {
+        "owner": "S",
+        "session_scope": {
+          "namespace": "s-original-component-001",
+          "session_generation": 1,
+          "session_id": "s-case",
+          "surface_id": "fixture-surface"
+        },
+        "session_id": "s-case",
+        "operation_id": "op-1",
+        "kind": "pi-operation-result",
+        "result_sha256": "e9580d4588b95919880b9bb29ba296488f57b9a116df6a9e3490c934be5c4b4b",
+        "session_relative_path": "sessions/--work--/2026-09-13T03-10-25-754Z_s-case.jsonl",
+        "session_sha256": "ed785b80b7b157ce5feee4061912d39ac73f413d178239cda19e5cbee63517f8",
+        "session_bytes": 7323,
+        "session_range": [
+          0,
+          7323
+        ]
+      },
+      "expected_binding": {
+        "session_id": "s-case",
+        "session_scope": {
+          "namespace": "s-original-component-001",
+          "session_generation": 1,
+          "session_id": "s-case",
+          "surface_id": "fixture-surface"
+        },
+        "operation_id": "op-1",
+        "harness_ref": {
+          "id": "67ffabd81a131d735b397b89dcc8a15693330fb2e81219039563b4f6cb2252e2",
+          "sha256": "a1b4c44f60305a12d616b3ce4acac68900c805e969d5e9e7ff86bc883df7d0b2"
+        },
+        "input_ref": {
+          "id": "13354d46f305aeb31c2439da79a436340e315815e85c2c6bab49fa252b88d8a0",
+          "sha256": "875d7229d062badc76c1e8e8b769872f780449f5b2335abc8de666227ae7dab7"
+        },
+        "source_result_ref": null,
+        "capability_ref": {
+          "id": "902981b0f180b6770775516417a015055e48784d8ee10e94b64666823e9f66a6",
+          "sha256": "dded4de4cff2523a338967ba2bbf9b9fea51d134c9c731f2ec48bad7eb72a00d"
+        }
+      },
+      "expected_result": {
+        "operationId": "op-1",
+        "kind": "run",
+        "status": "completed",
+        "fromTipId": null,
+        "tipId": "01a098be-bdeb-77d7-b8af-88bb527dbe9c",
+        "startedAt": 1789269025845,
+        "endedAt": 1789269033902
+      },
+      "expected_boundary": {
+        "boundary_kind": "answer_saved",
+        "decision_proposal": {
+          "decision_id": "m-c4b5fac96af883a756a8ebf852d1b74636d204295e5e3389905f2442eb1d042f",
+          "source_result_ref": {
+            "owner": "S",
+            "session_scope": {
+              "namespace": "s-original-component-001",
+              "session_generation": 1,
+              "session_id": "s-case",
+              "surface_id": "fixture-surface"
+            },
+            "session_id": "s-case",
+            "operation_id": "op-1",
+            "kind": "pi-operation-result",
+            "result_sha256": "e9580d4588b95919880b9bb29ba296488f57b9a116df6a9e3490c934be5c4b4b",
+            "session_relative_path": "sessions/--work--/2026-09-13T03-10-25-754Z_s-case.jsonl",
+            "session_sha256": "ed785b80b7b157ce5feee4061912d39ac73f413d178239cda19e5cbee63517f8",
+            "session_bytes": 7323,
+            "session_range": [
+              0,
+              7323
+            ]
+          },
+          "harness_ref": {
+            "id": "67ffabd81a131d735b397b89dcc8a15693330fb2e81219039563b4f6cb2252e2",
+            "sha256": "a1b4c44f60305a12d616b3ce4acac68900c805e969d5e9e7ff86bc883df7d0b2"
+          },
+          "input_ref": {
+            "id": "13354d46f305aeb31c2439da79a436340e315815e85c2c6bab49fa252b88d8a0",
+            "sha256": "875d7229d062badc76c1e8e8b769872f780449f5b2335abc8de666227ae7dab7"
+          },
+          "final": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Complete fixture answer."
+              }
+            ]
+          }
+        },
+        "operation_result_ref": {
+          "owner": "S",
+          "session_scope": {
+            "namespace": "s-original-component-001",
+            "session_generation": 1,
+            "session_id": "s-case",
+            "surface_id": "fixture-surface"
+          },
+          "session_id": "s-case",
+          "operation_id": "op-1",
+          "kind": "pi-operation-result",
+          "result_sha256": "e9580d4588b95919880b9bb29ba296488f57b9a116df6a9e3490c934be5c4b4b",
+          "session_relative_path": "sessions/--work--/2026-09-13T03-10-25-754Z_s-case.jsonl",
+          "session_sha256": "ed785b80b7b157ce5feee4061912d39ac73f413d178239cda19e5cbee63517f8",
+          "session_bytes": 7323,
+          "session_range": [
+            0,
+            7323
+          ]
+        }
+      },
+      "source_files": {
+        "/path/to/loom/validation/components/s/evidence/s-host-s003-author-001/cases/S-003/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/request.json": "d4dcd274f73035140b3cdd0cef0180cc699a746f3ca94ebbc1e90f29e642a85a",
+        "/path/to/loom/validation/components/s/evidence/s-host-s003-author-001/cases/S-003/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/result.json": "19b6e0f270474456b40942b6009ddd8bb736ab5a6e5f7e1d6c9b0366c7e14721",
+        "/path/to/loom/validation/components/s/evidence/s-host-s003-author-001/cases/S-003/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/owner.json": "4468810e9e04df60bcd0e0238515b27503fcec3ebb75934d7b6df9bbba8c0b1a",
+        "/path/to/loom/validation/components/s/evidence/s-host-s003-author-001/cases/S-003/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/charge.json": "86cbdfc54d0746fe7edb97f108db4061b5ab1922489f1c1792d9d65414e5ef34",
+        "/path/to/loom/validation/components/s/evidence/s-host-s003-author-001/cases/S-003/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/snapshot/record.json": "5da76d571111ea58eea29e3643d8e3c617d562ba73b5e4a034f71c1876f4e9dc",
+        "/path/to/loom/validation/components/s/evidence/s-host-s003-author-001/cases/S-003/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/snapshot/manifest.json": "681b2c75f416196b91837113aab7b1c2b4fee11e1c3ae3fd4454ab8fa816fbb3",
+        "/path/to/loom/validation/components/s/evidence/s-host-s003-author-001/cases/S-003/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/snapshot/original.tar": "123d1d1c96581b71b7382ecf6762e87f5bfd3a9d2d1c4da24bd16bee38fed6cc"
+      },
+      "query_budget": 21474836480
+    },
+    {
+      "key": "tool",
+      "root": "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals",
+      "confirmation_request_id": "s-3fda2e362bbb02b1a353dd2a5008cb01ac29a6bfd02850236a3118117944352c",
+      "reference": {
+        "owner": "S",
+        "session_scope": {
+          "namespace": "s-original-component-001",
+          "session_generation": 1,
+          "session_id": "s-case",
+          "surface_id": "fixture-surface"
+        },
+        "session_id": "s-case",
+        "operation_id": "op-1",
+        "kind": "pi-operation-result",
+        "result_sha256": "f4e7614388188ea2daee7a3a15a31fc592e5b194eef82fd4ee2bdd9ce59ad60e",
+        "session_relative_path": "sessions/--work--/2026-09-13T03-37-30-462Z_s-case.jsonl",
+        "session_sha256": "756927b0becff4679a7f122ee785b58f904bcdfd71d65be05a3993fbe517ac3a",
+        "session_bytes": 12246,
+        "session_range": [
+          0,
+          12246
+        ]
+      },
+      "expected_binding": {
+        "session_id": "s-case",
+        "session_scope": {
+          "namespace": "s-original-component-001",
+          "session_generation": 1,
+          "session_id": "s-case",
+          "surface_id": "fixture-surface"
+        },
+        "operation_id": "op-1",
+        "harness_ref": {
+          "id": "0806e91bcd1ad52c1c2c0f23f312046953be9de12faf9864739321b628e7e133",
+          "sha256": "64fbf895423b6995c9fa5301da7c217afd492835c339b86462702d32946a7087"
+        },
+        "input_ref": {
+          "id": "c053d40483715d82eae540b433da2c9d354b1c9fcd871c593c30d5969dae10e7",
+          "sha256": "be347e51c4b5a474fc8f4f9d7708ab7ae0e07c8f212820c1afd337e8f1024e1f"
+        },
+        "source_result_ref": null,
+        "capability_ref": {
+          "id": "28d3b88844d5b4107000af87e72b4394553b44b66e7fff08fb7392d42925754e",
+          "sha256": "dded4de4cff2523a338967ba2bbf9b9fea51d134c9c731f2ec48bad7eb72a00d"
+        }
+      },
+      "expected_result": {
+        "operationId": "op-1",
+        "kind": "run",
+        "status": "completed",
+        "fromTipId": null,
+        "tipId": "01a098d7-870c-7165-801b-e26c947d6292",
+        "startedAt": 1789270650486,
+        "endedAt": 1789270662867
+      },
+      "expected_boundary": {
+        "boundary_kind": "tool_feedback_saved",
+        "decision_proposal": {
+          "decision_id": "m-a0bbee73c00f1c55d901f3f82f4ab66cc735d8d7515e7464f94e20da9952d7e6",
+          "source_result_ref": {
+            "owner": "S",
+            "session_scope": {
+              "namespace": "s-original-component-001",
+              "session_generation": 1,
+              "session_id": "s-case",
+              "surface_id": "fixture-surface"
+            },
+            "session_id": "s-case",
+            "operation_id": "op-1",
+            "kind": "pi-operation-result",
+            "result_sha256": "f4e7614388188ea2daee7a3a15a31fc592e5b194eef82fd4ee2bdd9ce59ad60e",
+            "session_relative_path": "sessions/--work--/2026-09-13T03-37-30-462Z_s-case.jsonl",
+            "session_sha256": "756927b0becff4679a7f122ee785b58f904bcdfd71d65be05a3993fbe517ac3a",
+            "session_bytes": 12246,
+            "session_range": [
+              0,
+              12246
+            ]
+          },
+          "harness_ref": {
+            "id": "0806e91bcd1ad52c1c2c0f23f312046953be9de12faf9864739321b628e7e133",
+            "sha256": "64fbf895423b6995c9fa5301da7c217afd492835c339b86462702d32946a7087"
+          },
+          "input_ref": {
+            "id": "c053d40483715d82eae540b433da2c9d354b1c9fcd871c593c30d5969dae10e7",
+            "sha256": "be347e51c4b5a474fc8f4f9d7708ab7ae0e07c8f212820c1afd337e8f1024e1f"
+          },
+          "continue": true
+        },
+        "operation_result_ref": {
+          "owner": "S",
+          "session_scope": {
+            "namespace": "s-original-component-001",
+            "session_generation": 1,
+            "session_id": "s-case",
+            "surface_id": "fixture-surface"
+          },
+          "session_id": "s-case",
+          "operation_id": "op-1",
+          "kind": "pi-operation-result",
+          "result_sha256": "f4e7614388188ea2daee7a3a15a31fc592e5b194eef82fd4ee2bdd9ce59ad60e",
+          "session_relative_path": "sessions/--work--/2026-09-13T03-37-30-462Z_s-case.jsonl",
+          "session_sha256": "756927b0becff4679a7f122ee785b58f904bcdfd71d65be05a3993fbe517ac3a",
+          "session_bytes": 12246,
+          "session_range": [
+            0,
+            12246
+          ]
+        }
+      },
+      "source_files": {
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/request.json": "50e0e31f04de570febb76b0e0359e329db124231431fe7e644bc7c2d2774afc7",
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/result.json": "d379ce798a2f9502673fc62848c35f42a70b84dffa34b175950d07bbe98f0337",
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/owner.json": "60fdb5a184eb45dc8e60cdf5f84393aa7c6d26f48574065dbbbb02997d6a983d",
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/charge.json": "a65aba9cf2081164a945d660068e404a9b81a2fffb8904afd5e0752a3f75b35b",
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/snapshot/record.json": "5b1e5ef854631d9c1edb165532bcd67b4c6326fc2933ab71cf8f5d6bf74d32bd",
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/snapshot/manifest.json": "00d411dc0d7280bb70efaca216d570becdacf5888b80351b0a0f1cc8bd81a487",
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-e2a82f8954290e9654cdcd3e8da87873a49c31e1f12c48e82f3d6777e9f1570f/snapshot/original.tar": "08db7cbc9bc79920d5a35f25da8c05c435d20ed533ab339f099b7c0f5d0240a0"
+      },
+      "query_budget": 21474836480
+    },
+    {
+      "key": "later",
+      "root": "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals",
+      "confirmation_request_id": "s-59cc2163488f5d3c1e6d347950ad6c08a71e0b5239fb14665cca876edea65381",
+      "reference": {
+        "owner": "S",
+        "session_scope": {
+          "namespace": "s-original-component-001",
+          "session_generation": 1,
+          "session_id": "s-case",
+          "surface_id": "fixture-surface"
+        },
+        "session_id": "s-case",
+        "operation_id": "projection-step",
+        "kind": "pi-operation-result",
+        "result_sha256": "a615b9e7b388ff8929182b6e1a0d5b594c5193f3b0fb575679fb54dd5c45d908",
+        "session_relative_path": "sessions/--work--/2026-09-13T03-37-30-462Z_s-case.jsonl",
+        "session_sha256": "a53d34704ec511c94d8f75f85b759c881d677d5c0d0ec04593df76124a413928",
+        "session_bytes": 21522,
+        "session_range": [
+          0,
+          21522
+        ]
+      },
+      "expected_binding": {
+        "session_id": "s-case",
+        "session_scope": {
+          "namespace": "s-original-component-001",
+          "session_generation": 1,
+          "session_id": "s-case",
+          "surface_id": "fixture-surface"
+        },
+        "operation_id": "projection-step",
+        "harness_ref": {
+          "id": "0806e91bcd1ad52c1c2c0f23f312046953be9de12faf9864739321b628e7e133",
+          "sha256": "64fbf895423b6995c9fa5301da7c217afd492835c339b86462702d32946a7087"
+        },
+        "input_ref": {
+          "id": "c053d40483715d82eae540b433da2c9d354b1c9fcd871c593c30d5969dae10e7",
+          "sha256": "be347e51c4b5a474fc8f4f9d7708ab7ae0e07c8f212820c1afd337e8f1024e1f"
+        },
+        "source_result_ref": {
+          "owner": "S",
+          "session_scope": {
+            "namespace": "s-original-component-001",
+            "session_generation": 1,
+            "session_id": "s-case",
+            "surface_id": "fixture-surface"
+          },
+          "session_id": "s-case",
+          "operation_id": "op-1",
+          "kind": "pi-operation-result",
+          "result_sha256": "f4e7614388188ea2daee7a3a15a31fc592e5b194eef82fd4ee2bdd9ce59ad60e",
+          "session_relative_path": "sessions/--work--/2026-09-13T03-37-30-462Z_s-case.jsonl",
+          "session_sha256": "756927b0becff4679a7f122ee785b58f904bcdfd71d65be05a3993fbe517ac3a",
+          "session_bytes": 12246,
+          "session_range": [
+            0,
+            12246
+          ]
+        },
+        "capability_ref": {
+          "id": "28d3b88844d5b4107000af87e72b4394553b44b66e7fff08fb7392d42925754e",
+          "sha256": "dded4de4cff2523a338967ba2bbf9b9fea51d134c9c731f2ec48bad7eb72a00d"
+        }
+      },
+      "expected_result": {
+        "operationId": "projection-step",
+        "kind": "run",
+        "status": "completed",
+        "fromTipId": "01a098d7-870c-7165-801b-e26c947d6292",
+        "tipId": "01a098d7-d395-7616-b6d0-a55295d8d4bc",
+        "startedAt": 1789270669688,
+        "endedAt": 1789270677951
+      },
+      "expected_boundary": {
+        "boundary_kind": "answer_saved",
+        "decision_proposal": {
+          "decision_id": "m-ab97d38484c5587bf3bdd71f45994feb7f2bb30ceb06501b679c8dfe97fd19ed",
+          "source_result_ref": {
+            "owner": "S",
+            "session_scope": {
+              "namespace": "s-original-component-001",
+              "session_generation": 1,
+              "session_id": "s-case",
+              "surface_id": "fixture-surface"
+            },
+            "session_id": "s-case",
+            "operation_id": "projection-step",
+            "kind": "pi-operation-result",
+            "result_sha256": "a615b9e7b388ff8929182b6e1a0d5b594c5193f3b0fb575679fb54dd5c45d908",
+            "session_relative_path": "sessions/--work--/2026-09-13T03-37-30-462Z_s-case.jsonl",
+            "session_sha256": "a53d34704ec511c94d8f75f85b759c881d677d5c0d0ec04593df76124a413928",
+            "session_bytes": 21522,
+            "session_range": [
+              0,
+              21522
+            ]
+          },
+          "harness_ref": {
+            "id": "0806e91bcd1ad52c1c2c0f23f312046953be9de12faf9864739321b628e7e133",
+            "sha256": "64fbf895423b6995c9fa5301da7c217afd492835c339b86462702d32946a7087"
+          },
+          "input_ref": {
+            "id": "c053d40483715d82eae540b433da2c9d354b1c9fcd871c593c30d5969dae10e7",
+            "sha256": "be347e51c4b5a474fc8f4f9d7708ab7ae0e07c8f212820c1afd337e8f1024e1f"
+          },
+          "final": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Complete fixture answer."
+              }
+            ]
+          }
+        },
+        "operation_result_ref": {
+          "owner": "S",
+          "session_scope": {
+            "namespace": "s-original-component-001",
+            "session_generation": 1,
+            "session_id": "s-case",
+            "surface_id": "fixture-surface"
+          },
+          "session_id": "s-case",
+          "operation_id": "projection-step",
+          "kind": "pi-operation-result",
+          "result_sha256": "a615b9e7b388ff8929182b6e1a0d5b594c5193f3b0fb575679fb54dd5c45d908",
+          "session_relative_path": "sessions/--work--/2026-09-13T03-37-30-462Z_s-case.jsonl",
+          "session_sha256": "a53d34704ec511c94d8f75f85b759c881d677d5c0d0ec04593df76124a413928",
+          "session_bytes": 21522,
+          "session_range": [
+            0,
+            21522
+          ]
+        }
+      },
+      "source_files": {
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-7b9a8ffeb62f7e187752a0c16cc3baff7e095a00fd0a88cac7ce0c7e3cf2797f/request.json": "65d5d4f7ad82d409f43c63228ff37ad6a1f881d95f129b7b2a1ddd536426a364",
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-7b9a8ffeb62f7e187752a0c16cc3baff7e095a00fd0a88cac7ce0c7e3cf2797f/result.json": "51127042da7bf1f578b37e48587d9c9b0207a3491790bfd3f3da056ad1514885",
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-7b9a8ffeb62f7e187752a0c16cc3baff7e095a00fd0a88cac7ce0c7e3cf2797f/owner.json": "b2b880c2a6fa18e5959e5589cc3e28db90f753a9270d8ee5225388f2d48e4a53",
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-7b9a8ffeb62f7e187752a0c16cc3baff7e095a00fd0a88cac7ce0c7e3cf2797f/charge.json": "4f34dec34b5eccb37f9db1c9747b4906a4cf770332dfd5fa28cb32a5d021b1d8",
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-7b9a8ffeb62f7e187752a0c16cc3baff7e095a00fd0a88cac7ce0c7e3cf2797f/snapshot/record.json": "356bbf49b92ad1fdb965b5b83daf596f14a04eae014d9f64c0f6dafe06e0f3de",
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-7b9a8ffeb62f7e187752a0c16cc3baff7e095a00fd0a88cac7ce0c7e3cf2797f/snapshot/manifest.json": "09d93e64313809a596b7f5c3a8ff1b9cafad13f4f5db201b028f772025e81912",
+        "/path/to/loom/validation/components/s/evidence/s-host-s018-author-002/cases/S-018/peer-state/x-port/plans/S-originals/confirm-7b9a8ffeb62f7e187752a0c16cc3baff7e095a00fd0a88cac7ce0c7e3cf2797f/snapshot/original.tar": "6df9b8b2c734aead8a009e97034c37a7678605ae1a70d4b637d75048dda0df7e"
+      },
+      "query_budget": 21474836480
+    }
+  ],
+  "entry": "python3 -B validation/session_references/run.py --batch NAME",
+  "limits": {
+    "source_raw_bytes": 18874368,
+    "source_logical_bytes": 16777216,
+    "no_docker": true,
+    "no_node": true,
+    "no_model": true
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "status": "BOUND_TO_INDEPENDENTLY_ACCEPTED_DERIVED_SOURCE",
+  "old_files": 882,
+  "new_files": 882,
+  "old_links": 4,
+  "new_links": 4,
+  "changed_content": [
+    "packages/agent/src/harness/runtime/drive/response.ts"
+  ],
+  "dependency_manifest_sha256": "75e72765bd2a10b4812cfec66305240b57dcac1a6ae8e231113a01375d358c02",
+  "profile_sha256": "15479a8b6027d6cd7db9d920c0b4ba36bea6a7517ec096abdcb80622d8f135b6",
+  "evidence": {
+    "manifest": {
+      "path": "/path/to/loom/research/patches/pi-compaction-enabled-v1/manifest.json",
+      "sha256": "16e07a7eb730990720485a3608fb834bed97b6f10229203838d1038d44647d80"
+    },
+    "acceptance": {
+      "path": "/path/to/loom/research/patches/pi-compaction-enabled-v1/acceptance.json",
+      "sha256": "2a229a79df2feb3575c52322506f1eeeebd61e4c77032241e343463c38e7b89f"
+    },
+    "patch": {
+      "path": "/path/to/loom/research/patches/pi-compaction-enabled-v1/compaction-enabled.patch",
+      "sha256": "518042bf0e0021786396069e7da74d51a0667b76a00e15c521e6f30e8318c53a"
+    },
+    "changed_files": [
+      "packages/agent/src/harness/runtime/drive/response.ts"
+    ],
+    "original_dependency_manifest": {
+      "path": "/path/to/loom/design/g3/x-node-profile/dependency-prior-001/dependencies.json",
+      "sha256": "e0f03bbedca7b03fcc69d3db7dd9dbe0074d710c6586fafc0ab6ff9e191a5df1"
+    },
+    "scope": "Same selected882files/fourlinks and logical /opt targets. Single accepted upstream bug guard only; no projection expansion."
+  },
+  "scope": "Prior upstream load is historical; first final fixture/candidate run binds the accepted derived projection. No new preparation layer."
+}

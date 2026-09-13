@@ -1,0 +1,57 @@
+{
+  "project": "mini-swe-agent",
+  "official_repository": "https://github.com/SWE-agent/mini-swe-agent",
+  "discovery_path": [
+    "user main research list",
+    "maintainer GitHub repository page",
+    "public git clone"
+  ],
+  "retrieved_utc": "2026-09-12T18:13:20.973208+00:00",
+  "commit": "04d809ceab9df28f9adaed044884180159172930",
+  "commit_subject": "Merge branch 'main' of github.com:SWE-agent/mini-swe-agent",
+  "commit_time": "2026-09-03T01:05:59-04:00",
+  "checkout": "/path/to/loom/research/repos/mini-swe-agent",
+  "declared_license": "MIT",
+  "license_sources": [
+    {
+      "file": "LICENSE.md",
+      "sha256": "0f796e58f91d1c07bb2c1b1d0f8bf3a83017c3a5dec1bdc6fae733b2cd2e875b"
+    }
+  ],
+  "dependency_manifests": [
+    {
+      "file": "pyproject.toml",
+      "sha256": "c176ff37a89ee88a2ea2ce746b9b7e723ea3175e53be5336ab99f5aba0d59ddf"
+    }
+  ],
+  "properties": [
+    "P01",
+    "P07",
+    "P12"
+  ],
+  "hypotheses": [
+    "H02",
+    "H10"
+  ],
+  "verification_state": "SOURCE_AND_ACTUAL_SCOPED_MECHANISM_OBSERVED_PENDING_INDEPENDENT_REVIEW",
+  "credential_mode": "Fixed shipped responses; white-listed experiment environment; no provider calls or credential files",
+  "research_scope": "P01/P07/P12 and H02/H10; exploratory candidate boundary, not component/system acceptance",
+  "runtime": {
+    "os": "WSL Ubuntu Linux",
+    "python": "3.10.12",
+    "venv": "research/.venvs/mini-swe-agent"
+  },
+  "installed_dependency_inventory": "requirements-resolved.txt",
+  "analysis": "analysis.md",
+  "protocol": "protocol.json",
+  "evidence_index": "evidence-index.json",
+  "mechanism_batches": [
+    "mechanism-001",
+    "mechanism-002"
+  ],
+  "limitations": [
+    "Minimal actual import dependencies; no litellm/providers/datasets/full packaging.",
+    "Only DefaultAgent/LocalEnvironment path tested; effect-before-save gap observed."
+  ],
+  "source_tree_status": ""
+}

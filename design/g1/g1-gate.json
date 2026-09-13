@@ -1,0 +1,73 @@
+{
+  "stage": "G1",
+  "status": "PASS",
+  "time_utc": "2026-09-12T18:11:11.666745+00:00",
+  "scope": "Top-level abstractions, conditional arguments and frozen finite models only; authorizes G2 research, not production implementation or system completion",
+  "checks": {
+    "B01": "PASS",
+    "B02": "PASS",
+    "B03": "PASS",
+    "B04": "PASS",
+    "B05": "PASS"
+  },
+  "formal_runs": {
+    "positive": 55,
+    "negative": 56,
+    "static_assertions": 298
+  },
+  "independent_verification": "111 raw artifacts match independent rerun; 23 observer/evidence/source rejection controls independently passed",
+  "closed_findings": [
+    "DF01",
+    "DF02/AR01",
+    "OR01",
+    "OR02",
+    "OR03",
+    "OR04",
+    "DUR-R01/DR01"
+  ],
+  "runtime_properties": {
+    "P01": "UNVERIFIED",
+    "P02": "UNVERIFIED",
+    "P03": "UNVERIFIED",
+    "P04": "UNVERIFIED",
+    "P05": "UNVERIFIED",
+    "P06": "UNVERIFIED",
+    "P07": "UNVERIFIED",
+    "P08": "UNVERIFIED",
+    "P09": "UNVERIFIED",
+    "P10": "UNVERIFIED",
+    "P11": "UNVERIFIED",
+    "P12": "UNVERIFIED",
+    "P13": "UNVERIFIED",
+    "P14": "UNVERIFIED",
+    "P15": "UNVERIFIED"
+  },
+  "remaining_premises": [
+    "H01",
+    "H02",
+    "H03",
+    "H04",
+    "H05",
+    "H06",
+    "H07",
+    "H08",
+    "H09",
+    "H10"
+  ],
+  "remaining_stages": [
+    "G2",
+    "G3",
+    "G4",
+    "G5 M and X",
+    "G6"
+  ],
+  "evidence_sha256": {
+    "design/g1/independent-model-review.md": "07da2856a3f07606ba4823b09c0ab68a802dd742f4ac279ace2be1640f752e34",
+    "design/g1/boundary-model-review.md": "86f7dc4564cd6f0ecb6f071e6506c88c9d4090ef19c6436c313910c3bf66d967",
+    "design/g1/durability-model-review.md": "fa43a26c9f9537baad1fe6cb359d61607ae20c765795d5596ead8eed6c46b475",
+    "design/g1/observer-review.md": "e3955663af099af44360b97b559cb8de56746c535fd0469e8f305f3f8a75d9e7",
+    "simulations/evidence/g1-002/summary.json": "b0ada3e68698732f92739a013d1aeb94df70e91ab04b169d1a9d5fae685e0f02",
+    "simulations/evidence/g1-independent-002/summary.json": "dd75dbe698caeb5756e670d3ceaa4ff0d3d58d5b211597335baa6e7d3645b344",
+    "simulations/evidence/g1-independent-controls-002/summary.json": "94760e32b3709ac7675ea9bcc4c5a5d6f40c4705a3dc2d9c6e289aff65c00929"
+  }
+}

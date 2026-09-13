@@ -1,0 +1,24 @@
+{
+  "id": "G1-FREEZE-002",
+  "status": "FROZEN_FOR_SIMULATION",
+  "time_utc": "2026-09-12T17:38:58.766198+00:00",
+  "source_commit": "c8fe8ebf8bcd811efe783a3d4e54ccff6f5674ea",
+  "scope": [
+    "G1-BND-001 through G1-BND-021",
+    "G1-BND-018 missing-pinned-harness extra trajectory",
+    "G1-BND-005 check_then_reopen_alias additional mechanism"
+  ],
+  "main_cases": 21,
+  "extra_trajectories": 1,
+  "assertions": 136,
+  "negative_runs": 23,
+  "inputs_sha256": {
+    "design/g1/top-level-contracts.md": "5644cd02f5d6625690ba8ff9e90e7e4085606eba44eb532eb4c2de34314adeb4",
+    "design/g1/simulation-protocol.md": "ccc770ccc875b0764cc14b64ecb755441a093924b70c9805e73212131a79a350",
+    "design/g1/mechanism-decisions.md": "c50f39f84379b6527edfbeb807291a75ff7a1511a63b2495f159ed0f1d3afaa0",
+    "design/g1/cases-boundaries.json": "c6a156b4b779a9c4e2c70c4ca94ca126d9909a4fbfa5cf787b6601257d91d441",
+    "design/g1/cases-boundaries.md": "d4ed9ad900b7be47f56518ef960fff1a449f3a5013ef1a5238eaf2255a8469bc",
+    "design/g1/preregistration-review-batch2.md": "ac9eb5b58578c52035b72d51848a7751a6e44467daa803710bfe063eb9536e03"
+  },
+  "rule": "Finite model only, no real isolation or Runtime property PASS"
+}

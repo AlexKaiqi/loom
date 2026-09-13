@@ -1,0 +1,28 @@
+{
+  "recorded_at_utc": "2026-09-12T18:20:00.432971+00:00",
+  "identity_basis": "Maintainer GitHub repository and clone origin/HEAD; source pinned, no claim hosted commercial products are entirely open source",
+  "repositories": [
+    {
+      "slug": "codex",
+      "official_url": "https://github.com/openai/codex",
+      "local_repository": "research/repos/codex",
+      "commit": "ee6814bfa4889fe9b2b3dcc9cc8bdd91effa8ab8",
+      "licenses": [
+        {
+          "path": "LICENSE",
+          "sha256": "d17f227e4df5da1600391338865ce0f3055211760a36688f816941d58232d8dc",
+          "text": "                                 Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licenses/\n\nTERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n1.  Definitions.\n\n    \"License\" shall mean the terms and conditions for use, reproduction,\n    and distribution as defined by Sections 1 through 9 of this document.\n\n    \"Licensor\" shall mean the copyright owner or entity authorized by\n    the copyright owner that is granting the License.\n\n    \"Legal Entity\" shall mean the union of the acting entity and all\n    other entities that control, are controlled by, or are under common\n    control with that entity. For the purposes of this definition,\n    \"control\" means (i) the power, direct or indirect, to cause the\n    direction or management of such entity, whether by contract or\n    otherwise, or (ii) ownership of fifty percent (50%) or more of the\n    outstanding shares, or (iii) beneficial ownership of such entity.\n\n    \"You\" (or \"Your\") shall mean an individual or Legal Entity\n    exercising permissions granted by this License.\n\n    \"Source\" form shall mean the preferred form for making modifications,\n    including but not limited to software source code, documentation\n    source, and configuration files.\n\n    \"Object\" form shall mean any form resulting from mechanical\n    transformation or translation of a Source form, including but\n    not limited to compiled object code, generated documentation,\n    and conversions to other media types.\n\n    \"Work\" shall mean the work of authorship, whether in Source or\n    Object form, made available under the License, as indicated by a\n    copyright notice that is included in or attached to the work\n    (an example is provided in the Appendix below).\n\n    \"Derivative Works\" shall mean any work, whether in Source or Object\n    form, that is based on (or derived from) the Work and for which the\n    editorial revisions, annotations, elaborations, or other modificat"
+        }
+      ]
+    }
+  ],
+  "execution_platform": "WSL Ubuntu Linux native filesystem",
+  "dependencies": {
+    "record": "dependencies.json",
+    "source_hashes": "source-anchors.json",
+    "isolation": "Per-project Linux local environments under research/.venvs or research/.cache; model credentials absent"
+  },
+  "mechanism_evidence_batches": [
+    "client-001"
+  ]
+}

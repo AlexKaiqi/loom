@@ -1,0 +1,17 @@
+{
+  "schema": "runtime-single-input/v1",
+  "cases": [
+    "RI01",
+    "RI02",
+    "RI03"
+  ],
+  "scope": "runtime execute optional one registered F input; no new restore",
+  "before": {
+    "lore_execution/requests.py": "8b89fa1ee8b9f88522c74b46e468d18570c36200b109aae935a4a115f388ca76",
+    "lore_execution/node_profile.py": "cb28b0a57de1a44249b1e2b0aa69ecedb192673fec41e49d6e728539b6d441ef",
+    "lore_execution/store.py": "3b85dde86fc437300df9cd98c2b2dee32191cea156cef586877e796ff88ac864"
+  },
+  "contract_sha256": "bf4b2593cab84fc907101a4118f096479e64256e7e7c8c8ed8f1d9fcb5f44eea",
+  "physical_status": "UNVERIFIED",
+  "noengine_status": "UNVERIFIED"
+}

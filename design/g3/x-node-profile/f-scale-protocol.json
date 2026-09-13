@@ -1,0 +1,57 @@
+{
+  "id": "XN-F-SCALE-PREPARATION-001",
+  "status": "PREREGISTERED_BEFORE_RUN",
+  "scope": "actual G4 F content-scale preparation; no X/S product or Docker, no XN12 full gate",
+  "source_gate": "design/g4/f-gate.json",
+  "dataset": {
+    "ordinary_files": 512,
+    "directories": 64,
+    "empty_directories": 16,
+    "diff_lines": 4096,
+    "diff_extra_file": 1,
+    "entries_including_root": 578,
+    "file_bytes_formula": "128-byte fixed deterministic row per source file",
+    "diff_formula": "4096 deterministic +/- source lines",
+    "mtime_ns": 1700000000123456789,
+    "mode_files": "0640",
+    "mode_directories": "0750"
+  },
+  "limits": {
+    "max_entries": 1024,
+    "max_logical_bytes": 2097152,
+    "max_archive_bytes": 4194304,
+    "window_seconds": 10
+  },
+  "checks": [
+    {
+      "id": "FS01",
+      "expect": "default actual F capture rejects LIMIT_EXCEEDED; no artifact/version silently truncated"
+    },
+    {
+      "id": "FS02",
+      "expect": "configured capture returns578 complete entries and513 regular bytes sets; actual inotify fd and513 read leases collected while held"
+    },
+    {
+      "id": "FS03",
+      "expect": "returned archive and manifest paths actual bytes SHA equal version_ref and raw Git blobs; original bytes and metadata independently match manifest/archive/materialized directory"
+    },
+    {
+      "id": "FS04",
+      "expect": "same accepted capture ID returns same original bundle; all source original bytes retained"
+    },
+    {
+      "id": "FS05",
+      "expect": "wrong archive hash VERSION_CORRUPT and missing rooted version VERSION_MISSING, no target directory created"
+    },
+    {
+      "id": "FS06",
+      "expect": "wrong actual materialize target auth context UNAUTHORIZED; no target created; valid target remains original"
+    },
+    {
+      "id": "FS07",
+      "expect": "source edit after capture cannot alter pinned original; authorized historical read returns exact original file and wrong content hash rejected"
+    }
+  ],
+  "evidence": "copy complete F source and gate unchanged into fresh batch; separate source equivalence, actual source paths/imports, before/after hashes, raw operations and original source/materialized files; failed batch retained",
+  "remaining": "Actual X Node readonly mounted large F input, shared slot and all XN cases require later original candidate driver"
+}
