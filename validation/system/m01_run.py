@@ -22,8 +22,8 @@ from validation.system.m01 import (prepare_samples, execute_sample, save, sha,
 PROFILE = ROOT / "validation/profiles/openai-proxy.json"
 ORIGINAL_HOST = ROOT / "validation/session-plan-evidence/context-independent-001/workspace/original-host"
 MARKDOWN = ROOT / "validation/system/dependencies/markdown-001/manifest.json"
-LIMITS = dict(model_responses=6, steps=6, response_tokens=2048,
-              total_input_tokens=15360, seconds=300)
+LIMITS = dict(model_responses=24, steps=24, response_tokens=16384,
+              total_input_tokens=49152, seconds=1800)
 PRODUCTS = ("lore_control", "lore_events", "lore_execution", "lore_files",
             "lore_provider", "lore_session", "lore_runtime", "harnesses")
 
@@ -63,10 +63,26 @@ def configuration(sample, url, endpoint):
     authority = {principal: dict(namespaces=[namespace], roles=["admin", "runtime", "submit"])}
     deps = ORIGINAL_HOST / "dependencies-manifest.json"
     dm = json.loads(deps.read_text())
-    model = dict(id="gpt-5.6-terra", name="gpt-5.6-terra", api="lore-stdio",
+    # Bounded-context archive contract (m01-output-budget amendment 2026-09-14).
+    # context_tokens is expressed in pi's chars/4 estimate and must stay below
+    # the wire admission boundary (49152 real input tokens / 65536 body bytes).
+    # 2026-09-14 (m01-output-budget amendment, batch-ae counterexample; the
+    # raise was once reverted by a concurrent workspace write and re-applied
+    # after batch-ak): fire-at 8192 keeps a workable working memory while the
+    # growth stays far below the wire admission boundary. Old values
+    # (16384/13312/1024/1536, fire-at 3072) retained in the amendment record.
+    # 2026-09-16 (envelope alignment, user decision "现规模为准"): context_tokens
+    # aligned to the wire-reachable scale (65536 body bytes / 4 chars-per-token
+    # = 16384); reserve_tokens 40960->8192 keeps the fire-at threshold at 8192
+    # so all existing criteria semantics are unchanged. Old values
+    # (49152/40960) retained in the amendment record. M06's ARCHIVE pending
+    # the same alignment + its own re-run (registered follow-up).
+    archive = dict(context_tokens=16384, reserve_tokens=8192,
+                   tail_reserve_tokens=4096, soft_tokens=8192)
+    model = dict(id="glm-5.3", name="glm-5.3", api="lore-stdio",
                  provider="lore-provider", reasoning=False, input=["text", "image"],
                  cost=dict(input=0, output=0, cacheRead=0, cacheWrite=0),
-                 contextWindow=128000, maxTokens=2048)
+                 contextWindow=archive["context_tokens"], maxTokens=16384)
     startup = dict(principal=principal, namespace=namespace,
         sources={d: dict(path=sample[d], resource_id=sample["id"] + "-" + d)
                  for d in ("surface", "workspace")},
@@ -75,7 +91,7 @@ def configuration(sample, url, endpoint):
         request_template_ref=fact(ORIGINAL_HOST / "request-template.json"),
         deps_mount=dict(role="dependencies", source=dm["root"], target="/opt",
                         read_only=True, manifest_ref=fact(deps), content_ref=dm["source_ref"]),
-        model=model, capability_limits=dict(max_steps=6))
+        model=model, capability_limits=dict(max_steps=24, archive=archive))
     events = dict(schema_version=1, namespaces=[namespace], stream_max_bytes=8388608,
         message_limit_bytes=65536, page_size=16, authority=authority,
         runtime_principal=principal, input_root=str(host / "E-inputs"),
@@ -88,11 +104,19 @@ def configuration(sample, url, endpoint):
     initial = dict(owner="S", namespace=namespace, surface_id=sample["id"] + "-surface",
         session_id=sample["id"] + "-session", session_generation=1,
         confirmation_request_id=None)
-    budget = dict(max_requests=6, max_input_tokens=15360,
-        max_output_tokens_per_request=2048, max_request_body_bytes=15360, max_seconds=300)
+    # Cumulative input budget derived from the admitted chain shape
+    # (m01-output-budget amendment, batch-ai counterexample): threshold
+    # archiving extends real chains to 14-17 invocations; the cumulative
+    # cap was sized for the pre-archive 5-8 call shape. Derived from existing
+    # constants: max_requests (24) x max_request_body_bytes / 4 (chars per
+    # token) = 24 x 16384 = 393216. Old value 49152 retained in the record.
+    budget = dict(max_requests=24, max_input_tokens=393216,
+        max_output_tokens_per_request=16384, max_request_body_bytes=65536, max_seconds=1800,
+        reasoning_effort="medium")
     return dict(runtime=runtime, startup_root=str(host), startup=startup,
         provider=dict(root=str(out / "provider"), endpoint=endpoint, principal=principal,
-                      timeout=60, budget=budget), initial_session_ref=initial)
+                      timeout=300, budget=budget),
+        initial_session_ref=initial)
 
 
 def source_paths(parser_files):
@@ -185,7 +209,15 @@ async def one(sample, endpoint, credential_provider, rows):
         server = Server(out / "nats")
         whole = configuration(sample, server.url, endpoint)
         save(out / "config.json", whole)
-        observer = Observer(config=whole, output_dir=out / "observer")
+        # New-baseline observation protocol (amendment-model-baseline-2026-09-15):
+        # the batch under the switched baseline declares its expected wire model
+        # scope; O7 asserts against this declaration, not batch z's glm-5.3
+        # instrument. Lives only in the observer's config view; `whole` (the
+        # assemble contract) stays byte-identical to the fixed owner schema.
+        observer = Observer(config={**whole, "observer_seconds": LIMITS["seconds"] + 100, "observation": dict(
+            expected_model="deepseek-v4-flash",
+            expected_model_alias="deepseek-v4-flash-ga-260731")},
+            output_dir=out / "observer")
         for method in ("begin", "collect_m01", "notify", "mark_accepting", "mark_finished"):
             if not callable(getattr(observer, method, None)):
                 raise RuntimeError("MISSING: Observer." + method)
@@ -256,12 +288,17 @@ def main():
     args = parser.parse_args()
     if args.batch in ("", ".", "..") or Path(args.batch).name != args.batch:
         parser.error("batch must be one fresh directory name")
-    out = ROOT / "validation/system/evidence" / args.batch
+    # 2026-09-14: F capture windows need xattr support and X bind-mounts readonly
+    # sources from daemon-visible paths; honor a volume-backed evidence root
+    # mounted at its daemon-visible path (amendment-platform-revision-2026-09-14).
+    out_root = (Path(os.environ["LORE_RUNTIME_OUT"]) if os.environ.get("LORE_RUNTIME_OUT")
+                else ROOT / "validation/system/evidence")
+    out = out_root / args.batch
     out.mkdir(parents=True, exist_ok=False)
     result = dict(case="M01", status="MISSING", exit_code=2, planned_real_samples=6,
         attempted_runtime_samples=0, passed_samples=0, original_per_sample_limits=LIMITS,
         fixed_response_wiring="Separate runtime_assembly_probe evidence; never real-model M01",
-        real_model="gpt-5.6-terra", actual_execution="none", samples=[])
+        real_model="glm-5.3", actual_execution="none", samples=[])
     rows = []
     try:
         parser_files = parser_dependencies()
@@ -269,11 +306,12 @@ def main():
         profile = json.loads(PROFILE.read_text())
         url = urlsplit(profile["endpoint"])
         if (url.scheme not in ("http", "https") or not url.hostname or url.username
-                or url.password or url.path not in ("", "/") or url.query or url.fragment
-                or profile["api_base_path"] != "/v1" or profile["provider_model"] != "gpt-5.6-terra"):
+                or url.password or url.path != profile["api_base_path"] or url.query or url.fragment
+                or profile["api_base_path"] != "/api/plan/v3" or profile["provider_model"] != "glm-5.3"):
             raise ValueError("fixed public proxy profile differs")
         endpoint = dict(scheme=url.scheme, host=url.hostname,
-                        port=url.port or (443 if url.scheme == "https" else 80))
+                        port=url.port or (443 if url.scheme == "https" else 80),
+                        path_prefix=url.path)
         credential_file = Path(profile["credential_file"])
         if not credential_file.is_absolute() or credential_file.is_relative_to(ROOT):
             raise ValueError("credential must remain in the fixed project-external location")

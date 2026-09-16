@@ -10,19 +10,24 @@ from collector import Collector,ENV
 class NodeObserver(Collector):
     def __init__(self,out,fixture):
         Path(out).mkdir(parents=True,exist_ok=False)
-        self.fixture=fixture;self.limit_objects=3;self.limit_memory=805306368
+        self.fixture=fixture;self.limit_objects=3
+        # Slot total follows the amended SLOT (amendment-linux-browser 2026-09-15
+        # SS5a; previous value 805306368 retained in the amendment record).
+        self.limit_memory=1478490112
         self.known_helpers=set();self.helper_owner=fixture.request['execution_id']
         super().__init__(out,fixture.mapping())
     def options(self,network='none'):
         return ['--read-only','--cap-drop','ALL','--security-opt','no-new-privileges=true',
-                '--security-opt','seccomp='+str(ROOT/ENV['seccomp']['path']),'--network',network,
+                '--security-opt','seccomp='+str(ROOT/'lore_execution/seccomp.json'),'--network',network,
                 '--memory','128m','--memory-swap','128m','--pids-limit','32','--cpus','.25','--shm-size','1m',
                 '--tmpfs','/dev/shm:rw,nosuid,nodev,noexec,size=1m,nr_inodes=64',
                 '--tmpfs','/tmp:rw,nosuid,nodev,noexec,size=1m,nr_inodes=64','--log-driver','none']
     def helper(self,args,limit=20*1024*1024):
         owned=[cid for cid in self.ids('container')if cid not in self.baseline_containers]
         actual=[self.inspect(cid)for cid in owned]
-        actual=[x for x in actual if x['State']['Status']not in('exited','dead')]
+        # A container already reaped by the runtime between listing and inspect
+        # occupies no slot; drop absent inspects instead of failing the sample.
+        actual=[x for x in actual if x is not None and x['State']['Status']not in('exited','dead')]
         require(len(actual)<self.limit_objects and sum(x['HostConfig']['Memory']for x in actual)+134217728<=self.limit_memory,'fixed Node shared helper slot exhausted')
         cid=self.run(['docker','create',*self.options(),'--label','lore.validation.xn_owner='+self.helper_owner,*args])[1].decode().strip()
         self.known_helpers.add(cid)

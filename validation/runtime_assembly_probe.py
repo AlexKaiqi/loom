@@ -1,5 +1,5 @@
 """Fixed-response actual assembly only; original real M01 is a separate gate."""
-import argparse,asyncio,copy,hashlib,http.server,json,sqlite3,sys,threading,time,traceback
+import argparse,asyncio,copy,hashlib,http.server,json,os,sqlite3,sys,threading,time,traceback
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT));sys.path.insert(0,str(ROOT/'validation/components/e'))
@@ -21,8 +21,9 @@ def configuration(out,url,endpoint):
  (out/'surface/emit.py').write_bytes((ROOT/'lore_runtime/emit_cli.py').read_bytes())
  (out/'workspace/numbers.json').write_text('[2,3,5]\n')
  host=out/'host';authority={principal:dict(namespaces=[ns],roles=['admin','runtime','submit'])}
- model=dict(id='gpt-5.6-terra',name='gpt-5.6-terra',api='lore-stdio',provider='lore-provider',reasoning=False,input=['text','image'],cost=dict(input=0,output=0,cacheRead=0,cacheWrite=0),contextWindow=128000,maxTokens=2048)
- startup=dict(principal=principal,namespace=ns,sources={d:dict(path=str(out/d),resource_id='assembly-'+d) for d in ('surface','workspace')},code_sources={n:fact(ROOT/n) for n in CODE_FILES},profile_ref=fact(original/'profile.json'),request_template_ref=fact(original/'request-template.json'),deps_mount=dict(role='dependencies',source=dm['root'],target='/opt',read_only=True,manifest_ref=fact(original/'dependencies-manifest.json'),content_ref=dm['source_ref']),model=model,capability_limits=dict(max_steps=6))
+ archive=dict(context_tokens=4096,reserve_tokens=3968,tail_reserve_tokens=256,soft_tokens=2048)
+ model=dict(id='deepseek-v4-flash',name='deepseek-v4-flash',api='lore-stdio',provider='lore-provider',reasoning=False,input=['text','image'],cost=dict(input=0,output=0,cacheRead=0,cacheWrite=0),contextWindow=archive['context_tokens'],maxTokens=2048)
+ startup=dict(principal=principal,namespace=ns,sources={d:dict(path=str(out/d),resource_id='assembly-'+d) for d in ('surface','workspace')},code_sources={n:fact(ROOT/n) for n in CODE_FILES},profile_ref=fact(original/'profile.json'),request_template_ref=fact(original/'request-template.json'),deps_mount=dict(role='dependencies',source=dm['root'],target='/opt',read_only=True,manifest_ref=fact(original/'dependencies-manifest.json'),content_ref=dm['source_ref']),model=model,capability_limits=dict(max_steps=6,archive=archive))
  profile=dict(schema_version=1,namespaces=[ns],stream_max_bytes=8388608,message_limit_bytes=65536,page_size=16,authority=authority,runtime_principal=principal,input_root=str(host/'E-inputs'),stream_prefix='LORE_',subject_prefix='lore',storage='file',discard='new',max_age=0,replicas=1)
  cfg=dict(control_db=str(out/'R.sqlite'),files_dir=str(out/'F'),execution_dir=str(host/'X-state'),session_dir=str(out/'S'),nats_url=url,engine_endpoint='unix:///var/run/docker.sock',authority=authority,worker_id='assembly-worker',event_profile=profile)
  initial=dict(owner='S',namespace=ns,surface_id='assembly-surface',session_id='assembly-session',session_generation=1,confirmation_request_id=None)
@@ -43,7 +44,7 @@ class Wire:
     else:
      assert 'probe.ready' in raw.decode(),'next model request omitted original event'
      message=dict(role='assistant',content='Observed probe.ready from the next explicit event input.');finish='stop'
-    body=json.dumps(dict(id='wire-'+str(index),object='chat.completion',created=0,model='gpt-5.6-terra',choices=[dict(index=0,message=message,finish_reason=finish)],usage=dict(prompt_tokens=10,completion_tokens=20,total_tokens=30))).encode()
+    body=json.dumps(dict(id='wire-'+str(index),object='chat.completion',created=0,model='deepseek-v4-flash',choices=[dict(index=0,message=message,finish_reason=finish)],usage=dict(prompt_tokens=(10,280,2980)[index],completion_tokens=20,total_tokens=(30,300,3000)[index]))).encode()
     (out/('http-'+str(index)+'-response.body')).write_bytes(body)
     self.send_response(200);self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
   self.server=http.server.HTTPServer(('127.0.0.1',0),Handler);self.thread=threading.Thread(target=self.server.serve_forever);self.thread.start()
@@ -103,6 +104,10 @@ async def run(out):
 def main():
  p=argparse.ArgumentParser();p.add_argument('--batch');a=p.parse_args()
  if not a.batch:print(json.dumps(dict(status='MISSING',executed=0,missing='fixed actual owner assembly')));return 2
- out=ROOT/'validation/runtime-assembly-evidence'/a.batch;out.mkdir(parents=True,exist_ok=False)
+ # 2026-09-14: F capture windows require xattr support and X bind-mounts readonly
+ # sources from daemon-visible paths; honor a volume-backed evidence root mounted
+ # at its daemon-visible path (amendment-platform-revision-2026-09-14).
+ out_root=Path(os.environ['LORE_RUNTIME_OUT']) if os.environ.get('LORE_RUNTIME_OUT') else ROOT/'validation/runtime-assembly-evidence'
+ out=out_root/a.batch;out.mkdir(parents=True,exist_ok=False)
  return asyncio.run(run(out))
 if __name__=='__main__':raise SystemExit(main())

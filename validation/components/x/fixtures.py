@@ -1,6 +1,8 @@
 """Harmless test inputs for X; no executor implementation or production state."""
 from pathlib import Path
-import base64, hashlib, json, os, socket, uuid
+import base64, hashlib, json, os, socket, sys, uuid
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from lore_execution.requests import ENVIRONMENT_PROFILE_SHA256
 
 def sha(b): return hashlib.sha256(b).hexdigest()
 STDOUT=bytes(range(256))*32
@@ -139,5 +141,22 @@ def create(root,case,params):
   link=target/'alias';link.symlink_to(target if target_case=='symlink_inside' else other,target_is_directory=True);selector['location']=str(link)
  if target_case=='authorized_parent':authority['allowed_parent']=str(target);selector['location']=str(target/'new-surface')
  if 'input_metadata' in params:inputs['required_metadata']=[params['input_metadata']]
- request={'schema_version':1,'execution_id':eid,'caller':'trusted-fixture','invocation_id':'invocation-one','step_id':'step-one','source_result':'saved-result-one','harness_version':'harness-v1','target_selector':selector,'target_id':selector.get('target_id'),'binding_generation':1,'domain':domain,'base_version':authority['base_version'],'input_manifest':inputs,'input_root':str(target),'cwd':'.','environment':'fixed-python-linux-v1','endpoints':[],'network':'none','budgets':{'memory_bytes':134217728,'pids':32,'cpu':params.get('cpu',.5),'volume_bytes':params.get('volume_bytes',2097152),'inodes':params.get('inode_limit',128),'tmp_bytes':1048576,'shm_bytes':1048576,'stdout_bytes':65536,'stderr_bytes':65536,'combined_output_bytes':98304,'archive_bytes':8388608,'expanded_bytes':12582912,'deadline_seconds':8 if case['initial']['script']=='resource' else 20},'stdin_base64':'','io_mode':'duplex' if case['initial']['script'] in ('duplex','quota','heartbeat','session_prefix') else 'finite','interpreter_argv':['python','-c'],'script_base64':base64.b64encode(script_bytes(case['initial']['script'],{**params,'domain':domain})).decode()}
+ request={'schema_version':1,'execution_id':eid,'caller':'trusted-fixture','invocation_id':'invocation-one','step_id':'step-one','source_result':'saved-result-one','harness_version':'harness-v1','target_selector':selector,'target_id':selector.get('target_id'),'binding_generation':1,'domain':domain,'base_version':authority['base_version'],'input_manifest':inputs,'input_root':str(target),'cwd':'.','environment':'fixed-python-linux-v1','profile_sha256':ENVIRONMENT_PROFILE_SHA256,'endpoints':[],'network':'none','budgets':{'memory_bytes':134217728,'pids':32,'cpu':params.get('cpu',.5),'volume_bytes':params.get('volume_bytes',2097152),'inodes':params.get('inode_limit',128),'tmp_bytes':1048576,'shm_bytes':1048576,'stdout_bytes':65536,'stderr_bytes':65536,'combined_output_bytes':98304,'archive_bytes':8388608,'expanded_bytes':12582912,'deadline_seconds':8 if case['initial']['script']=='resource' else 20},'stdin_base64':'','io_mode':'duplex' if case['initial']['script'] in ('duplex','quota','heartbeat','session_prefix') else 'finite','interpreter_argv':['python','-c'],'script_base64':base64.b64encode(script_bytes(case['initial']['script'],{**params,'domain':domain})).decode()}
  return {'root':root,'state':state,'cache':cache,'execution_ids':{eid},'target':target,'other':other,'authority':authority,'request':request,'params':params,'values':values,'canary':canary,'host_initial':{str(p):p.read_bytes() for p in [target/'canary',sibling/'canary',other/'canary',root/'control'/'control-canary']},'human_edit':False,'script':case['initial']['script']}
+
+
+SCRIPTS['browser_page_read']=(
+ 'from playwright.sync_api import sync_playwright\n'
+ 'Path("/work/page.html").write_text(P["page_html"])\n'
+ 'with sync_playwright() as p:\n'
+ ' b=p.chromium.launch(executable_path="/usr/bin/chromium",args=["--no-sandbox","--disable-gpu","--disable-dev-shm-usage"])\n'
+ ' pg=b.new_page();pg.goto("file:///work/page.html");title=pg.title();b.close()\n'
+ 'write("result.json", json.dumps({"title": title}))\n')
+SCRIPTS['browser_egress_probe']=(
+ 'import urllib.request\n'
+ 'fact="blocked"\n'
+ 'try:\n'
+ ' urllib.request.urlopen(P["egress_url"], timeout=5);fact="reached"\n'
+ 'except Exception:\n'
+ ' fact="blocked"\n'
+ 'write("result.json", json.dumps({"egress": fact}))\n')

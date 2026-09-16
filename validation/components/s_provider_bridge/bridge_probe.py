@@ -80,9 +80,9 @@ def main():
        if frame['type']=='provider.request':
         require(mode!='query' and count<len(responses),'unexpected provider call');scope=pending(work,frame);c=CASES[responses[count]];count+=1;raw=(ROOT/c['response']['body_path']).read_bytes();require(hashlib.sha256(raw).hexdigest()==c['response']['sha256'],'original response fixture source');collector.configure(c['response'],raw)
         # Real original wire client receives complete context; no expected injected into it.
-        intent={'binding':scope,'model':'gpt-5.6-terra','max_completion_tokens':128,'context':frame['context']}
+        intent={'binding':scope,'model':'deepseek-v4-flash','max_completion_tokens':128,'context':frame['context']}
         session_scope={'namespace':'wire-pi-mechanism','surface_id':'fixture-surface','session_id':scope['session_id'],'session_generation':1}
-        model_scope={'model':'gpt-5.6-terra','max_completion_tokens':128,'session_scope':session_scope,**{k:scope[k]for k in ['input_ref','harness_ref','capability_ref']}}
+        model_scope={'model':'deepseek-v4-flash','max_completion_tokens':128,'session_scope':session_scope,**{k:scope[k]for k in ['input_ref','harness_ref','capability_ref']}}
         full_scope={**scope,'session_scope':session_scope,'source_result_ref':None}
         effect='s-provider-'+hashlib.sha256(json.dumps([session_scope,scope['operation_id'],scope['response_entry_id']],ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
         node_frame={'type':'provider.request','session_id':scope['session_id'],'operation_id':scope['operation_id'],'effect_id':effect,'response_entry_id':scope['response_entry_id'],'payload':frame['context']}

@@ -1,0 +1,93 @@
+{
+ "id": "M05",
+ "source": {
+  "case": "design/g3/system/cases.json:M05",
+  "contract": "design/g3/system/contract.md:29"
+ },
+ "status": "PREREGISTERED_PREPARATION_ONLY",
+ "repeats": 3,
+ "limits": {
+  "per_sequence_seconds": 180,
+  "localhost_HTTP_per_sequence": 3,
+  "real_model_calls": 0,
+  "sequential_slots": 1,
+  "containers": 3
+ },
+ "cases": [
+  {
+   "id": "M05-TRIM",
+   "cut": "threshold archive fired",
+   "long_output": "fixed response above fire-at threshold",
+   "expected": {
+    "archive_events": 1,
+    "head_tail_view": true,
+    "original_version_hash_recorded": true,
+    "new_provider_calls_beyond_original": 0,
+    "new_tool_calls": 0
+   },
+   "recovery": "archived original retrieved complete via ordinary F mechanism with recorded version hash",
+   "declared_usage": {
+    "exchange_1": {
+     "prompt_tokens": 900,
+     "completion_tokens": 4500
+    },
+    "exchange_2": {
+     "prompt_tokens": 5300,
+     "completion_tokens": 4500
+    },
+    "exchange_3": {
+     "prompt_tokens": 6000,
+     "completion_tokens": 3300
+    },
+    "rationale": "provider-faithful; pi's checkpoint gate shouldCompact reads the LAST assistant usage (estimateContextTokens = last usage + trailing), so the final exchange's declared context (9300) crosses the 8192 hard threshold and the threshold compaction fires at the final checkpoint with three user turns"
+   }
+  },
+  {
+   "id": "M05-CORRUPT",
+   "cut": "corrupted same-length source presented",
+   "expected": {
+    "retrieval_rejected": true,
+    "original_source_unchanged": true
+   },
+   "recovery": "existing F identity check rejects; negative case, no state change"
+  },
+  {
+   "id": "M05-JOINT",
+   "cut": "M03 tool boundary after external effect before ACK",
+   "joint": "contract.md:29",
+   "expected": {
+    "external_effect_count": 1,
+    "R_unknown_responsibility_retained": true,
+    "long_feedback_trimmed": true,
+    "old_environment_404": true,
+    "new_environment_original_ID_query": true
+   },
+   "recovery": "new environment queries by original ID or pauses with evidence; effect count stays 1"
+  },
+  {
+   "id": "M05-OVERFLOW",
+   "kind": "runtime_chain_overflow",
+   "declared_usage": {
+    "exchange_1": {
+     "prompt_tokens": 900,
+     "completion_tokens": 3300
+    },
+    "exchange_2": {
+     "prompt_tokens": 4000,
+     "completion_tokens": 3300
+    },
+    "exchange_3": {
+     "prompt_tokens": 16896,
+     "completion_tokens": 3300
+    }
+   },
+   "rationale": "exchange 3 declares input over the 16384 context window (envelope-aligned 2026-09-16): pi flags isContextOverflow and attempts an in-drive re-drive; the preregistered step-boundary decision (Temporal evidence: no mid-task re-drive) is that the single-step budget guard stops the re-drive BEFORE dispatch and the drive ends paused with retained responsibility; evidence-refined 2026-09-16 (m05-execute-059): the relay chain settles each drive's invocation and the guard pauses the current runtime-next successor, so responsibility is retained on the paused relay invocation",
+   "expectations": {
+    "drive_paused_by_budget_guard": 1,
+    "provider_calls_total": 3,
+    "chain_responsibility_retained_on_relay_successor": true,
+    "overflow_receipts_retained": 3
+   }
+  }
+ ]
+}

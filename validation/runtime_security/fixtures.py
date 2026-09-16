@@ -7,7 +7,7 @@ def raw(value):return json.dumps(value,sort_keys=True,separators=(",",":"),ensur
 def save(path,value):Path(path).write_bytes(json.dumps(value,ensure_ascii=False,indent=2).encode()+b"\n")
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def response(message,finish,index):
- return raw(dict(id="m02-fixed-"+str(index),object="chat.completion",created=0,model="gpt-5.6-terra",
+ return raw(dict(id="m02-fixed-"+str(index),object="chat.completion",created=0,model="deepseek-v4-flash",
    choices=[dict(index=0,message=message,finish_reason=finish)],usage=dict(prompt_tokens=64,completion_tokens=32,total_tokens=96)))
 def prepare(base,family,repeat):
  id="M02-"+family+"-"+str(repeat);out=base/id;out.mkdir(parents=True)

@@ -1,0 +1,85 @@
+{
+  "protocol": "provider-compatibility-003-addendum",
+  "endpoint_host": "ark.cn-beijing.volces.com",
+  "path_prefix": "/api/plan/v3",
+  "credential_source": "/Users/kaiqidong/.env",
+  "credential_in_evidence": false,
+  "model": "deepseek-v4-flash",
+  "budget": 16384,
+  "request_sha256": "a01ec3c28e903875cfd5291679c9c12fbdf4c8b090bf3d0db65f09a1dc20f40d",
+  "request_bytes": 583,
+  "response_bytes": 521,
+  "elapsed_seconds": 1.812,
+  "transport": {
+    "http_status": 200,
+    "content_length": 521,
+    "received_size": 521,
+    "complete": true
+  },
+  "problems": {},
+  "facts": {
+    "finish_reason": "stop",
+    "model_echo": "deepseek-v4-flash-ga-260731",
+    "usage": {
+      "completion_tokens": 13,
+      "prompt_tokens": 393,
+      "total_tokens": 406,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 11
+      }
+    },
+    "reasoning_content_present": true,
+    "content_present": true
+  },
+  "request_body": {
+    "max_completion_tokens": 16384,
+    "messages": [
+      {
+        "content": "You are a wire compatibility probe.",
+        "role": "system"
+      },
+      {
+        "content": "Reply with exactly the word OK.",
+        "role": "user"
+      }
+    ],
+    "model": "deepseek-v4-flash",
+    "n": 1,
+    "parallel_tool_calls": false,
+    "reasoning_effort": "medium",
+    "stream": false,
+    "tools": [
+      {
+        "function": {
+          "description": "Run ordinary Shell in an authorized target",
+          "name": "shell",
+          "parameters": {
+            "additionalProperties": false,
+            "properties": {
+              "script": {
+                "type": "string"
+              },
+              "target": {
+                "enum": [
+                  "runtime",
+                  "workspace"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "target",
+              "script"
+            ],
+            "type": "object"
+          }
+        },
+        "type": "function"
+      }
+    ]
+  },
+  "response_body": "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"logprobs\":null,\"message\":{\"content\":\"OK\",\"reasoning_content\":\"The user asks to reply with exactly the word OK.\",\"role\":\"assistant\"}}],\"created\":1789445071,\"id\":\"0217894450695516033fcbcb0f378053cf6d69e36d1abc22a46e7\",\"model\":\"deepseek-v4-flash-ga-260731\",\"service_tier\":\"default\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":13,\"prompt_tokens\":393,\"total_tokens\":406,\"prompt_tokens_details\":{\"cached_tokens\":0},\"completion_tokens_details\":{\"reasoning_tokens\":11}}}"
+}

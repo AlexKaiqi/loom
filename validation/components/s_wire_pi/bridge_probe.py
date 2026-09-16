@@ -44,7 +44,7 @@ def main():
        if frame['type']=='provider.request':
         require(mode!='query' and count<len(responses),'unexpected provider call');scope=pending(work,frame);c=CASES[responses[count]];count+=1;raw=(ROOT/c['response']['body_path']).read_bytes();require(hashlib.sha256(raw).hexdigest()==c['response']['sha256'],'original response fixture source');collector.configure(c['response'],raw)
         # Real original wire client receives complete context; no expected injected into it.
-        intent={'binding':scope,'model':'gpt-5.6-terra','max_completion_tokens':128,'context':frame['context']};wire=WireClient({k:collector.endpoint[k] for k in ('scheme','host','port')},scope,OUT/(label+'-wire-'+str(count))).complete(intent);report['http_calls']+=1;record['wires'].append({'fixture':c['id'],'scope':scope,'intent':intent,'result':wire});save(OUT/'assessment.json',report)
+        intent={'binding':scope,'model':'deepseek-v4-flash','max_completion_tokens':128,'context':frame['context']};wire=WireClient({k:collector.endpoint[k] for k in ('scheme','host','port')},scope,OUT/(label+'-wire-'+str(count))).complete(intent);report['http_calls']+=1;record['wires'].append({'fixture':c['id'],'scope':scope,'intent':intent,'result':wire});save(OUT/'assessment.json',report)
         require(wire['accepted']==c['expected']['accepted'],'wire acceptance differs from original fixture')
         if wire['accepted']:require(wire['normalized']==c['expected']['normalized'],'exact complete normalized wire mismatch')
         reply={'reply_to':frame['call_id']}

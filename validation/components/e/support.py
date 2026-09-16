@@ -13,7 +13,10 @@ import nats
 
 ROOT=Path(__file__).resolve().parents[3]
 BINARY=ROOT/"research/.cache/nats-server/nats-server"
-BINARY_SHA="c2ce368d3080994e3ec94e688d8c749c17000c75aa5edc7bb08dda33345218e9"
+# 2026-09-14 platform re-pin: linux/arm64 nats-server build (commit 3c80d8f89eac613bdbae473efb59ec76f8d4ed09,
+# v2.15.0-dev), sha256 38427c1a9f24eeb1d5aae4ef232a25cd90faad6d3e5e0dc507db9d04831b0c4c; prior darwin build pin
+# (c2ce368d...) is preserved in the revision note, runtime validation runs in the Linux container.
+BINARY_SHA="38427c1a9f24eeb1d5aae4ef232a25cd90faad6d3e5e0dc507db9d04831b0c4c"
 PYTHON=ROOT/"research/.venvs/runtime-research/bin/python"
 def encode(value):
     return json.dumps(value,sort_keys=True,ensure_ascii=False,separators=(",",":"),allow_nan=False).encode()

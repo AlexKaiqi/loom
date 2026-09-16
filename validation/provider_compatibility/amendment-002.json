@@ -1,0 +1,12 @@
+{
+  "amendment": "provider-compatibility-001-amendment-002",
+  "date": "2026-09-15",
+  "reason": "User authorized the provider_model baseline switch on 2026-09-15. glm-5.3 rejects multimodal image content verbatim (protocol-002, evidence-003/evidence-004: HTTP 400 InvalidParameter 'Model only support text input'), which blocks the M07 computer-use prerequisite; deepseek-v4-flash and kimi-k3 both accept OpenAI image_url content parts. deepseek-v4-flash is selected over kimi-k3 (protocol-001 evidence: lower latency 3.92s vs 7.61s, lower reasoning overhead 50 vs 37 tokens on the toolcall probe).",
+  "revised_rules": [
+    "Baseline model becomes deepseek-v4-flash (design/g3/provider/amendment-model-baseline-2026-09-15 is the product record).",
+    "Response model-echo criterion: accepted when the echoed model equals the requested baseline id exactly OR equals the pinned dated alias 'deepseek-v4-flash-ga-260731' (observed consistently in protocol-001 evidence-001, protocol-002 evidence-004, protocol-003 evidence-005/evidence-006). Alias rotation fails loudly in lore_provider.response.normalize and requires a new amendment.",
+    "The full production request shape (n=1, stream=false, max_completion_tokens=16384, parallel_tool_calls=false, reasoning_effort=medium, messages with system message, tools=[shell]) was gated before the switch: protocol-003 probe_004 (production_text, production_toolcall) and the post-switch probe_005 sending the real encode_request bytes, all accepted with finish_reason as requested and consistent usage."
+  ],
+  "evidence": "evidence-004 (protocol-002 modality matrix, rerun with verbatim error capture; evidence-003 is the first run retained), evidence-005 (protocol-003 production-shape gate, pre-switch), evidence-006 (post-switch real production bytes), validation/components/provider/evidence/baseline-offline-001 (alias-echo rule cases + encode reproduction).",
+  "non_goals": "No grounding or quality claims; no change to M01 batch-z evidence (bound to glm-5.3 and its instrument pair m01_run.py + runtime_observer.py O7); not M07 evidence."
+}

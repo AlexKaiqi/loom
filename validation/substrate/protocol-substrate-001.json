@@ -1,0 +1,111 @@
+{
+  "protocol": "substrate-v1-v4-001",
+  "date": "2026-09-15",
+  "status": "PREREGISTERED_DRAFT_BATCHES_NOT_EXECUTED",
+  "question": "在 macOS 宿主 + 钉定 Lima v2.2.0 Linux VM appliance 上：(V1) renameat2 RENAME_EXCHANGE 在共享挂载上可用、原子且内容无损；(V2) 宿主侧写入的 inotify 事件序列经真实 StableWindow 完整送达 VM 内观察者；(V3) 共享目录 dev/ino 物理身份跨 VM 重启稳定；(V4) X profile 钉定物（Engine 29.1.3、python 镜像 digest、seccomp 摘要、固定 volume 路径）在 VM 内可复现。本协议验证的是 macOS 基座承载完整 Runtime 的物理前提，不是 R/E/F/X 组件验收，更不是系统验收。",
+  "authority": {
+    "user_gate": "V1–V4 全部 PASS 之前不进入安装器装配流程（用户 2026-09-15 指令）",
+    "criteria_sources": "POSIX renameat2/inotify 语义；lore_files/install.py 检查链契约；lore_files/window_linux.py 观察窗契约；lore_execution/profile.json 钉定与 engine.py 预检语义；Lima 官方文档与上游 issue（判据来源不调用被测套件生成预期）",
+    "narrative": "design/g2/substrate-verification-protocol-2026-09-15.md",
+    "pinned_identity_survey": "design/g2/macos-host-substrate-survey-2026-09-15.md §7"
+  },
+  "environment": {
+    "host": "Apple Silicon macOS >= 13（vz 原生）；Intel 宿主不在范围；执行机身份逐批次记录",
+    "lima": {
+      "version": "v2.2.0",
+      "peeled_commit": "de0816ea4bdc5267b428ab21025889b8dd785526",
+      "observed_via": "git ls-remote 2026-09-15 + 浅克隆 rev-parse 一致"
+    },
+    "guest_image": {
+      "distro": "ubuntu-24.04 noble server release-20260705（选 noble 因 docker-ce 29.1.3 仅在 noble pool）",
+      "digest_amd64": "sha256:ffe6203da54deeb6db5d2a98a83f9ec8e55f149d3f7ba622e1abe5fa966ee3d6",
+      "digest_arm64": "sha256:7df0201546f75b8bcc1044594c806c35749421ad3c9bc1be2a3ab806cfae39cc",
+      "rule": "模板只保留带 digest 条目；fallback 无 digest 条目删除"
+    },
+    "engine": "docker-ce=29.1.3-1~ubuntu.24.04~noble（apt 池钉定；禁用 get.docker.com；与 lore_execution/profile.json engine_version 一致；28.0.1 为 profile previous 修订前值）",
+    "x_profile_pins": {
+      "image": "python@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea",
+      "seccomp_sha256": "9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294cae9c76",
+      "engine_version": "29.1.3",
+      "source": "lore_execution/profile.json（执行时逐字节读取记录）"
+    },
+    "mount_batches": {
+      "primary": "vmType: vz + mountType: virtiofs",
+      "comparison": "vmType: qemu + mountType: 9p（同架构 hvf；仅作备选路线证据）",
+      "mountInotify": "主判据批关闭（native 传播实测）；shim 对照批独立记录，不参与判据",
+      "rosetta": "禁用；Rosetta/binfmt 不得承载任何判据运行"
+    },
+    "templates": [
+      "scripts/substrate/lima/lore-substrate-virtiofs.yaml",
+      "scripts/substrate/lima/lore-substrate-9p.yaml"
+    ],
+    "template_sha256": "执行时计算并记录；与执行前预登记值不符即 S0 停止（套件为 DRAFT，本字段在套件冻结时回填）"
+  },
+  "batches": {
+    "V1_rename_exchange": {
+      "sample": 3,
+      "method": [
+        "共享挂载内构造 base/staged 两棵固定文件树",
+        "探针复用产品原语（lore_files.install _renameat2 绑定、util.identity、metadata.walk）执行 install.py 同型检查链：交换前 walk 等值 → renameat2(RENAME_EXCHANGE=2) → 目录 fsync → 交换后 walk+内容 sha256 等值 → dev/ino 互换核对 → errno 逐例记录"
+      ],
+      "pass_criteria": "3/3 返回 0；交换后内容与身份等值关系逐字节一致；无 #7687 静默数据丢失形状。任一例非 0 或内容不符即 FAIL",
+      "negative_controls": [
+        "VM 本地 ext4 路径同探针预期成功（证明探针可通过）",
+        "跨文件系统交换预期 EXDEV（证明 errno 路径真实执行）",
+        "预置篡改树预期被 walk 等值校验拒绝（证明校验有拒绝能力）"
+      ],
+      "comparison_batch": "qemu+9p 同判据独立登记，仅作修订路线输入，不改主批裁定",
+      "consequence_on_fail": "发布边界改 VM 内暂存区+单次 rename 换入（修订 F 契约并重验证），或评估容器卷驱动替代"
+    },
+    "V2_inotify_delivery": {
+      "sample": 3,
+      "method": [
+        "VM 内以真实 lore_files.window_linux.StableWindow 监视共享目录（递归 inotify+租约+丢事件掩码检测）",
+        "宿主侧固定写入器执行预注册序列：创建→写入 close→同目录 rename→删除→嵌套子目录创建；两端记录时间戳与事件集"
+      ],
+      "pass_criteria": "3/3 中 create/close_write/move/delete 四类与嵌套递归事件完整送达且无 Q_OVERFLOW 等丢事件掩码报告；任一类缺失即 FAIL（上游文档声称宿主删除不触发，本批实测该声称；delete 缺失直接否定 F BASE_CHANGED 语义，不得以实验性为由降标）",
+      "negative_controls": [
+        "无宿主写入静默窗预期零事件（拒绝恒真观察者）",
+        "观察窗未开启的影子采集预期为空（拒绝同源采集）"
+      ],
+      "comparison_batch": "mountInotify shim 对照运行独立记录（已知缺口：宿主删除、9p 嵌套），作边界发现，不参与判据",
+      "consequence_on_fail": "监视根移入 VM 内（输入经同步边界进入），或登记 F 共享挂载限制并缩小声明范围（保留原判据与影响分析）"
+    },
+    "V3_identity_stability": {
+      "sample": "重启 ×2（判据）+ delete/重建 ×1（观测项）",
+      "method": [
+        "固定文件集（两目录×三文件）在共享挂载与 VM 本地盘各建一份，记录 identity() manifest（dev/ino+sha256）",
+        "limactl stop→start 后复测比对 ×2；delete+重新实例化后第三次观测（只决定 manifest 再生成策略，不参与判据）"
+      ],
+      "pass_criteria": "2/2 重启后共享挂载文件集 dev/ino 与 sha256 逐项一致（本地盘集合同步核对作对照）；任何 dev 或 ino 漂移即 FAIL",
+      "negative_controls": [
+        "预置'重启后人为替换文件'反例运行一次，预期比对报告不符（证明比对器有拒绝能力）；不与正式样本混算"
+      ],
+      "consequence_on_fail": "deps 树与状态目录全部移入 VM 磁盘，仅 Surface 交付物经同步边界输出，manifest 绑定 VM 内路径"
+    },
+    "V4_engine_pin": {
+      "sample": 2,
+      "method": [
+        "全新实例内：docker version Server 段逐字段等值于 profile.json engine_version（与 engine.py 预检同一比较语义）",
+        "docker pull python@sha256:78387bc3… 后 RepoDigests 含该 digest；docker manifest inspect 记录 manifest 形状（观测项，arm64 修订输入）",
+        "seccomp 文件 sha256 等值于 profile.json",
+        "docker volume create lore-runtime-deps 后 /var/lib/docker/volumes/lore-runtime-deps/_data 存在（固定 volume 路径可复现）"
+      ],
+      "pass_criteria": "2/2 实例四项等值判定全部成立（manifest 形状为记录项）；任一不符即 FAIL",
+      "negative_controls": [
+        "预置 engine_version=28.0.1 的预检运行预期被拒绝（证明等值比较非恒真）"
+      ],
+      "consequence_on_fail": "Engine/digest 不符→回候选选型或按修订记录改 profile 钉定并重跑受影响 X 批次；volume 路径不符→deps 布局修订"
+    }
+  },
+  "stop_conditions": {
+    "S0_identity_gate": "模板/探针 sha256、Lima commit、镜像 digest、apt 包版本任一与钉定不符→不启动 VM，停止记录",
+    "S1_same_cause_failures": "同一判据同因连续失败 2 例（V1/V2）或 1 例且原因可复现（V3/V4）→停止推进转诊断；失败原状保留",
+    "S2_environment_blocked": "执行机不满足 macOS>=13/Apple Silicon/VZF，或 pinned 镜像与 apt 池不可达→BLOCKED（非 FAIL），附缺失条件",
+    "S3_fail_effect": "任一批 FAIL 即本协议范围整体 FAIL；按修订路线处理；修订后以新批次号重新预登记并全量重跑受影响批；不覆盖旧记录",
+    "S4_unrun": "未运行批记 UNVERIFIED；探索性对照批未运行不影响主批裁定，其结论亦不得计作 PASS"
+  },
+  "verification_boundary": "单台 Apple Silicon macOS 宿主 + 本协议钉定 appliance + 共享挂载形状；不外推其他 Lima 版本/镜像/挂载类型/宿主。观测在 VM 内真实 Linux 内核进行（/proc、cgroup、inotify、renameat2 本机观测），但这不放宽判据，也不把组件级或系统级结论提前授予本批。基座通过后，XN01–XN12、X031/X033 等既有 UNVERIFIED 项仍须按各自原协议重跑，不自动豁免。",
+  "non_goals": "不做安装器装配（V1–V4 全 PASS 前为门禁阻塞项）；不做 R/E/F/X 组件或整系统在基座上的重验（后续独立预登记）；不做性能基准宣称；不修改 lore_execution/profile.json 或 F/X 契约文本；Rosetta/binfmt 路线不承载判据。",
+  "arm64_amendment_note": "Apple Silicon 镜像钉定走 per-arch digest 表（本协议钉定即此形状：noble amd64/arm64 双 digest）；Rosetta 方案改变物理判据形状，仅登记不采纳。若后续改 profile 钉定内容，须按修订记录处理并重跑相关批次。"
+}

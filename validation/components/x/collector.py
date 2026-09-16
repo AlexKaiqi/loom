@@ -1,17 +1,21 @@
 """External Docker/OS collector for pre-registered X cases; never runs a Shell fallback."""
 from pathlib import Path
-import base64,hashlib,http.client,io,json,os,selectors,socket,subprocess,time,uuid
+import base64,hashlib,http.client,io,json,os,selectors,socket,subprocess,sys,time,uuid
 from oracle import archive,EvidenceError
 from runtime_observations import memory_limit_facts
 ROOT=Path(__file__).resolve().parents[3]
-ENV=json.loads((ROOT/'design/g3/x/environment.json').read_text())
+sys.path.insert(0,str(ROOT))
+from lore_execution.engine import DOCKER_CLI
+# Current platform facts come from the product profile (platform_revision
+# 2026-09-14 rebase); design/g3/x/environment.json stays the historical G3 record.
+ENV=json.loads((ROOT/'lore_execution/profile.json').read_text())
 class Collector:
  def __init__(self,out,fixture):
   self.out=out;self.fx=fixture;self.commands=[];self.serial=0;self.namespace=None;self.namespaces={};self.original_binding={};self.baseline_containers=self.ids('container');self.baseline_volumes=self.ids('volume')
-  profile=ROOT/ENV['seccomp']['path']
-  if hashlib.sha256(profile.read_bytes()).hexdigest()!=ENV['seccomp']['sha256']:raise EvidenceError('seccomp profile changed')
-  version=json.loads(self.run(['docker','version','--format','{{json .}}'])[1])
-  image=json.loads(self.run(['docker','image','inspect',ENV['image']])[1])[0]
+  profile=ROOT/'lore_execution/seccomp.json'
+  if hashlib.sha256(profile.read_bytes()).hexdigest()!=ENV['seccomp_sha256']:raise EvidenceError('seccomp profile changed')
+  version=json.loads(self.run([DOCKER_CLI,'version','--format','{{json .}}'])[1])
+  image=json.loads(self.run([DOCKER_CLI,'image','inspect',ENV['image']])[1])[0]
   if version['Server']['Version']!=ENV['engine_version'] or image['Id']!=ENV['image_id']:raise EvidenceError('fixed Engine/image differs')
  def run(self,argv,limit=16*1024*1024,timeout=10,check=True):
   n=self.serial;self.serial+=1;p=subprocess.Popen(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8','HOME':str(self.fx['root'])},close_fds=True);s=selectors.DefaultSelector();s.register(p.stdout,selectors.EVENT_READ,'stdout');s.register(p.stderr,selectors.EVENT_READ,'stderr');b={'stdout':bytearray(),'stderr':bytearray()};deadline=time.monotonic()+timeout;err=None
@@ -32,16 +36,16 @@ class Collector:
   if err or (check and rc):raise EvidenceError(err or f'command exit {rc}: '+bytes(b['stderr']).decode(errors='replace')[:1000])
   return rc,bytes(b['stdout']),bytes(b['stderr'])
  def ids(self,kind):
-  args=['docker','ps','-aq','--no-trunc'] if kind=='container' else ['docker','volume','ls','-q']
+  args=[DOCKER_CLI,'ps','-aq','--no-trunc'] if kind=='container' else [DOCKER_CLI,'volume','ls','-q']
   return sorted(self.run(args)[1].decode().split())
  def inspect(self,cid):
   if not isinstance(cid,str) or len(cid)!=64 or not all(c in '0123456789abcdef' for c in cid):raise EvidenceError('non-full Engine container id')
-  rc,b,_=self.run(['docker','inspect',cid],check=False)
+  rc,b,_=self.run([DOCKER_CLI,'inspect',cid],check=False)
   if rc:return None
   return json.loads(b)[0]
  def exec_inspect(self,eid):
   if not isinstance(eid,str) or len(eid)!=64 or not all(c in '0123456789abcdef' for c in eid):raise EvidenceError('non-full Engine exec id')
-  endpoint=json.loads(self.run(['docker','context','inspect'])[1])[0]['Endpoints']['docker']['Host']
+  endpoint=json.loads(self.run([DOCKER_CLI,'context','inspect'])[1])[0]['Endpoints']['docker']['Host']
   if not endpoint.startswith('unix://'):raise EvidenceError('fixed Linux Unix Engine endpoint required')
   class Unix(http.client.HTTPConnection):
    def connect(self):self.sock=socket.socket(socket.AF_UNIX);self.sock.settimeout(5);self.sock.connect(endpoint[7:])
@@ -50,19 +54,21 @@ class Collector:
   if len(by)>1048576:raise EvidenceError('Engine response cap')
   return json.loads(by) if z.status==200 else None
  def options(self,network='none'):
-  return ['--read-only','--cap-drop','ALL','--security-opt','no-new-privileges=true','--security-opt','seccomp='+str(ROOT/ENV['seccomp']['path']),'--network',network,'--memory','128m','--memory-swap','128m','--pids-limit','32','--cpus','.5','--shm-size','1m','--tmpfs','/tmp:rw,nosuid,nodev,noexec,size=1m,nr_inodes=64','--log-driver','none']
+  return ['--read-only','--cap-drop','ALL','--security-opt','no-new-privileges=true','--security-opt','seccomp='+str(ROOT/'lore_execution/seccomp.json'),'--network',network,'--memory','128m','--memory-swap','128m','--pids-limit','32','--cpus','.5','--shm-size','1m','--tmpfs','/tmp:rw,nosuid,nodev,noexec,size=1m,nr_inodes=64','--log-driver','none']
  def helper(self,args,limit=16*1024*1024):
   # Raw create+inspect+start+inspect+remove binds the actual helper lifetime/identity.
   owned=[x for x in self.ids('container') if x not in self.baseline_containers]
   if len(owned)>=2:raise EvidenceError('no reserved observer/helper slot; physical batch would exceed two containers')
   memory=sum(self.inspect(x)['HostConfig']['Memory'] for x in owned)
-  if memory+134217728>268435456:raise EvidenceError('observer/helper combined memory reservation unavailable')
-  cid=self.run(['docker','create',*self.options(),*args])[1].decode().strip()
+  # Cap scales with the case's declared task budget (2x); equals the
+  # historical v1 hardcode (2*134217728) — amendment-linux-browser-2026-09-15.
+  if memory+134217728>2*self.fx['request']['budgets']['memory_bytes']:raise EvidenceError('observer/helper combined memory reservation unavailable')
+  cid=self.run([DOCKER_CLI,'create',*self.options(),*args])[1].decode().strip()
   try:
-   before=self.inspect(cid);rc,by,err=self.run(['docker','start','-a',cid],limit=limit,check=False);after=self.inspect(cid)
+   before=self.inspect(cid);rc,by,err=self.run([DOCKER_CLI,'start','-a',cid],limit=limit,check=False);after=self.inspect(cid)
    if rc:raise EvidenceError('observer helper exit '+str(rc)+': '+err.decode(errors='replace')[:500])
    return by,{'before':before,'after':after}
-  finally:self.run(['docker','rm','-f',cid],check=False)
+  finally:self.run([DOCKER_CLI,'rm','-f',cid],check=False)
  def process_facts(self,pid,namespace,execpid):
   code=r"""import os,json,pathlib
 P=pathlib.Path;pid=PID;epid=EPID;ns=NAMESPACE
@@ -145,7 +151,7 @@ print(json.dumps({'namespace':ns,'namespace_pids':sorted(found),'task_status':st
    if len(mounts)!=1:raise EvidenceError('unique actual /work volume missing')
    m=mounts[0]
    if m['Type']!='volume' or m['Name']!=binding.get('volume_id'):raise EvidenceError('actual private volume binding mismatch')
-   vol=json.loads(self.run(['docker','volume','inspect',m['Name']])[1])[0]
+   vol=json.loads(self.run([DOCKER_CLI,'volume','inspect',m['Name']])[1])[0]
    if vol['Driver']!='local' or vol['Mountpoint']!=m['Source']:raise EvidenceError('volume source differs')
    physical['volume']=vol
    if state['Running']:

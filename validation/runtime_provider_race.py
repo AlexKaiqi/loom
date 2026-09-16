@@ -14,7 +14,7 @@ def worker(out,index):
   if event in ('socket.connect','socket.getaddrinfo'):raise AssertionError('race is noHTTP')
  sys.addaudithook(audit)
  c=ControlStore(out/'R.sqlite',{'runtime':{'namespaces':['n'],'roles':['runtime','submit','admin']}},reference_checker=lambda ref,purpose,expected:purpose=='harness')
- budget=dict(max_requests=1,max_input_tokens=1024,max_output_tokens_per_request=32,max_request_body_bytes=1024,max_seconds=15)
+ budget=dict(max_requests=1,max_input_tokens=1024,max_output_tokens_per_request=32,max_request_body_bytes=1024,max_seconds=15,reasoning_effort='medium')
  owner=ProviderOwner(c,out/'provider',dict(scheme='http',host='127.0.0.1',port=1),principal='runtime',budget=budget,timeout=2)
  scope=dict(session_id='race',operation_id='race-parent',response_entry_id='response-'+index,session_scope=dict(namespace='n',surface_id='surface',session_id='race',session_generation=1),harness_ref=compact({'owner':'F','sha256':'a'*64}),capability_ref=compact({'owner':'F','sha256':'b'*64}),input_ref=dict(id='input',sha256='c'*64),source_result_ref=None)
  raw=json.dumps([scope['session_scope'],scope['operation_id'],scope['response_entry_id']],sort_keys=True,separators=(',',':')).encode();frame=dict(type='provider.request',session_id='race',operation_id='race-parent',response_entry_id=scope['response_entry_id'],effect_id='s-provider-'+sha(raw),payload=dict(systemPrompt='race fixture',messages=[dict(role='user',content='text')],tools=[SHELL]))
@@ -45,7 +45,7 @@ def main():
  c.accept('runtime',dict(id='race-parent',namespace='n',kind='invocation',payload=dict(harness_ref={'owner':'F','sha256':'a'*64},capability_ref={'owner':'F','sha256':'b'*64},source_result_ref=None)));c.claim('worker',time.monotonic());c.close()
  processes=[]
  for index in ['A','B']:
-  argv=[sys.executable,'-B',str(workspace/Path(__file__).relative_to(ROOT)),'--worker',str(actual),'--index',index];processes.append((index,subprocess.Popen(argv,cwd=workspace,env=dict(PATH='/usr/bin:/bin',LANG='C.UTF-8',PYTHONDONTWRITEBYTECODE='1'),stdout=subprocess.PIPE,stderr=subprocess.PIPE)))
+  argv=[sys.executable,'-B',str(workspace/Path(__file__).relative_to(ROOT)),'--worker',str(actual),'--index',index];processes.append((index,subprocess.Popen(argv,cwd=workspace,env=dict(PATH='/usr/bin:/bin:/usr/sbin',LANG='C.UTF-8',PYTHONDONTWRITEBYTECODE='1'),stdout=subprocess.PIPE,stderr=subprocess.PIPE)))
  deadline=time.monotonic()+5
  while len(list(actual.glob('started-*')))<2 and time.monotonic()<deadline:time.sleep(.01)
  (actual/'GO').write_text('start both actual processes')

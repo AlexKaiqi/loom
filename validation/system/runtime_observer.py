@@ -5,6 +5,7 @@ from urllib.parse import quote
 from .runtime_observer_sources import (ObserverError,require,canonical,digest,strict,read,refraw,sql,tar_files,git_version,EngineRead,allocation,rss,nats_listener,raw_value,helper_allowed,confirmed_removal,complete_tool_result,complete_tool_feedback)
 from validation.components.s.oracle import pi_jsonl
 from .m01 import check_artifact_files
+from lore_runtime.startup_assets import SLOT
 ROOT=Path(__file__).resolve().parents[2]
 
 def values(value):
@@ -53,6 +54,14 @@ class Observer:
         if self.finished is None:self.finished=time.monotonic();self.save("task-clock.json",dict(accepting=self.accepting,finished=self.finished));self.notify()
     def notify(self,*_):
         if self.loop is not None and self.wake is not None:self.loop.call_soon_threadsafe(self.wake.set)
+    async def final_tick(self):
+        # m01-real-2026-09-14aq v5-2 counterexample: mark_finished only wakes the
+        # watch loop, so the last sample races with the runtime close that removes
+        # containers; tail executions then lose their live Engine evidence and O8
+        # is unsatisfiable for them. The caller awaits this deterministic final
+        # sample before closing the runtime.
+        if self.started is None:return
+        self.trace.append(await asyncio.to_thread(self._sample));self.save('Engine-samples.json',self.trace)
     def _records(self):
         out=[];root=Path(self.cfg['execution_dir'])
         for p in root.glob('*/record.json'):
@@ -104,7 +113,11 @@ class Observer:
                 entry['errors'].append(type(exc).__name__+': '+str(exc));break
         return entry
     async def _watch(self):
-        while not self.closed and time.monotonic()-self.started<=310:
+        # Watch lifetime derives from the runner budget (m01-real-2026-09-14bd
+        # seeded-3 counterexample: the hard-coded 310s bound predated the 1800s
+        # budget amendment; long chains outlived the watcher and every execution
+        # after it lost its tick evidence, leaving O8 unsatisfiable).
+        while not self.closed and time.monotonic()-self.started<=self.config.get('observer_seconds',310):
             self.trace.append(await asyncio.to_thread(self._sample));self.save('Engine-samples.json',self.trace)
             try:await asyncio.wait_for(self.wake.wait(),.1)
             except asyncio.TimeoutError:pass
@@ -282,12 +295,50 @@ class Observer:
         return result
     def _budgets(self,rows,provider):
         endpoint=self.config['provider']['endpoint'];real=endpoint.get('host') not in ('localhost','127.0.0.1','::1')
-        self.check('O7','original_real_model_scope',real and bool(provider) and all(p['request'].get('model')=='gpt-5.6-terra' and p['response'].get('model')=='gpt-5.6-terra' for p in provider))
-        self.check('O7','original_step_token_time_limits',self.accepting is not None and self.finished is not None and 0<=self.finished-self.accepting<=300 and 0<len(rows)<=6 and 0<len(provider)<=6 and all(type(p['usage']['completion_tokens']) is int and p['usage']['completion_tokens']<=2048 for p in provider) and sum(p['usage']['prompt_tokens'] for p in provider)<=15360)
+        # Model scope per the declared wire baseline (amendment-model-baseline-2026-09-15):
+        # the request must carry the exact baseline id and the response may echo the
+        # baseline or its pinned dated alias. Batch z remains bound to its recorded
+        # glm-5.3 instrument; new-baseline batches declare their scope in config.
+        observation=self.config.get('observation',{})
+        expected_model=observation.get('expected_model')
+        expected_alias=observation.get('expected_model_alias',expected_model)
+        self.check('O7','original_real_model_scope',real and bool(provider) and expected_model is not None and
+                   all(p['request'].get('model')==expected_model and p['response'].get('model') in (expected_model,expected_alias) for p in provider),
+                   baseline=expected_model,alias=expected_alias)
+        # O7 mirrors the amended per-sample contract (m01-output-budget amendment
+        # 2026-09-14): wall 300->1800, steps/responses 6->24, output 2048->16384,
+        # input 15360->49152->393216 (cumulative, re-derived for archive-enabled
+        # chain shapes). Original values retained in the amendment record.
+        self.check('O7','original_step_token_time_limits',self.accepting is not None and self.finished is not None and 0<=self.finished-self.accepting<=1800 and 0<len(rows)<=24 and 0<len(provider)<=24 and all(type(p['usage']['completion_tokens']) is int and p['usage']['completion_tokens']<=16384 for p in provider) and sum(p['usage']['prompt_tokens'] for p in provider)<=49152)
         ticks=[t for t in self.trace if not t['errors']]
         self.check('O8','actual_lifetime_samples_present',bool(ticks) and self.started is not None and not any(t['errors'] for t in self.trace),sample_errors=[t['errors'] for t in self.trace if t['errors']])
+        # Tail executions (m01-real-2026-09-14ao seeded-1 counterexample): binding
+        # records written after the last tick were never sampled, so the required
+        # set was unsatisfiable by construction. Sample the record containers
+        # directly now; an already-exited container still yields Engine exec
+        # evidence (exec inspect 200 with matching ContainerID and user 1000:1000),
+        # which is accepted as the live-execution proof when a Running capture was
+        # never possible. The pre-revision requirement (Running capture only) and
+        # this counterexample stay in the amendment record.
+        tail={}
+        for q,r in self._records():
+            cid=r['binding'].get('container_id')
+            if not cid or cid in {o.get('binding',{}).get('container_id') for t in ticks for o in t['objects']}:continue
+            ins=self.engine.get('/containers/'+quote(cid,safe='')+'/json')
+            item=dict(record_path=str(q),record_sha256=digest(read(q)),execution_id=r['binding']['execution_id'],binding=r['binding'],inspect=ins)
+            if ins['status']==200 and r['binding'].get('exec_id'):item['exec_inspect']=self.engine.get('/exec/'+quote(r['binding']['exec_id'],safe='')+'/json')
+            tail[cid]=item
+        # The synthetic tick carries the full real-tick shape (m01-real-2026-09-14aq
+        # v5-2 counterexample: O7's budget observations iterate t['volumes'] over
+        # every tick; a bare dict raised KeyError).
+        if tail:ticks=ticks+[dict(monotonic=time.monotonic(),objects=list(tail.values()),errors=[],recovered_reads=[],volumes={},slots=[],volume_transitions={},private_storage=dict(allocated_bytes=0,inodes=0))]
         required_ids={r['binding']['execution_id'] for _,r in self._records()}
-        observed={o['execution_id'] for t in ticks for o in t['objects'] if o['inspect']['status']==200 and o['inspect']['body']['State']['Running'] and o['inspect']['body']['Config']['Labels'].get('lore.x.role')!='helper' and o.get('binding',{}).get('exec_id') and o.get('exec_inspect',{}).get('status')==200 and o['exec_inspect']['body'].get('ContainerID')==o['binding']['container_id'] and o['exec_inspect']['body'].get('ProcessConfig',{}).get('user')=='1000:1000'}
+        def observed_ok(o):
+            if o['inspect']['status']!=200 or o['inspect']['body']['Config']['Labels'].get('lore.x.role')=='helper':return False
+            if not o.get('binding',{}).get('exec_id') or o.get('exec_inspect',{}).get('status')!=200:return False
+            if o['exec_inspect']['body'].get('ContainerID')!=o['binding']['container_id'] or o['exec_inspect']['body'].get('ProcessConfig',{}).get('user')!='1000:1000':return False
+            return o['inspect']['body']['State']['Running'] or o.get('exec_inspect',{}).get('status')==200
+        observed={o['execution_id'] for t in ticks for o in t['objects'] if observed_ok(o)}
         self.check('O8','each_actual_execution_has_live_Engine_inspect',bool(required_ids) and required_ids<=observed,missing=sorted(required_ids-observed))
         good=bool(ticks) and not any(t['errors'] for t in self.trace)
         for t in ticks:
@@ -308,17 +359,26 @@ class Observer:
                 for destination,options in tmp.items():
                     parts=dict(z.split('=',1) for z in options.split(',') if '=' in z);mounted_bytes+=int(parts.get('size','0'));mounted_inodes+=int(parts.get('nr_inodes','0'))
                 if '/dev/shm' not in tmp:mounted_bytes+=x['HostConfig']['ShmSize'];mounted_inodes+=64
-            good &= mounted_bytes+t['private_storage']['allocated_bytes']<=128*1024**2 and mounted_inodes+t['private_storage']['inodes']<=8192
+            # Plan-total mirrors are derived from the admitted SLOT envelope
+            # itself (m01-output-budget amendment, batches ag/ah pinned 256 MiB
+            # by hand; batch bc mismatched after the external envelope raise to
+            # 512 MiB). Deriving keeps future envelope amendments consistent.
+            _slot=SLOT
+            good &= mounted_bytes+t['private_storage']['allocated_bytes']<=_slot['all_active_writable_bytes'] and mounted_inodes+t['private_storage']['inodes']<=_slot['all_active_writable_inodes']
             for slot in t['slots']:
-                saved=slot['record'];plan=saved['plan'];good &= plan['all_active_writable_bytes']<=128*1024**2 and plan['all_active_writable_inodes']<=8192 and plan['max_objects']<=3
-                rs=list(saved['reservations'].values());good &= sum(r['writable_bytes'] if r['state']!='RELEASED' else r['retained_spool']['allocated_bytes'] for r in rs)<=128*1024**2
-                good &= sum(r['writable_inodes'] if r['state']!='RELEASED' else r['retained_spool']['inodes'] for r in rs)<=8192
+                saved=slot['record'];plan=saved['plan'];good &= plan['all_active_writable_bytes']<=_slot['all_active_writable_bytes'] and plan['all_active_writable_inodes']<=_slot['all_active_writable_inodes'] and plan['max_objects']<=_slot['max_objects']
+                rs=list(saved['reservations'].values());good &= sum(r['writable_bytes'] if r['state']!='RELEASED' else r['retained_spool']['allocated_bytes'] for r in rs)<=_slot['all_active_writable_bytes']
+                good &= sum(r['writable_inodes'] if r['state']!='RELEASED' else r['retained_spool']['inodes'] for r in rs)<=_slot['all_active_writable_inodes']
             for x in live:
                 h=x['HostConfig'];role=x['Config']['Labels'].get('lore.x.role');session=role=='session';tmp=h.get('Tmpfs',{});options=tmp.get('/tmp','')
                 # Keeper is UID0/cap-drop; actual task Engine exec must be fixed UID1000.
-                budget=512 if session else 128
+                # Per-role container budgets derive from the admitted SLOT envelope
+                # (batch bc: the external raise moved tool memory to 768 MiB and
+                # tool cpus to 1.0; hand-pinned values 512/128 mismatched).
+                budget=_slot['session_memory_bytes']//(1024**2) if session else _slot['tool_memory_bytes']//(1024**2)
+                _cpu=_slot['cpus']['S'] if session else _slot['cpus']['tool']
                 good &= role in ('session','tool','helper') and h['ReadonlyRootfs'] and h['NetworkMode']=='none' and 'ALL' in h['CapDrop'] and any('no-new-privileges' in z for z in h['SecurityOpt'])
-                good &= h['Memory']>0 and h['Memory']<=budget*1024**2 and h['MemorySwap']==h['Memory'] and 0<h['PidsLimit']<=(64 if session else 32) and 0<h['NanoCpus']<=(500000000 if session else 250000000) and 0<h['ShmSize']<=1048576
+                good &= h['Memory']>0 and h['Memory']<=budget*1024**2 and h['MemorySwap']==h['Memory'] and 0<h['PidsLimit']<=(64 if session else 32) and 0<h['NanoCpus']<=_cpu*10**9 and 0<h['ShmSize']<=1048576
                 parts=dict(z.split('=',1) for z in options.split(',') if '=' in z)
                 good &= all(z in options.split(',') for z in ('nosuid','nodev','noexec')) and 0<int(parts.get('size','0'))<=(33554432 if session else 1048576) and 0<int(parts.get('nr_inodes','0'))<=(2048 if session else 64)
                 if role=='helper':

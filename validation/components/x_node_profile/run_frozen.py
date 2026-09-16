@@ -11,15 +11,15 @@ from process_group import cleanup
 
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('--batch',required=True);ap.add_argument('--module',default='lore_execution.adapter');ap.add_argument('--case');a=ap.parse_args()
+ ap=argparse.ArgumentParser();ap.add_argument('--batch',required=True);ap.add_argument('--module',default='lore_execution.adapter');ap.add_argument('--case');ap.add_argument('--evidence-root',default=None);a=ap.parse_args()
  if not a.batch.replace('-','').isalnum():ap.error('fresh batch')
- out=ROOT/'validation/components/x_node_profile/evidence'/a.batch;out.mkdir(parents=True,exist_ok=False);ws=out/'workspace';rows=[];result={'status':'INVALID','actual_runs':0,'started':time.time(),'module':a.module,'case':a.case};process=None
+ evidence_root=Path(a.evidence_root) if a.evidence_root else ROOT/'validation/components/x_node_profile/evidence';out=evidence_root/a.batch;out.mkdir(parents=True,exist_ok=False);ws=out/'workspace';rows=[];result={'status':'INVALID','actual_runs':0,'started':time.time(),'module':a.module,'case':a.case};process=None
  def persist():(out/'result.json').write_text(json.dumps(result,indent=2)+'\n')
  try:
   source=capture(a.module,[ROOT,Path(__file__).parent],ws)
   if source is None:result.update(status='MISSING_COMPONENT',exit_code=4);persist();return 4
   paths=[*Path(__file__).parent.glob('*.py'),*Path(__file__).parent.glob('*.mts'),*list((ROOT/'design/g3/x-node-profile').glob('*.json')),*list((ROOT/'design/g3/x-node-profile').glob('*.md'))]
-  paths += [*list((ROOT/'validation/components/x').glob('*.py')),*list((ROOT/'design/g3/x').glob('*.json')),ROOT/'research/docker-linux/seccomp.json',ROOT/'validation/components/s/probe-public.mts',ROOT/'validation/components/v/source_snapshot.py',ROOT/'validation/components/r/process_group.py']
+  paths += [*list((ROOT/'validation/components/x').glob('*.py')),*list((ROOT/'design/g3/x').glob('*.json')),ROOT/'lore_execution/seccomp.json',ROOT/'validation/components/s/probe-public.mts',ROOT/'validation/components/v/source_snapshot.py',ROOT/'validation/components/r/process_group.py']
   original=ROOT/a.module.split('.')[0]
   if original.is_dir():paths += [p for p in original.rglob('*')if p.is_file()and p.suffix!='.py'and '__pycache__'not in p.parts]
   for p in paths:

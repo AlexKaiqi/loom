@@ -8,6 +8,12 @@ import select
 import socket
 import time
 
+# darwin defaults to spawn, which would re-run the unprotected runner module in
+# the child. The collector child is a plain socket/pipe loop, so fork is safe
+# on every supported Unix platform.
+if multiprocessing.get_start_method(allow_none=True) != "fork":
+    multiprocessing.set_start_method("fork", force=True)
+
 
 def _serve(pipe, directory):
     out = Path(directory)

@@ -12,7 +12,7 @@ def prepare(base,cut,repeat):
     for key in ('surface','workspace','private','canary','out'):sample[key]=str(out/Path(sample[key]).relative_to(previous))
     sample.update(id=out.name,cut=cut,repeat=repeat)
     (Path(sample['workspace'])/'effects.log').write_bytes(b'')
-    program="from pathlib import Path; import os; p=Path('effects.log'); f=p.open('ab'); f.write(b'M03_EFFECT\n'); f.flush(); os.fsync(f.fileno()); f.close(); print(p.read_text(),end='')"
+    program="from pathlib import Path; import os; p=Path('effects.log'); f=p.open('ab'); f.write(b'M03_EFFECT\\n'); f.flush(); os.fsync(f.fileno()); f.close(); print(p.read_text(),end='')"
     sample['effect_marker']='M03_EFFECT';sample['script']='python3 -c '+shlex.quote(program)
     message=dict(role='assistant',content='The finite recovery fixture is complete.')
     finish='stop'

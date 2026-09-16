@@ -1,0 +1,17 @@
+{
+  "protocol": "provider-compatibility-003",
+  "date": "2026-09-15",
+  "question": "Does deepseek-v4-flash accept the exact production request shape (model, n=1, stream=false, max_completion_tokens=16384, parallel_tool_calls=false, reasoning_effort=medium, messages, tools=[shell]) that lore_provider.request.encode_request emits after the authorized baseline switch? protocol-001/002 never sent reasoning_effort or parallel_tool_calls, so the switch is blocked until this passes.",
+  "source_of_endpoint": "user ~/.env VOLCENGINE_BASE_URL (openai-compatible), credential read at runtime from user ~/.env only",
+  "credential_handling": "Key is read from the user home .env at runtime, used only as a Bearer header, never printed, never written to evidence or logs. Bodies contain fixed probe text and the public shell tool schema; no task data or secrets.",
+  "method": [
+    "1. Build the production body shape independently (field set identical to the post-switch encode_request output; SHELL schema imported from lore_provider.request; model='deepseek-v4-flash').",
+    "2. Probe A (production_text): fixed user text 'Reply with exactly the word OK'; expect HTTP 200, object=chat.completion, finish_reason=stop, usage total=prompt+completion.",
+    "3. Probe B (production_toolcall): fixed instruction to call the shell tool once with target=workspace and script=echo hi; expect finish_reason=tool_calls with one function call name=shell and arguments {target, script}.",
+    "4. Record the exact response model echo. The echo must start with 'deepseek-v4-flash'; the observed exact alias becomes the pinned MODEL_ALIAS constant in the amendment (alias rotation requires a new amendment and fails loudly by design).",
+    "5. Record raw request/response bytes, http status, usage, reasoning token accounting.",
+    "6. The encode path prepends the system message from context.systemPrompt, which Probe A omitted; therefore after the product switch (a) the offline baseline check must reproduce Probe A's production field set via encode_request for the same intent, and (b) probe_005 must send the real encode_request bytes (system message included) live and expect the same acceptance criteria.",
+  ],
+  "pass_criteria": "Probes A and B accepted with the binding criteria above and echoed model starting with 'deepseek-v4-flash'. This is the gate for the 2026-09-15 baseline switch amendment.",
+  "non_goals": "No grounding or quality claims; no change to M01 batch-z evidence (bound to glm-5.3); not M07 evidence."
+}

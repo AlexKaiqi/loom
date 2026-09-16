@@ -43,6 +43,10 @@ def dependencies(out):
         if os.readlink(item['source']) != item['link']: raise ValueError('fixed dependency link changed')
         target.symlink_to(item['link'])
     config = root / 'lore/config/tsconfig.json'; config.parent.mkdir(parents=True, exist_ok=True)
+    # The pinned design tsconfig replaces any copy that arrived through the tree
+    # (both are equal in a correct build); unlink first because the copied file
+    # is already read-only and ordinary (non-root) owners cannot overwrite it.
+    config.unlink(missing_ok=True)
     config.write_bytes((DESIGN / 'tsconfig.json').read_bytes()); config.chmod(0o444)
     for p in sorted([root, *root.rglob('*')], key=lambda p: len(p.parts), reverse=True):
         if p.is_dir() and not p.is_symlink(): p.chmod(0o555)

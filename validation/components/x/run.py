@@ -92,6 +92,10 @@ def main():
      op=step['op'];arg=step['args']
      if op in ('invoke','fault_invoke'):
       method=arg['method'];extra=copy.deepcopy(arg.get('arguments',{}));req=copy.deepcopy(fx['request']);req.update(extra.pop('request_overrides',{}))
+      from lore_execution.requests import PROFILES as _REG
+      for _k,_v in list(req.items()):
+       if isinstance(_v,str) and _v.startswith('@profile_sha256:'):req[_k]=_REG[_v.split(':',1)[1]]['profile_sha256']
+      fx['request']=req
       if method=='execute_conflicting':
        method='execute';field=params['conflict_field'];field={'script':'script_base64','stdin':'stdin_base64'}.get(field,field)
        val=req.get(field)
@@ -137,7 +141,7 @@ def main():
      else:raise EvidenceError('unimplemented driver action '+op)
     row['assessment']=assess(case['expected'],frames,fx['values'],params);row['status']='PASS' if row['assessment']['pass'] else 'FAIL'
    except Missing as e:row['status']='MISSING_DEPENDENCY';row['error']=str(e)
-   except Exception as e:row['status']='FAIL';row['error']=repr(e)
+   except Exception as e:row['status']='FAIL';row['error']=repr(e)+(' missing='+str(e.filename) if getattr(e,'filename',None) else '')
    finally:
     if adapter:adapter.stop()
     if observer:

@@ -12,8 +12,8 @@ def run(batch):
   data=p.read_bytes();(source/p.name).write_bytes(data);inputs[str(p)]=hashlib.sha256(data).hexdigest()
  (out/'check.py').write_bytes(Path(__file__).read_bytes())
  scope=dict(session_id='host-test-session',operation_id='host-test-operation',response_entry_id='original-response',**{k:dict(id=k,sha256='a'*64)for k in ('input_ref','harness_ref','capability_ref')})
- intent=dict(binding=scope,model='gpt-5.6-terra',max_completion_tokens=32,context=dict(systemPrompt='public transport fixture',messages=[dict(role='user',content='text only')],tools=[SHELL]))
- body=json.dumps(dict(id='public-response',object='chat.completion',created=0,model='gpt-5.6-terra',choices=[dict(index=0,message=dict(role='assistant',content='Complete fixture.'),finish_reason='stop')],usage=dict(prompt_tokens=3,completion_tokens=2,total_tokens=5))).encode()
+ intent=dict(binding=scope,model='deepseek-v4-flash',max_completion_tokens=32,context=dict(systemPrompt='public transport fixture',messages=[dict(role='user',content='text only')],tools=[SHELL]))
+ body=json.dumps(dict(id='public-response',object='chat.completion',created=0,model='deepseek-v4-flash',choices=[dict(index=0,message=dict(role='assistant',content='Complete fixture.'),finish_reason='stop')],usage=dict(prompt_tokens=3,completion_tokens=2,total_tokens=5))).encode()
  rows=[];records=[];delay=[0]
  class Handler(http.server.BaseHTTPRequestHandler):
   def log_message(self,*args):pass

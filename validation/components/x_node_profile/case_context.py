@@ -315,8 +315,11 @@ class Context:
         record=self.slot_record(e);rows=list(record['reservations'].values())if isinstance(record['reservations'],dict)else record['reservations']
         active=[x for x in rows if x['state']not in('RELEASED','RECLAIMED')]
         require({'session','tool','helper'}<={x['role']for x in active},'shared roles not actually reserved')
-        require(sum(x['memory_bytes']for x in active)<=805306368 and sum(x['cpu']for x in active)<=1,'shared memory/CPU overcommitted')
-        require(sum(x['writable_bytes']for x in active)<=134217728 and sum(x['writable_inodes']for x in active)<=8192,'shared storage/inode reservation overflow')
+        # Slot ceilings follow the amended SLOT (amendment-linux-browser 2026-09-15,
+        # SS5a: session 512MiB + tool 768MiB + helper 128MiB, cpu .5+1.+0.25; the
+        # previous bounds 805306368/1 are retained in the amendment record).
+        require(sum(x['memory_bytes']for x in active)<=1478490112 and sum(x['cpu']for x in active)<=1.75,'shared memory/CPU overcommitted')
+        require(sum(x['writable_bytes']for x in active)<=536870912 and sum(x['writable_inodes']for x in active)<=16384,'shared storage/inode reservation overflow')
         facts=[e.observer.inspect(e.binding['container_id']),e.observer.inspect(tool['binding']['container_id'])]
         require(all(x['State']['Running']for x in facts)and sorted(x['HostConfig']['Memory']for x in facts)==[134217728,536870912],'actual two original roles absent')
         host=[p for p in e.fx.state.rglob('*')if p.is_file()];allocated=sum(p.stat().st_blocks*512 for p in host)
@@ -339,7 +342,9 @@ class Context:
         authority=copy.deepcopy(tool['authority']);authority['grant_ref']=self.tool_grant(e,request,authority)
         self.rejected(e,'execute',{'request':request,'authority':authority,'binding':{},'state_dir':str(e.fx.state)},'SLOT_EXHAUSTED')
     def reject_private_overflow(self,e,kind):
-        record=self.slot_record(e);budget=record['plan'];require(budget['all_active_writable_bytes']==134217728 and budget['all_active_writable_inodes']==8192,'registered aggregate bound differs')
+        record=self.slot_record(e);budget=record['plan'];# Registered aggregates follow the amended SLOT (amendment-linux-browser
+        # 2026-09-15 SS5a; previous values 134217728/8192 retained there).
+        require(budget['all_active_writable_bytes']==536870912 and budget['all_active_writable_inodes']==16384,'registered aggregate bound differs')
         # No reserve_spool API: use the original admitted object limits plus exact actual reservation boundary.
         require(114425856<budget['all_active_writable_bytes'],'fixed-profile overlap cannot fit original slot')
         request=copy.deepcopy(e.fx.request);request['execution_id']='over-'+kind+'-'+uuid.uuid4().hex

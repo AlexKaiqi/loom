@@ -30,9 +30,9 @@ async def execute(samples):
     return results
 
 def main():
-    ap=argparse.ArgumentParser();ap.add_argument('--batch',required=True);ap.add_argument('--execute',action='store_true');a=ap.parse_args()
+    ap=argparse.ArgumentParser();ap.add_argument('--batch',required=True);ap.add_argument('--execute',action='store_true');ap.add_argument('--evidence-root',default=None);a=ap.parse_args()
     if not a.batch or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_' for c in a.batch):ap.error('simple finite batch name required')
-    out=ROOT/'validation/runtime_continuation/evidence'/a.batch;out.mkdir(parents=True,exist_ok=False);bound=capture(out)
+    evidence_root=Path(a.evidence_root) if a.evidence_root else ROOT/'validation/runtime_continuation/evidence';out=evidence_root/a.batch;out.mkdir(parents=True,exist_ok=False);bound=capture(out)
     for p in (ROOT/'validation/runtime_continuation').glob('*.py'):ast.parse(p.read_text(),filename=str(p))
     spec=json.loads((ROOT/'validation/runtime_continuation/cases.json').read_bytes());assert spec['repeats']==3 and [x['repeat'] for x in spec['cases']]==[1,2,3]
     samples=[prepare(out,i) for i in (1,2,3)];save(out/'prepared-samples.json',samples)

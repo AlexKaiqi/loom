@@ -26,9 +26,9 @@ async def execute(samples,spec):
     return rows
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--batch',required=True);p.add_argument('--execute',action='store_true');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--batch',required=True);p.add_argument('--execute',action='store_true');p.add_argument('--evidence-root',default=None);a=p.parse_args()
     if not a.batch or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_' for c in a.batch):p.error('simple finite batch ID required')
-    out=ROOT/'validation/runtime_recovery/evidence'/a.batch;out.mkdir(parents=True,exist_ok=False)
+    evidence_root=Path(a.evidence_root) if a.evidence_root else ROOT/'validation/runtime_recovery/evidence';out=evidence_root/a.batch;out.mkdir(parents=True,exist_ok=False)
     rows=capture(out);spec=json.loads((ROOT/'validation/runtime_recovery/cases.json').read_bytes())
     original=json.loads((ROOT/'design/g3/system/cases.json').read_bytes());save(out/'original-M03.json',next(x for x in original['cases'] if x['id']=='M03'))
     assert spec['repeats']==3 and [c['cut'] for c in spec['cases']]==list(CUTS)

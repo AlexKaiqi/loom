@@ -175,7 +175,13 @@ async def execute_sample(rt, sample, config, initial_refs, observer):
             },
         }
         # Original M01 sample clock begins before first explicit acceptance.
-        deadline = time.monotonic() + 300
+        # 2026-09-14 (m01-output-budget amendment, batch-af counterexample): the
+        # whole-chain drive budget was the third 300-second deadline (besides the
+        # node step deadline and the S scope budget). Archive-enabled real chains
+        # now run 8+ invocations; the runner abandoned the chain at start+300s
+        # exactly and sealed mid-notification-step. 300 -> 900, still inside the
+        # observed O7 wall limit of 1800.
+        deadline = time.monotonic() + 900
         observer.mark_accepting()
         accepting = True
         replies["accepted"] = rt.start(cfg["principal"], request)
@@ -188,6 +194,10 @@ async def execute_sample(rt, sample, config, initial_refs, observer):
         observer.mark_finished()
         accepting = False
         replies["query"] = rt.query(cfg["principal"], request_id)
+        # After query (m01-real-2026-09-14as counterexample: execution records
+        # created during query/close landed after an earlier final sample) and
+        # before close removes the containers.
+        await observer.final_tick()
     except Exception as error:
         failure = error
     finally:

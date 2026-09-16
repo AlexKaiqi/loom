@@ -26,13 +26,13 @@ def worker(out):
    with c._lock:
     matches=[dict(row) for row in c.db.execute("SELECT * FROM requests WHERE kind='provider_transport'") if json.loads(row['payload_json']).get('request_sha256')==sha(raw)]
    need(len(matches)==1 and matches[0]['phase']=='issued','HTTP entered before original R dispatch')
-   body=json.dumps(dict(id='response-'+str(index),object='chat.completion',created=0,model='gpt-5.6-terra',choices=[dict(index=0,message=dict(role='assistant',content='original response'),finish_reason='stop')],usage=dict(prompt_tokens=3 if index==0 else 10000,completion_tokens=2,total_tokens=5 if index==0 else 10002))).encode()
+   body=json.dumps(dict(id='response-'+str(index),object='chat.completion',created=0,model='deepseek-v4-flash',choices=[dict(index=0,message=dict(role='assistant',content='original response'),finish_reason='stop')],usage=dict(prompt_tokens=3 if index==0 else 10000,completion_tokens=2,total_tokens=5 if index==0 else 10002))).encode()
    (out/('http-'+str(index)+'-request.body')).write_bytes(raw);(out/('http-'+str(index)+'-response.body')).write_bytes(body)
    calls.append(dict(request_sha256=sha(raw),response_sha256=sha(body),R_request_id=matches[0]['id'],phase=matches[0]['phase'],authorization_correct=self.headers.get('Authorization')=='Bearer public-owner-fixture'))
    self.send_response(200);self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
  server=http.server.HTTPServer(('127.0.0.1',0),Handler);thread=threading.Thread(target=server.serve_forever);thread.start()
  endpoint=dict(scheme='http',host='127.0.0.1',port=server.server_port);root=out/'provider'
- budget=dict(max_requests=1,max_input_tokens=1024,max_output_tokens_per_request=32,max_request_body_bytes=1024,max_seconds=15)
+ budget=dict(max_requests=1,max_input_tokens=1024,max_output_tokens_per_request=32,max_request_body_bytes=1024,max_seconds=15,reasoning_effort='medium')
  def key():key_reads.append(True);return 'public-owner-fixture'
  def owner(limits=None,deadline=None):
   value=Owner(c,root,endpoint,principal='runtime',budget=limits or budget,credential_provider=key,timeout=2,deadline_provider=deadline);owners.append(value);return value
@@ -89,7 +89,8 @@ def worker(out):
    before=c.db.total_changes;value=over.query(fc['effect_id'],sc);need(value['status']=='RECEIVED' and value['wire']['normalized']['wire']['raw_usage']['prompt_tokens']==10000 and c.db.total_changes==before,'actual excessive usage not retained')
    sc2,fc2=intent('C','next');rejected(lambda:over.complete(sc2,fc2));need(len(calls)==2,'continued after actual usage exceeded');return value['receipt_ref']
   record('PO07',overflow)
- except Exception:pass
+ except BaseException:
+  import traceback;traceback.print_exc()
  finally:
   server.shutdown();server.server_close();thread.join(2);save(out/'http.json',calls);save(out/'callbacks.json',callbacks);(out/'R.sql').write_text('\n'.join(c.db.iterdump()));c.close()
  result=dict(status='PASS' if len(rows)==7 and all(x['status']=='PASS' for x in rows) and len(calls)==2 and not thread.is_alive() and time.monotonic()-start<=15 else 'FAIL',cases=rows,HTTP=len(calls),key_reads=len(key_reads),thread_stopped=not thread.is_alive(),seconds=time.monotonic()-start,scope='real R/ProviderBridge localhost only; S pending authority is explicit fixture')
@@ -107,7 +108,7 @@ def main():
  for source in files:
   dest=workspace/source.relative_to(ROOT);dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source,dest);sources.append(dict(original=str(source),copy=str(dest),sha256=sha(source.read_bytes())))
  save(out/'sources.json',sources);actual=out/'actual';actual.mkdir()
- cmd=[sys.executable,'-B',str(workspace/Path(__file__).relative_to(ROOT)),'--worker',str(actual)];process=subprocess.run(cmd,cwd=workspace,env=dict(PATH='/usr/bin:/bin',LANG='C.UTF-8',PYTHONDONTWRITEBYTECODE='1'),capture_output=True,timeout=20)
+ cmd=[sys.executable,'-B',str(workspace/Path(__file__).relative_to(ROOT)),'--worker',str(actual)];process=subprocess.run(cmd,cwd=workspace,env=dict(PATH='/usr/bin:/bin:/usr/sbin',LANG='C.UTF-8',PYTHONDONTWRITEBYTECODE='1'),capture_output=True,timeout=20)
  (out/'stdout').write_bytes(process.stdout);(out/'stderr').write_bytes(process.stderr);same=all(sha(Path(v['original']).read_bytes())==v['sha256']==sha(Path(v['copy']).read_bytes()) for v in sources)
  result=dict(status='PASS' if process.returncode==0 and same else 'FAIL',exit_code=process.returncode,source_unchanged=same,source_count=len(sources),sources_sha256=sha((out/'sources.json').read_bytes()));save(out/'result.json',result);print(json.dumps(result));return 0 if result['status']=='PASS' else 1
 if __name__=='__main__':raise SystemExit(main())

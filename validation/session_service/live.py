@@ -39,7 +39,7 @@ def apply_goal(driver, goal):
 
 def profile_config(path):
     check(sha(path)==proxy_protocol()['profile_sha256'],'frozen trusted profile differs')
-    profile=json.loads(path.read_bytes());check(profile['provider_model']=='gpt-5.6-terra' and profile['api_base_path']=='/v1','fixed verified proxy model/path')
+    profile=json.loads(path.read_bytes());check(profile['provider_model']=='deepseek-v4-flash' and profile['api_base_path']=='/v1','fixed verified proxy model/path')
     check(str(path) and profile['credential_file']=='/home/USER/.config/lore/credentials/openai-proxy.key','only original trusted credential path')
     endpoint=urlsplit(profile['endpoint']);check(endpoint.scheme in ('http','https') and endpoint.path in ('','/') and not endpoint.username and not endpoint.password and not endpoint.query,'trusted fixed endpoint')
     return profile,dict(scheme=endpoint.scheme,host=endpoint.hostname,port=endpoint.port or (443 if endpoint.scheme=='https' else 80))
@@ -184,7 +184,7 @@ def collect(out, target_path, mode='localhost', profile_path=None):
         for number,(op,expected) in enumerate([('op-text','answer_saved'),('op-tool','tool_feedback_saved'),('op-follow','answer_saved')]):
             if proxy:
                 goal=proxy_protocol()['goals'][number];refs=apply_goal(d,goal);save(out/(op+'-fixed-F-input.json'),dict(goal=goal,refs=refs))
-            model_scope=dict(model='gpt-5.6-terra',max_completion_tokens=1024 if proxy else 128,session_scope=scope,**{k:D(d.binding[k]) for k in ('input_ref','harness_ref','capability_ref')})
+            model_scope=dict(model='deepseek-v4-flash',max_completion_tokens=1024 if proxy else 128,session_scope=scope,**{k:D(d.binding[k]) for k in ('input_ref','harness_ref','capability_ref')})
             bridge=ProviderBridge(out/'provider',endpoint if proxy else http.endpoint,model_scope,credential_provider=credential if proxy else None,timeout=min(60,started+180-time.monotonic()))
             provider=ProxyBudget(bridge,out/'provider',started+180) if proxy else bridge
             service=SessionService(x,plans.snapshots,provider,adapter,tools,checkpoint=hook)

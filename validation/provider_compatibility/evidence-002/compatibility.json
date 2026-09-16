@@ -1,0 +1,122 @@
+{
+  "amendment": "provider-compatibility-001-amendment-001",
+  "model": "glm-5.3",
+  "passed": true,
+  "rows": [
+    {
+      "probe": "minimal-2048",
+      "model": "glm-5.3",
+      "expect_finish": "stop",
+      "elapsed_seconds": 3.908,
+      "transport": {
+        "http_status": 200,
+        "content_length": 685,
+        "received_size": 685,
+        "complete": true
+      },
+      "problems": {},
+      "facts": {
+        "finish_reason": "stop",
+        "model_echo": "glm-5.3",
+        "usage": {
+          "completion_tokens": 56,
+          "prompt_tokens": 18,
+          "total_tokens": 74,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 53
+          }
+        },
+        "reasoning_content_present": true,
+        "content_present": true
+      },
+      "request_body": {
+        "model": "glm-5.3",
+        "n": 1,
+        "stream": false,
+        "max_completion_tokens": 2048,
+        "messages": [
+          {
+            "role": "user",
+            "content": "Reply with exactly the word OK"
+          }
+        ]
+      },
+      "response_body": "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"logprobs\":null,\"message\":{\"content\":\"OK\",\"reasoning_content\":\"The user has asked me to reply with exactly the word \\\"OK\\\". This is a simple, harmless request. There's nothing problematic about it. The instruction says \\\"exactly the word OK\\\" - so I should just reply with \\\"OK\\\" and nothing else.\",\"role\":\"assistant\"}}],\"created\":1789355753,\"id\":\"021789355750371f79d90d738734a45cb3eac38ebc4a07459aa6f\",\"model\":\"glm-5.3\",\"service_tier\":\"default\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":56,\"prompt_tokens\":18,\"total_tokens\":74,\"prompt_tokens_details\":{\"cached_tokens\":0},\"completion_tokens_details\":{\"reasoning_tokens\":53}}}"
+    },
+    {
+      "probe": "toolcall-2048",
+      "model": "glm-5.3",
+      "expect_finish": "tool_calls",
+      "elapsed_seconds": 2.488,
+      "transport": {
+        "http_status": 200,
+        "content_length": 601,
+        "received_size": 601,
+        "complete": true
+      },
+      "problems": {},
+      "facts": {
+        "finish_reason": "tool_calls",
+        "model_echo": "glm-5.3",
+        "usage": {
+          "completion_tokens": 18,
+          "prompt_tokens": 202,
+          "total_tokens": 220,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 18
+          }
+        },
+        "reasoning_content_present": false,
+        "content_present": true
+      },
+      "request_body": {
+        "model": "glm-5.3",
+        "n": 1,
+        "stream": false,
+        "max_completion_tokens": 2048,
+        "messages": [
+          {
+            "role": "user",
+            "content": "Call the shell tool once with target=workspace and script=echo hi. Do not answer in words."
+          }
+        ],
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "shell",
+              "description": "Run ordinary Shell in an authorized target",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "target": {
+                    "type": "string",
+                    "enum": [
+                      "runtime",
+                      "workspace"
+                    ]
+                  },
+                  "script": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "target",
+                  "script"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        ]
+      },
+      "response_body": "{\"choices\":[{\"finish_reason\":\"tool_calls\",\"index\":0,\"logprobs\":null,\"message\":{\"content\":\"\",\"role\":\"assistant\",\"tool_calls\":[{\"function\":{\"arguments\":\"{\\\"script\\\": \\\"echo hi\\\", \\\"target\\\": \\\"workspace\\\"}\",\"name\":\"shell\"},\"id\":\"call_f06a5eebe8bc4d62b9dd5221\",\"type\":\"function\"}]}}],\"created\":1789355756,\"id\":\"0217893557542251023f1f6cf081335b7e69d5fdf9a936866f6e8\",\"model\":\"glm-5.3\",\"service_tier\":\"default\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":18,\"prompt_tokens\":202,\"total_tokens\":220,\"prompt_tokens_details\":{\"cached_tokens\":0},\"completion_tokens_details\":{\"reasoning_tokens\":18}}}"
+    }
+  ]
+}

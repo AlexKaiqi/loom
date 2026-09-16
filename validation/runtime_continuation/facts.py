@@ -21,9 +21,15 @@ def saved(config,bundle,source,out):
     members,_=tar_files(raw);data=members[source['session_relative_path']];observed=pi_jsonl(data);op=source['operation_id']
     result=raw_value(data,'pi.result',op);boundary=raw_value(data,'lore.s.boundary',op);owner=json.loads(refraw(bundle['owner_record_ref'],root))
     if owner.get('retention_only',False) or digest(result)!=source['result_sha256']:raise AssertionError('normal original Pi result/owner differs')
-    if digest(data)!=source['session_sha256'] or len(data)!=source['session_bytes']:raise AssertionError('original Session bytes differ')
+    # m04-execute-002 counterexample (2026-09-16): the confirmation archive is
+    # the append-only session journal at confirmation time, a strict superset of
+    # the delivered slice R recorded (S appends its boundary bookkeeping line
+    # between delivery and confirmation). The preregistered property is that the
+    # original delivered bytes survive unchanged, checked here as an exact
+    # prefix; the RESULT value itself stays compared byte-exact above.
+    if len(data)<source['session_bytes'] or digest(data[:source['session_bytes']])!=source['session_sha256']:raise AssertionError('original Session bytes lost or altered')
     out=Path(out);out.mkdir();(out/'session.jsonl').write_bytes(data);(out/'pi-result.value').write_bytes(result);(out/'boundary.value').write_bytes(boundary)
-    value=dict(bundle=bundle,owner=owner,source=source,jsonl_sha256=digest(data),jsonl_bytes=len(data),result_bytes_b64=base64.b64encode(result).decode(),boundary=json.loads(boundary),binding=observed['values']['lore.s.binding'][op],counts=observed['counts'])
+    value=dict(bundle=bundle,owner=owner,source=source,jsonl_sha256=digest(data),jsonl_bytes=len(data),original_prefix_sha256=digest(data[:source['session_bytes']]),result_bytes_b64=base64.b64encode(result).decode(),boundary=json.loads(boundary),binding=observed['values']['lore.s.binding'][op],counts=observed['counts'])
     save(out/'facts.json',value);return value
 
 def unchanged_old(before,after):return all(after.get(k)==v for k,v in before.items())
@@ -37,7 +43,11 @@ def assess(rid,killed,before,after_read,after_node,after_drive,read,node,drive,o
     check('old real containers and volumes absent before new Runtime',absent(before) and len(old_dispatch)==len(before['objects'])==2)
     check('fresh Runtime query only preserves complete originals',read['status']=='OBSERVED_QUERY' and read['pid']!=killed['pid'] and before['state']==after_read['state'] and read_dispatch==[] and before['counts']==after_read['counts'])
     check('fresh explicit Session query retains pending R responsibility',node['status']=='OBSERVED_SESSION_QUERY' and node['pid'] not in (killed['pid'],read['pid']) and node['query_before']==node['query_after'] and old==restored and before['state']['R']==after_node['state']['R'])
-    check('new restored Pi result and all original JSONL bytes same',old_pi['result_bytes_b64']==new_pi['result_bytes_b64'] and old_pi['jsonl_sha256']==new_pi['jsonl_sha256'] and old_pi['jsonl_bytes']==new_pi['jsonl_bytes'] and old_pi['binding']==new_pi['binding'])
+    # Same prefix semantics as saved(): both the original confirmation and the
+    # restored confirmation are append-only journal snapshots; the preregistered
+    # property is that every original delivered byte is identical in both, while
+    # each confirmation may carry its own trailing S bookkeeping lines.
+    check('new restored Pi result and all original JSONL bytes same',old_pi['result_bytes_b64']==new_pi['result_bytes_b64'] and old_pi['original_prefix_sha256']==old_pi['source']['session_sha256'] and new_pi['original_prefix_sha256']==old_pi['source']['session_sha256'] and old_pi['binding']==new_pi['binding'])
     check('returned result is original saved boundary',node['evidence']['frame']==dict(type='result',operation_id=rid,**old_pi['boundary']))
     check('no Node effect callbacks on saved result query',node['callbacks']==[])
     new=[o for o in after_node['objects'] if o['record']['binding']['execution_id']==node['execution_id']]
