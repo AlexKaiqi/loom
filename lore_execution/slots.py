@@ -11,8 +11,14 @@ from .errors import require
 from .journal import atomic, canonical, digest
 
 MIB = 1048576
-CONTROL_BYTES = MIB
-CONTROL_INODES = 128
+# 2026-09-14 (m01-output-budget amendment, batch-ag counterexample): the
+# original slot envelope (3 MiB / 384 inodes per execution) was exhausted by a
+# real archive-enabled chain: the notification-step invocation re-verified the
+# whole task and filled the bounded slot history (SLOT_EXHAUSTED -> invocation
+# paused -> chain could not release its publications). The envelope scales
+# 8x on both axes; the helper container budgets derive from these constants.
+CONTROL_BYTES = 8 * MIB
+CONTROL_INODES = 1024
 
 
 class SlotLedger:
@@ -59,7 +65,7 @@ class SlotLedger:
                         state="RESERVED",
                         memory_bytes=slot["plan"]["helper_memory_bytes"],
                         cpu=slot["plan"]["cpus"]["helper"],
-                        writable_bytes=3 * MIB,
+                        writable_bytes=3 * CONTROL_BYTES,
                         writable_inodes=128 + CONTROL_INODES,
                         objects=1,
                         holder=None,

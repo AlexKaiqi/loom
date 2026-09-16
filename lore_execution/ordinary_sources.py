@@ -3,6 +3,9 @@
 from pathlib import Path, PurePosixPath
 from decimal import Decimal, InvalidOperation
 import base64, hashlib, io, json, os, stat, tarfile
+
+# Platform branch (AGENTS.md): see archives.HOST_LISTXATTR.
+HOST_LISTXATTR = getattr(os, "listxattr", None)
 from .errors import ExecutionError, require
 
 SCOPE = ("namespace", "surface_id", "session_id", "session_generation")
@@ -97,7 +100,10 @@ def file_object(path, cap=18874368, contents=True):
         finally:
             os.close(fd)
     except (OSError, TypeError, ValueError) as exc:
-        raise ExecutionError("INVALID_REQUEST", "original file unavailable") from exc
+        raise ExecutionError(
+            "INVALID_REQUEST",
+            "original file unavailable: " + str(p) + ": " + repr(exc),
+        ) from exc
 
 
 def reference(ref, cap=18874368):
@@ -387,8 +393,10 @@ def readonly(mount):
             "gid": st.st_gid,
             "mtime_ns": st.st_mtime_ns,
         }
+        # Platform branch: host xattr introspection mirrors archives.HOST_LISTXATTR;
+        # where the API is absent the binding observation happens in-container.
         require(
-            not os.listxattr(p, follow_symlinks=False),
+            HOST_LISTXATTR is None or not HOST_LISTXATTR(p, follow_symlinks=False),
             "INVALID_REQUEST",
             "readonly metadata outside profile",
         )

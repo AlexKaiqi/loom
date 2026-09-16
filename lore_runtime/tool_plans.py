@@ -1,12 +1,13 @@
 """Ordinary Shell plans derived from original R/E/F/S references; no dispatch."""
-import base64
+import base64, json
 import copy
 from pathlib import Path
 from lore_control.values import decode
 from lore_execution.errors import require
 from lore_execution.journal import canonical, digest
 from lore_execution.node_profile import NodeProfile, guarded
-from lore_execution.requests import validate
+from lore_execution.requests import (ENVIRONMENT_PROFILE_SHA256,
+                                   _load_environment_profiles, validate)
 from lore_session.tool_authority import require_tool_target
 from lore_session.transport import original, pending
 from .session_plan_files import json_file
@@ -45,17 +46,51 @@ class ToolPlans:
         require(len(entries) <= 1024 and not any(v["xattrs"] for v in entries.values()),
                 "INVALID_REQUEST", "complete ordinary tool input exceeds admitted metadata/inodes")
         files = [dict(path=n, size=v["size"], sha256=v["sha256"]) for n,v in entries.items() if v["kind"] == "file"]
-        budgets = dict(memory_bytes=134217728, pids=32, cpu=.25, volume_bytes=6291456,
-                       inodes=128 if len(entries) <= 128 else 1024, tmp_bytes=1048576, shm_bytes=1048576,
+        # 2026-09-15 (amendment-linux-browser): the shell tool runs in the
+        # session's environment profile and derives its resource ceilings from
+        # that profile's registered budget maxima, clamped to the shared slot's
+        # tool role. A profile without declared maxima (fixed-python-linux-v1)
+        # yields exactly the historical fixed-python values, so existing M01
+        # chains are unchanged.
+        _env = original_plan["request"]["environment"]
+        # The shell tool follows the session environment only when that
+        # environment is a registered tool-capable profile (linux-browser-v1).
+        # An unregistered session environment (fixed-node-pi-session-v1, the
+        # pi conversation session) is not tool-capable: the tool is an ordinary
+        # python execution exactly as before the browser integration.
+        # Counterexample m03-execute-003/M03-tool-1 (2026-09-16): inheriting the
+        # pi session environment booted a second pi session container instead of
+        # a python tool, and every M01/M03 chain paused with no tool effect.
+        _entry = _load_environment_profiles().get(_env)
+        if _entry is None:
+            _env = "fixed-python-linux-v1"
+            _entry = _load_environment_profiles()[_env]
+        _mx = _entry.get("budget_maxima", {})
+        _profile_sha256 = _entry["profile_sha256"]
+        from .startup_assets import SLOT as _slot_plan
+        budgets = dict(memory_bytes=min(_mx.get("memory_bytes", 134217728), _slot_plan["tool_memory_bytes"]),
+                       pids=min(_mx.get("pids", 32), 512),
+                       cpu=min(_mx.get("cpu", .25), _slot_plan["cpus"]["tool"]),
+                       volume_bytes=min(_mx.get("work_bytes", 6291456), 6291456),
+                       inodes=128 if len(entries) <= 128 else 1024,
+                       tmp_bytes=min(_mx.get("tmp_bytes", 1048576), 67108864),
+                       shm_bytes=min(_mx.get("shm_bytes", 1048576), 16777216),
                        stdout_bytes=65536, stderr_bytes=65536, combined_output_bytes=98304,
-                       archive_bytes=8388608, expanded_bytes=12582912, deadline_seconds=20)
+                       archive_bytes=8388608, expanded_bytes=12582912,
+                       deadline_seconds=min(_mx.get("deadline_seconds", 20), 120))
+        if "tmp_inodes" in _mx:
+            budgets["tmp_inodes"] = min(_mx["tmp_inodes"], 1024)
+        if "shm_inodes" in _mx:
+            budgets["shm_inodes"] = min(_mx["shm_inodes"], 64)
         request = dict(schema_version=1, execution_id=frame["effect_id"], caller="trusted-S",
                        invocation_id=parent_id, step_id=frame["invocation_id"], source_result=binding["source_result_ref"],
                        harness_version=digest(canonical(binding["harness_ref"])),
                        target_selector=dict(target_id=resource["id"], location=str(path)), target_id=resource["id"],
                        binding_generation=resource["revision"], domain="runtime" if domain=="surface" else "task",
                        base_version=digest(canonical(version)), input_manifest=dict(files=files), input_root=str(path),
-                       cwd=".", environment="fixed-python-linux-v1", endpoints=[], network="none", budgets=budgets,
+                       cwd=".", environment=_env,
+                       profile_sha256=_profile_sha256,
+                       endpoints=[], network="none", budgets=budgets,
                        stdin_base64="", io_mode="finite", interpreter_argv=["/bin/sh","-c"],
                        script_base64=base64.b64encode(script.encode("utf8")).decode())
         if target == "runtime":

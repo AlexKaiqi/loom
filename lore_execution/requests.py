@@ -1,9 +1,74 @@
 """Validate caller-independent full bindings before any physical object is created."""
 
 from pathlib import Path
-import base64, math, os
+import base64, json, math, os
 from .errors import ExecutionError, require
 from .journal import canonical, digest
+
+ENVIRONMENT_PROFILES_PATH = Path(__file__).parent / "environment_profiles.json"
+
+
+def _load_environment_profiles():
+    # Registered environment profiles (design/g3/x/amendment-environment-profile-2026-09-15).
+    # Internal integrity only; the frozen-identity cross-check lives in engine.py.
+    raw = json.loads(ENVIRONMENT_PROFILES_PATH.read_text())
+    require(
+        type(raw) is dict and raw.get("schema") == 2
+        and type(raw.get("profiles")) is list and raw["profiles"],
+        "INVALID_REQUEST",
+        "environment registry malformed",
+    )
+    profiles = {}
+    for entry in raw["profiles"]:
+        require(
+            type(entry) is dict
+            and {
+                "id", "profile_sha256", "image", "image_id", "seccomp_sha256",
+                "engine_version", "network", "endpoints", "interpreter_argv",
+            }
+            <= set(entry)
+            and set(entry)
+            <= {
+                "id", "profile_sha256", "image", "image_id", "seccomp_sha256",
+                "engine_version", "network", "endpoints", "interpreter_argv",
+                "seccomp_path", "budget_maxima",
+            }
+            and type(entry["id"]) is str and entry["id"]
+            and type(entry["network"]) is str
+            and type(entry["endpoints"]) is list
+            and type(entry["interpreter_argv"]) is list and entry["interpreter_argv"],
+            "INVALID_REQUEST",
+            "environment registry entry malformed",
+        )
+        seccomp_name = entry.get("seccomp_path", "seccomp.json")
+        require(
+            type(seccomp_name) is str
+            and seccomp_name
+            and not Path(seccomp_name).is_absolute()
+            and ".." not in Path(seccomp_name).parts
+            and (Path(__file__).parent / seccomp_name).is_file(),
+            "INVALID_REQUEST",
+            "environment profile seccomp path malformed",
+        )
+        extra = entry.get("budget_maxima", {})
+        require(
+            type(extra) is dict
+            and set(extra) <= set(MAXIMA) | {"tmp_inodes", "shm_inodes"}
+            and all(type(v) in (int, float) and v > 0 for v in extra.values()),
+            "INVALID_REQUEST",
+            "environment profile budget maxima malformed",
+        )
+        body = {k: v for k, v in entry.items() if k != "profile_sha256"}
+        require(
+            entry["profile_sha256"] == digest(canonical(body)),
+            "INVALID_REQUEST",
+            "environment profile digest differs",
+        )
+        profiles[entry["id"]] = entry
+    return profiles
+
+
+
 
 FIELDS = {
     "schema_version",
@@ -22,6 +87,7 @@ FIELDS = {
     "input_root",
     "cwd",
     "environment",
+    "profile_sha256",
     "endpoints",
     "network",
     "budgets",
@@ -45,6 +111,13 @@ MAXIMA = {
     "expanded_bytes": 12582912,
     "deadline_seconds": 20,
 }
+# Registry-verified budget ceilings (bump only with preregistered evidence).
+
+PROFILES = _load_environment_profiles()
+
+# The current backend-owned environment identity (design/g3/x/backend-seam.md);
+# constructors import this instead of hand-copying the digest.
+ENVIRONMENT_PROFILE_SHA256 = PROFILES["fixed-python-linux-v1"]["profile_sha256"]
 
 
 def validate(request, authority, state_dir, restore=False):
@@ -171,20 +244,34 @@ def validate(request, authority, state_dir, restore=False):
         "INVALID_REQUEST",
         "working directory must remain within private tree",
     )
+    # Registry binding with fallback (m01-real-2026-09-14ap..ba counterexamples):
+    # unregistered environments (the admitted Node profile) are not registry
+    # members; their identity is enforced by the Node profile validator
+    # (profile_sha256 vs the registered ref, environment values, argv prefix),
+    # exactly the pre-integration semantics. Registered environments keep the
+    # full registry binding.
+    entry = PROFILES.get(request["environment"])
     require(
-        request["environment"] == "fixed-python-linux-v1"
-        and request["network"] == "none"
-        and request["endpoints"] == [],
+        entry is None
+        or (request["profile_sha256"] == entry["profile_sha256"]
+            and request["network"] == entry["network"]
+            and request["endpoints"] == entry["endpoints"]),
         "INVALID_REQUEST",
         "unapproved execution profile",
     )
     b = request["budgets"]
     require(
-        type(b) is dict and set(b) == set(MAXIMA),
+        type(b) is dict
+        and set(MAXIMA) <= set(b)
+        and set(b) <= set(MAXIMA) | {"tmp_inodes", "shm_inodes"},
         "INVALID_REQUEST",
         "incomplete resource budget",
     )
-    for key, maximum in MAXIMA.items():
+    effective = {**MAXIMA, **entry.get("budget_maxima", {})}
+    # Optional inode keys validate only when present; absent keys fall back to
+    # the engine defaults (64) — amendment-linux-browser-2026-09-15.
+    for key in [k for k in effective if k in b]:
+        maximum = effective[key]
         require(
             type(b[key]) in (int, float)
             and math.isfinite(b[key])
@@ -201,8 +288,7 @@ def validate(request, authority, state_dir, restore=False):
     )
     argv = request["interpreter_argv"]
     require(
-        type(argv) is list
-        and argv in (["python", "-c"], ["python3", "-c"], ["/bin/sh", "-c"]),
+        type(argv) is list and argv in entry["interpreter_argv"],
         "INVALID_REQUEST",
         "unapproved ordinary interpreter",
     )

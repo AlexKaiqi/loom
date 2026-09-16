@@ -57,7 +57,11 @@ class ToolService(ToolFacts):
             dispatched=self.control.mark_dispatched(self.principal,eid,"X")
             if not dispatched["fresh"]:return self.query(eid,binding)
             self.execution.execute(plan["request"],plan["authority"])
-            exited=self.execution.await_exit(eid,plan["authority"],timeout=20)
+            # 2026-09-15 (amendment-linux-browser): the await window follows the
+            # plan deadline (browser tools launch chromium); the default python
+            # path keeps the historical 20s (its plan deadline is 20s).
+            exited=self.execution.await_exit(eid,plan["authority"],
+                timeout=min(120, plan["request"]["budgets"]["deadline_seconds"]))
             require(exited["result"]["output_state"]=="COMPLETE","INCOMPLETE_OBSERVATION","ordinary tool output unresolved")
             cp=self.execution.checkpoint(eid,plan["authority"],"s-tool-final","ordinary_tool_result")["artifacts"]["checkpoint"]
             stopped=self.execution.seal(eid,plan["authority"],cp)

@@ -3,12 +3,19 @@
 from pathlib import Path
 from contextlib import nullcontext
 from urllib.parse import quote
-import http.client, json, os, selectors, socket, subprocess, time
+import http.client, json, os, selectors, socket, subprocess, sys, time
 from .errors import ExecutionError, require
 
 PROFILE = json.loads((Path(__file__).parent / "profile.json").read_text())
 SECCOMP = Path(__file__).parent / "seccomp.json"
 ENV = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"}
+
+# Platform branch (AGENTS.md): the docker CLI path is host-dependent. Docker
+# Desktop on macOS installs at /usr/local/bin/docker; Linux hosts keep the
+# historical /usr/bin/docker. LORE_DOCKER_CLI overrides explicitly.
+DOCKER_CLI = os.environ.get("LORE_DOCKER_CLI") or (
+    "/usr/local/bin/docker" if sys.platform == "darwin" else "/usr/bin/docker"
+)
 
 
 class UnixHTTP(http.client.HTTPConnection):
@@ -91,14 +98,9 @@ class Engine:
     def __init__(self, endpoint=None):
         from .journal import digest
 
-        require(
-            digest(SECCOMP.read_bytes()) == PROFILE["seccomp_sha256"],
-            "PROFILE_CHANGED",
-            "fixed seccomp bytes differ",
-        )
         if endpoint is None:
             context = json.loads(
-                command(["/usr/bin/docker", "context", "inspect"], limit=1048576)
+                command([DOCKER_CLI, "context", "inspect"], limit=1048576)
             )
             endpoint = context[0]["Endpoints"]["docker"]["Host"]
         require(
@@ -113,10 +115,30 @@ class Engine:
             "UNSUPPORTED",
             "Engine capability profile differs",
         )
-        actual = self.call("GET", "/images/" + PROFILE["image"] + "/json")
+        # Per-entry identity preflight (amendment-linux-browser-2026-09-15):
+        # every registered profile must resolve to a locally present image and an
+        # intact profile-scoped seccomp file; registration promises presence.
+        from .requests import PROFILES
+
+        base = Path(__file__).parent
         require(
-            actual["Id"] == PROFILE["image_id"], "UNSUPPORTED", "image identity differs"
+            PROFILES,
+            "PROFILE_CHANGED",
+            "environment registry is empty",
         )
+        for entry in PROFILES.values():
+            seccomp_file = base / entry.get("seccomp_path", "seccomp.json")
+            require(
+                digest(seccomp_file.read_bytes()) == entry["seccomp_sha256"],
+                "PROFILE_CHANGED",
+                "seccomp bytes differ for " + entry["id"],
+            )
+            image = self.call("GET", "/images/" + entry["image"] + "/json")
+            require(
+                image["Id"] == entry["image_id"],
+                "UNSUPPORTED",
+                "image identity differs for " + entry["id"],
+            )
 
     def call(self, method, path, value=None, missing=False):
         h = UnixHTTP(self.path)
@@ -155,7 +177,7 @@ class Engine:
     def inspect_exec(self, eid):
         return self.call("GET", "/exec/" + eid + "/json", missing=True)
 
-    def options(self, budget):
+    def options(self, budget, seccomp_path=None):
         return [
             "--read-only",
             "--cap-drop",
@@ -163,7 +185,7 @@ class Engine:
             "--security-opt",
             "no-new-privileges=true",
             "--security-opt",
-            "seccomp=" + str(SECCOMP),
+            "seccomp=" + str(seccomp_path or SECCOMP),
             "--network",
             "none",
             "--memory",
@@ -277,7 +299,7 @@ class Engine:
         cid = (
             command(
                 [
-                    "/usr/bin/docker",
+                    DOCKER_CLI,
                     "create",
                     *self.options(b),
                     *self.slot_labels(record, "helper"),
@@ -293,7 +315,7 @@ class Engine:
         try:
             return command(
                 [
-                    "/usr/bin/docker",
+                    DOCKER_CLI,
                     "start",
                     "-a",
                     *(["-i"] if data is not None else []),

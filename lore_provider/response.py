@@ -1,7 +1,7 @@
 """Strict saved-wire to complete Pi assistant data; no tool or final actions."""
 import hashlib
 from .jsoncodec import WireError, require, strict_load
-from .request import MODEL, shell_args
+from .request import MODEL, MODEL_ALIAS, shell_args
 
 
 def unsigned(value):
@@ -23,7 +23,11 @@ def usage(raw):
                   cost=dict(input=0,output=0,cacheRead=0,cacheWrite=0,total=0))
     if "reasoning_tokens" in output_detail:
         result["reasoning"] = unsigned(output_detail["reasoning_tokens"])
-        require(result["reasoning"]<=completion)
+        # Ark reasoning accounting (glm-5.3 observation m01-real-2026-09-14u:
+        # reasoning_tokens 122 exceeded completion 120) broke the subset
+        # invariant, so it is bounded by the total instead of the completion;
+        # deepseek-v4-flash accounting is recorded in protocol-002/003 evidence.
+        require(result["reasoning"]<=result["totalTokens"])
     return result
 
 
@@ -61,7 +65,9 @@ def normalize(raw, transport):
     try:
         body = strict_load(raw)
         require(isinstance(body, dict) and body.get("object")=="chat.completion")
-        require(body.get("model")==MODEL, "model_mismatch")
+        # Exact echo or the pinned dated alias (amendment-model-baseline-2026-09-15);
+        # alias rotation fails loudly here and requires a new amendment.
+        require(body.get("model") in (MODEL, MODEL_ALIAS), "model_mismatch")
         require(isinstance(body.get("id"), str) and body["id"])
         created = unsigned(body["created"])
         choices = body["choices"]

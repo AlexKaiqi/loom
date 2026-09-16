@@ -4,7 +4,8 @@ import base64, copy, os, threading, time, uuid
 from pathlib import Path
 from .archives import initial, import_volume, inspect
 from .channel import Channel
-from .engine import Engine, PROFILE, command
+from .engine import DOCKER_CLI, Engine, PROFILE, command
+from .requests import PROFILES
 from .errors import ExecutionError, require
 from .journal import Journal, canonical, digest
 from .requests import validate
@@ -130,6 +131,28 @@ class ExecutionStore(CallOperations, Retention, Lifecycle):
         if record.get("slot_ref"):
             self._barrier("slot_reserved_before_engine_create", record)
         volume = "lore-" + uuid.uuid4().hex
+        # Registry lookup with backend fallback (zero-behavior-change restore;
+        # m01-real-2026-09-14ap + probe refact-wrap-2026-09-15 counterexample):
+        # the registry integration replaced the backend PROFILE facts with a
+        # direct registry index, so environments outside the registry (the
+        # admitted M01 node profile fixed-node-pi-session-v1) raised KeyError
+        # and every chain paused at its first invocation. Registered
+        # environments keep the registry binding; unregistered ones fall back
+        # to the pre-integration backend facts (engine.options then uses its
+        # default seccomp), exactly as before the integration.
+        entry = PROFILES.get(record["request"]["environment"])
+        if entry is not None:
+            record["binding"]["profile"] = {
+                "id": entry["id"],
+                "image": entry["image"],
+                "seccomp": str(Path(__file__).parent / entry.get("seccomp_path", "seccomp.json")),
+            }
+        else:
+            record["binding"]["profile"] = {
+                "id": record["request"]["environment"],
+                "image": PROFILE["image"],
+                "seccomp": None,
+            }
         record["binding"]["volume_id"] = volume
         self.journal.put(record)
         b = record["limits"]
@@ -155,9 +178,11 @@ class ExecutionStore(CallOperations, Retention, Lifecycle):
         cid = (
             command(
                 [
-                    "/usr/bin/docker",
+                    DOCKER_CLI,
                     "create",
-                    *self.engine.options(b),
+                    *self.engine.options(
+                        b, record["binding"]["profile"].get("seccomp")
+                    ),
                     *self.engine.slot_labels(record),
                     *[
                         arg
@@ -177,7 +202,7 @@ class ExecutionStore(CallOperations, Retention, Lifecycle):
                     "lore.x.execution_id=" + id,
                     "--mount",
                     "type=volume,src=" + volume + ",dst=/work,volume-nocopy",
-                    PROFILE["image"],
+                    record["binding"]["profile"]["image"],
                     "python",
                     "-c",
                     keeper,

@@ -58,6 +58,10 @@ class Channel:
 
         def stop():
             try:
+                # Retain the engine-level stop reason; seal later overwrites
+                # result.reason with the generic SEALED marker.
+                self.record["result"]["stop_reason"] = reason
+                self.store.journal.put(self.record)
                 self.store.stop_physical(self.record, reason)
             except Exception as exc:
                 self.stop_error = str(exc)

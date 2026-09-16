@@ -7,12 +7,88 @@ function validCall(call:any){return call.name==='shell'&&call.arguments&&Object.
 export async function create({pi,store,binding,models,tool}:any){
  const configuration=store.config;const maxSteps=configuration.input.limits?.max_steps;
  if(maxSteps!==undefined){const actual=Object.values(store.raw().values['pi.result']??{}).length;requireValue(Number.isSafeInteger(maxSteps)&&maxSteps>=0&&actual<maxSteps,'stopped_limit','fixed Harness step limit reached');}
+ // Bounded-context archive policy (m01-output-budget amendment 2026-09-14):
+ // the host records the thresholds; the harness only executes them. The hard
+ // threshold rides pi's native threshold compaction (contextWindow -
+ // reserveTokens) and the hook supplies the deterministic summary, so an
+ // archive is a hook-sourced compaction fact with no extra model call.
+ const archive=configuration.input.limits?.archive??null;
+ if(archive!==null){
+  requireValue(typeof archive==='object'&&!Array.isArray(archive)&&
+   Number.isSafeInteger(archive.context_tokens)&&archive.context_tokens>0&&
+   Number.isSafeInteger(archive.reserve_tokens)&&archive.reserve_tokens>0&&archive.reserve_tokens<archive.context_tokens&&
+   Number.isSafeInteger(archive.tail_reserve_tokens)&&archive.tail_reserve_tokens>0&&
+   Number.isSafeInteger(archive.soft_tokens)&&archive.soft_tokens>0&&archive.soft_tokens<archive.context_tokens,
+   'invalid_input','bounded original archive settings required');
+  requireValue(configuration.model?.contextWindow===archive.context_tokens,'invalid_input','archive threshold must equal the node model context window');
+ }
  const shell={name:'shell',label:'Ordinary authorized Shell',description:'Run ordinary Shell in an authorized target',
   parameters:{type:'object',properties:{target:{type:'string',enum:['runtime','workspace']},script:{type:'string'}},required:['target','script'],additionalProperties:false},
   replay:'unsafe' as const,execute:tool};
  const harness=(await pi.createAgentHarness({session:store.session,models,model:configuration.model,tools:[shell],
-  systemPrompt:project(configuration.input),compaction:{enabled:false,reserveTokens:1024,keepRecentTokens:1024},
+  systemPrompt:project(configuration.input),
+  compaction:archive?{enabled:true,reserveTokens:archive.reserve_tokens,keepRecentTokens:archive.tail_reserve_tokens}:{enabled:false,reserveTokens:1024,keepRecentTokens:1024},
   retry:{enabled:false,maxRetries:0,baseDelayMs:0,maxAgentDelayMs:0},toolExecution:'sequential',steeringMode:'all',followUpMode:'all'},pi.context)).harness;
+ if(archive){
+  // ---- Window monitor (fixed detection half, reused by any harness) ----
+  // One place measures the working set and recognizes window conditions, then
+  // delegates to the swappable strategy functions below. A derived harness
+  // reuses this monitor and replaces `strategy`; the pi seams (transform_context,
+  // before_compaction) and the event fact shapes stay identical.
+  const estimate=(msgs:any[])=>Math.ceil(JSON.stringify(msgs??[]).length/4);
+  const strategy={
+   pressureNote:(fact:{estimated:number;soft_tokens:number;context_tokens:number;event:any})=>{
+    // The systemPrompt is the strict {context_blocks:[...]} projection document
+    // (m01-real-2026-09-14ab counterexample: appending free text broke its JSON
+    // integrity and the O6 notification match). The note enters as a block.
+    const parsed=JSON.parse(fact.event.systemPrompt);
+    requireValue(typeof parsed==='object'&&parsed!==null&&Array.isArray(parsed.context_blocks),'invalid_input','original systemPrompt projection document required');
+    parsed.context_blocks=[...parsed.context_blocks,'Context pressure: estimated '+fact.estimated+' tokens of the '+fact.context_tokens+
+     ' budget; older history is archived automatically at the hard threshold. Keep replies concise.'];
+    return {systemPrompt:JSON.stringify(parsed)};
+   },
+   archive:(event:any)=>{
+   const p=event.preparation??{};
+   const msgs=Array.isArray(p.messagesToSummarize)?p.messagesToSummarize:[];
+   // Retain the recent tail within archive.tail_reserve_tokens so a fresh
+   // toolResult reaches the next model turn (m01-real-2026-09-14ak
+   // counterexample: an empty retainedTail archived the whole history and the
+   // model executed tools blind for three invocations). The tail always ends
+   // at the latest entry and starts at a user boundary so any retained
+   // assistant/toolResult pair stays complete.
+   const tail:any[]=[]; let acc=0; let reachedUser=false;
+   // m01-real-2026-09-14an counterexample: when the latest entry alone exceeded
+   // the tail budget the loop broke immediately and retained nothing (0 recent
+   // messages), blinding the next turn. The latest entry is therefore retained
+   // unconditionally; retention then extends back to the nearest user boundary
+   // so an assistant/toolResult pair stays complete, and further user-bounded
+   // groups are retained only while within the tail budget.
+   for(let i=msgs.length-1;i>=0;i--){
+    const est=Math.ceil(JSON.stringify(msgs[i]).length/4);
+    // Real pi messages carry role ('user'), not type; the m01 unit simulations
+    // used a type-tagged shape and masked this (m05-execute-043 counterexample:
+    // the boundary never matched, so the tail retained the whole history).
+    const isUser=(msgs[i] as any)?.role==='user'||(msgs[i] as any)?.type==='user';
+    if(reachedUser&&acc+est>archive.tail_reserve_tokens)break;
+    tail.unshift(msgs[i]); acc+=est;
+    if(isUser)reachedUser=true;
+   }
+   const archived=msgs.length-tail.length;
+   const summary='Earlier conversation archived by the fixed Harness threshold policy ('+archived+
+    ' messages archived, '+tail.length+' recent messages retained, estimated '+p.tokensBefore+' tokens before compaction, trigger '+event.reason+
+    '). Durable results live in the authorized Surface and Workspace; the complete original transcript stays in the Session JSONL outside the model context.';
+   return {compaction:{summary,tokensBefore:p.tokensBefore??0,retainedTail:tail,
+    details:{trigger:event.reason,archived_messages:archived,retained_messages:tail.length,policy:'fixed-harness-threshold'}}};
+   },
+  };
+  harness.hooks.on('transform_context',(event:any)=>{
+   const estimated=estimate(event.messages);
+   if(estimated<archive.soft_tokens)return undefined;
+   return strategy.pressureNote({estimated,soft_tokens:archive.soft_tokens,context_tokens:archive.context_tokens,event});
+  });
+  harness.hooks.on('before_compaction',(event:any)=>{
+  return strategy.archive(event);});
+ }
  const lane=await harness.lane('main',pi.context);let stopped:Promise<any>|undefined;
  harness.events.on('entry_added',(event:any)=>{
   const message=event.entry?.type==='message'?event.entry.message:null;

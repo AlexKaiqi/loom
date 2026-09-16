@@ -1,6 +1,25 @@
 """No-follow ordinary directory observations for the host-v1 profile."""
 import base64
 import os
+import sys
+
+_XATTR_REJECT = {95} if sys.platform == "linux" else set()
+# 2026-09-15 (amendment-linux-browser): on Linux hosts the evidence/workspace
+# tree may live on a mount that rejects xattr syscalls (Docker Desktop
+# virtiofs: EOPNOTSUPP/95). The observer contract accepts "no xattrs" rows, so
+# the walk records an empty xattr set for such filesystems instead of failing
+# the whole window. Explicit platform branch: darwin (APFS) keeps raising.
+
+
+def _safe_xattrs(fd, follow=None):
+    kwargs = {} if follow is None else {"follow_symlinks": follow}
+    try:
+        names = os.listxattr(fd, **kwargs)
+        return {x: os.getxattr(fd, x, **kwargs) for x in names}
+    except OSError as exc:
+        if exc.errno in _XATTR_REJECT:
+            return {}
+        raise
 import stat
 from .errors import FileError, require
 from .util import digest
@@ -46,7 +65,7 @@ def walk(root, limits, visit_dir=None, visit_file=None, include_data=True, tick=
         require(len(entries) < limits["max_entries"], "LIMIT_EXCEEDED", "entry limit")
         if visit_dir:
             visit_dir(fd, name)
-        attrs = {x: os.getxattr(fd, x) for x in os.listxattr(fd)}
+        attrs = _safe_xattrs(fd)
         entries[name] = metadata(st, attrs, "dir")
         with os.scandir(fd) as scan:
             names = sorted((e.name for e in scan), key=os.fsencode)
@@ -78,7 +97,7 @@ def walk(root, limits, visit_dir=None, visit_file=None, include_data=True, tick=
                         logical += actual.st_size
                     require(logical <= limits["max_logical_bytes"], "LIMIT_EXCEEDED", "logical byte limit")
                     groups.setdefault(key, []).append(relative)
-                    item = metadata(actual, {x: os.getxattr(opened, x) for x in os.listxattr(opened)}, "file")
+                    item = metadata(actual, _safe_xattrs(opened), "file")
                     if include_data:
                         data = bytearray()
                         while True:
@@ -98,8 +117,7 @@ def walk(root, limits, visit_dir=None, visit_file=None, include_data=True, tick=
                     os.close(opened)
             elif stat.S_ISLNK(mode):
                 anchored = f"/proc/self/fd/{fd}/" + leaf
-                attrs = {x: os.getxattr(anchored, x, follow_symlinks=False)
-                         for x in os.listxattr(anchored, follow_symlinks=False)}
+                attrs = _safe_xattrs(anchored, follow=False)
                 item = metadata(observed, attrs, "symlink")
                 item["target_b64"] = encode(os.fsencode(os.readlink(leaf, dir_fd=fd)))
                 entries[relative] = item

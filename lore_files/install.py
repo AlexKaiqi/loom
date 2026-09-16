@@ -1,13 +1,23 @@
 """One directory exchange per durable original request; restart reconciles objects."""
 import ctypes
+import sys
 from pathlib import Path
 from .errors import FileError, require
 from .metadata import walk
 from .util import canonical, identity, ordinary_path, sync_dir
 from .window import StableWindow
 
-_LIBC = ctypes.CDLL(None, use_errno=True)
-_LIBC.renameat2.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+_LIBC = None
+
+
+def _renameat2():
+    """Lazy Linux syscall binding; importing stays safe on every platform."""
+    global _LIBC
+    require(sys.platform == "linux", "UNSUPPORTED", "renameat2 exchange requires Linux")
+    if _LIBC is None:
+        _LIBC = ctypes.CDLL(None, use_errno=True)
+        _LIBC.renameat2.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+    return _LIBC.renameat2
 
 
 class Installer:
@@ -104,7 +114,7 @@ class Installer:
                 self.store.checkpoint("before_exchange", dict(request_id=request_id, **window.facts()))
                 window.assert_clean()
                 window.verify_roots()
-                result = _LIBC.renameat2(-100, bytes(root), -100, bytes(staged), 2)
+                result = _renameat2()(-100, bytes(root), -100, bytes(staged), 2)
                 if result != 0:
                     raise FileError("PUBLICATION_UNKNOWN", "rename exchange failed errno=" + str(ctypes.get_errno()))
                 swapped = True

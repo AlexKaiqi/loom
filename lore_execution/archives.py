@@ -4,7 +4,11 @@ from pathlib import Path, PurePosixPath
 import io, os, stat, tarfile
 from .errors import ExecutionError, require
 from .journal import digest
-from .engine import command, PROFILE
+
+# Platform branch (AGENTS.md): xattr introspection is Linux-shaped; absent on
+# some macOS Python builds, where the in-container unsupported_metadata
+# observation remains the binding fact.
+HOST_LISTXATTR = getattr(os, "listxattr", None)
 
 
 def inspect(raw, budget):
@@ -96,7 +100,8 @@ def inspect(raw, budget):
                     "archive inode/member budget",
                 )
     except (tarfile.TarError, OSError, ValueError) as exc:
-        raise ExecutionError("UNSUPPORTED", "invalid complete archive") from exc
+        raise ExecutionError("UNSUPPORTED",
+                             "invalid complete archive: " + repr(exc)) from exc
     require(
         "." in members and members["."]["kind"] == "directory",
         "UNSUPPORTED",
@@ -119,26 +124,64 @@ def initial(request):
                 "UNSUPPORTED",
                 "input special member",
             )
+            # Platform branch: os.listxattr is absent on some macOS Python
+            # builds; there the host-side pre-gate cannot observe xattrs and the
+            # binding unsupported_metadata observation happens in-container.
             require(
-                not os.listxattr(p, follow_symlinks=False),
+                HOST_LISTXATTR is None or not HOST_LISTXATTR(p, follow_symlinks=False),
                 "UNSUPPORTED",
                 "unsupported actual input metadata",
             )
-    raw = command(
-        [
-            "/usr/bin/tar",
-            "--format=pax",
-            "--numeric-owner",
-            "--pax-option=delete=atime,delete=ctime",
-            "-cpf",
-            "-",
-            "-C",
-            str(root),
-            ".",
-        ],
-        limit=budget["archive_bytes"],
-    )
+    raw = _pack(root, budget["archive_bytes"])
     inspect(raw, budget)
+    return raw
+
+
+def _pack(root, limit):
+    """Deterministic pax packing of the input root (replaces the host GNU tar).
+
+    Equivalence to the pinned tar invocation
+    (--format=pax --numeric-owner --pax-option=delete=atime,delete=ctime):
+    pax format, numeric ownership, no xattr/acl pax keys, no atime/ctime keys.
+    Ownership is normalized to the verified task identity 1000:1000, which the
+    inspector requires and the volume extract enforces with --no-same-owner.
+    The walk order is sorted, so the bytes depend only on member content and
+    fs metadata, never on host tar behavior.
+    """
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w", format=tarfile.PAX_FORMAT) as archive:
+
+        def add(relative):
+            path = root / relative
+            s = path.lstat()
+            info = tarfile.TarInfo("./" + str(relative) if str(relative) != "." else ".")
+            info.mode = stat.S_IMODE(s.st_mode)
+            info.uid = 1000
+            info.gid = 1000
+            info.uname = ""
+            info.gname = ""
+            info.mtime = int(s.st_mtime)
+            if stat.S_ISDIR(s.st_mode):
+                info.type = tarfile.DIRTYPE
+                info.name += "/"
+                info.size = 0
+                archive.addfile(info)
+                for name in sorted(os.listdir(path)):
+                    add(relative / name)
+            elif stat.S_ISLNK(s.st_mode):
+                info.type = tarfile.SYMTYPE
+                info.size = 0
+                info.linkname = os.readlink(path)
+                archive.addfile(info)
+            else:
+                info.type = tarfile.REGTYPE
+                info.size = s.st_size
+                with path.open("rb") as stream:
+                    archive.addfile(info, stream)
+
+        add(Path("."))
+    raw = buffer.getvalue()
+    require(len(raw) <= limit, "ARCHIVE_LIMIT", "bounded archive bytes exceeded")
     return raw
 
 
@@ -152,7 +195,7 @@ def import_volume(engine, record, raw):
             "1000:1000",
             "--mount",
             "type=volume,src=" + volume + ",dst=/work,volume-nocopy",
-            PROFILE["image"],
+            record["binding"]["profile"]["image"],
             "tar",
             "--numeric-owner",
             "--no-same-owner",
@@ -179,7 +222,7 @@ def export_volume(engine, record):
         "DAC_OVERRIDE",
         "--mount",
         "type=volume,src=" + volume + ",dst=/work,readonly,volume-nocopy",
-        PROFILE["image"],
+        record["binding"]["profile"]["image"],
     ]
     facts = json.loads(
         engine.helper(record, [*args, "python", "-c", code], limit=1048576)

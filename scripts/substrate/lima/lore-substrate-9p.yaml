@@ -1,0 +1,62 @@
+# lore-substrate-9p.yaml — substrate V1/V2 对照批模板（备选路线证据）
+# 状态：DRAFT / UNVERIFIED。判据与身份：validation/substrate/protocol-substrate-001.json
+# 用途：主批（vz+virtiofs）判据独立；本模板仅在 V1/V2 失败时提供修订路线输入
+#       （协议 §3 V1/V2 comparison_batch），其结论不改主批裁定。
+# 差异仅两行：vmType qemu（macOS 宿主对同架构 guest 走 hvf 加速）+ mountType 9p。
+# 其余钉定值与 virtiofs 模板一致；两份模板 sha256 分别记录。
+minimumLimaVersion: 2.0.0
+
+vmType: "qemu"
+mountType: "9p"
+mountInotify: false
+rosetta:
+  enabled: false
+  binfmt: false
+
+images:
+- location: "https://cloud-images.ubuntu.com/releases/noble/release-20260705/ubuntu-24.04-server-cloudimg-arm64.img"
+  arch: "aarch64"
+  digest: "sha256:7df0201546f75b8bcc1044594c806c35749421ad3c9bc1be2a3ab806cfae39cc"
+  variant: "server"
+- location: "https://cloud-images.ubuntu.com/releases/noble/release-20260705/ubuntu-24.04-server-cloudimg-amd64.img"
+  arch: "x86_64"
+  digest: "sha256:ffe6203da54deeb6db5d2a98a83f9ec8e55f149d3f7ba622e1abe5fa966ee3d6"
+  variant: "server"
+
+cpu: 4
+memory: "8GiB"
+disk: "60GiB"
+
+mounts:
+- location: "{{.Param.LORE_ROOT}}"
+  mountPoint: "{{.Param.LORE_ROOT}}"
+  writable: true
+
+containerd:
+  system: false
+  user: false
+
+provision:
+- mode: system
+  script: |
+    #!/bin/bash
+    set -eux -o pipefail
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -y
+    apt-get install -y --no-install-recommends ca-certificates curl gnupg python3
+    if command -v docker >/dev/null 2>&1; then
+      exit 0
+    fi
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu noble stable" \
+      > /etc/apt/sources.list.d/docker.list
+    apt-get update -y
+    WANT="29.1.3-1~ubuntu.24.04~noble"
+    FULL=$(apt-cache madison docker-ce | awk -v w="$WANT" '$3 ~ ("(^|:)" w "$") {print $3; exit}')
+    test -n "$FULL" || { echo "docker-ce $WANT not in noble pool (S0 identity gate)" >&2; exit 1; }
+    apt-get install -y --allow-downgrades \
+      docker-ce="$FULL" \
+      docker-ce-cli="$(apt-cache madison docker-ce-cli | awk -v w="$WANT" '$3 ~ ("(^|:)" w "$") {print $3; exit}')" \
+      containerd.io
+    apt-mark hold docker-ce docker-ce-cli containerd.io

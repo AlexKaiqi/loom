@@ -9,6 +9,7 @@ from lore_provider.jsoncodec import encode, strict_load
 from lore_provider.persistence import save_json
 from lore_provider.request import BINDING, MODEL, encode_request
 from lore_provider.response import normalize
+from lore_provider.transport import _request_path
 
 
 class ProviderBridgeError(WireError):
@@ -51,14 +52,19 @@ class ProviderBridge:
         self.root = Path(root).absolute()
         require(self.root.parent.is_dir() and self.root.resolve() == self.root)
         self.endpoint, self.model_scope = copy.deepcopy((endpoint, model_scope))
-        require(type(endpoint) is dict and set(endpoint) == {"scheme", "host", "port"})
+        require(type(endpoint) is dict and set(endpoint) in
+                ({"scheme", "host", "port"}, {"scheme", "host", "port", "path_prefix"}))
         require(endpoint["scheme"] in ("http", "https") and type(endpoint["host"]) is str
                 and endpoint["host"] and type(endpoint["port"]) is int and 0 < endpoint["port"] <= 65535)
         require(type(model_scope) is dict and set(model_scope) ==
-                {"model", "max_completion_tokens", "session_scope", "input_ref", "harness_ref", "capability_ref"})
+                {"model", "max_completion_tokens", "reasoning_effort", "session_scope", "input_ref", "harness_ref", "capability_ref"})
+        # Bridge cap revised 2026-09-14 (m01-output-budget amendment): 2048 -> 16384.
         require(model_scope["model"] == MODEL and type(model_scope["max_completion_tokens"]) is int
-                and 0 < model_scope["max_completion_tokens"] <= 2048)
-        require(type(timeout) in (int, float) and 0 < timeout <= 60)
+                and 0 < model_scope["max_completion_tokens"] <= 16384)
+        # Bridge timeout ceiling revised 2026-09-14 (m01-output-budget amendment):
+        # 60 -> 300 so real reasoning-model round trips fit the transport budget.
+        require(type(timeout) in (int, float) and 0 < timeout <= 300)
+        require(model_scope["reasoning_effort"] in ("low", "medium", "high", "max"))
         require(credential_provider is None or callable(credential_provider))
         self.credential_provider, self.timeout = credential_provider, timeout
         scope = model_scope["session_scope"]
@@ -93,7 +99,8 @@ class ProviderBridge:
         require(len(encode(frame)) <= 1048576)
         wire_scope = {k: copy.deepcopy(binding[k]) for k in BINDING}
         intent = dict(binding=wire_scope, model=self.model_scope["model"],
-                      max_completion_tokens=self.model_scope["max_completion_tokens"], context=copy.deepcopy(frame["payload"]))
+                      max_completion_tokens=self.model_scope["max_completion_tokens"],
+                      reasoning_effort=self.model_scope["reasoning_effort"], context=copy.deepcopy(frame["payload"]))
         raw = encode_request(intent, wire_scope)  # Full validation precedes directory claim or credential read.
         prepared = dict(schema="lore-s-provider-prepared/1", effect_id=effect,
                         binding=copy.deepcopy(binding), model_scope=self.model_scope,
@@ -129,7 +136,8 @@ class ProviderBridge:
         association = strict_load(self._read(home / "association.json", 65536))
         require(same(association, dict(binding=intent["binding"], scope=intent["binding"],
                 request_sha256=digest(raw_request), response_sha256=digest(raw))), "integrity_mismatch")
-        expected = dict(request=dict(method="POST", path="/v1/chat/completions", size=len(raw_request),
+        expected = dict(request=dict(method="POST",
+                        path=_request_path(self.endpoint), size=len(raw_request),
                         sha256=digest(raw_request)), transport=transport,
                         artifacts={key+"_path": str(home / name) for key, name in
                                    [("request", "request.body"), ("response", "response.body"),

@@ -11,7 +11,9 @@ from .transport import exchange
 
 class WireClient:
     def __init__(self, endpoint, scope, evidence_dir, timeout=2.0, credential_provider=None):
-        require(type(timeout) in (int, float) and 0 < timeout <= 60, "invalid_endpoint")
+        # Wire client timeout ceiling revised 2026-09-14 (m01-output-budget
+        # amendment): 60 -> 300 for real reasoning-model round trips.
+        require(type(timeout) in (int, float) and 0 < timeout <= 300, "invalid_endpoint")
         require(credential_provider is None or callable(credential_provider), "invalid_credential")
         self.credential_provider = credential_provider
         self.endpoint, self.scope = copy.deepcopy(endpoint), copy.deepcopy(scope)
@@ -40,12 +42,14 @@ class WireClient:
         transport_path, association_path = self.root/"transport.json", self.root/"association.json"
         save(request_path, request)
         raw, transport, headers = exchange(self.endpoint, request, self.timeout, authorization=authorization)
+        from .transport import _request_path
+        wire_path = _request_path(self.endpoint)
         save(response_path, raw)
         save_json(transport_path, transport)
         save_json(self.root/"response.headers.json", headers)
         save_json(association_path, dict(binding=copy.deepcopy(intent["binding"]),scope=self.scope,
                   request_sha256=hashlib.sha256(request).hexdigest(),response_sha256=hashlib.sha256(raw).hexdigest()))
-        result = dict(request=dict(method="POST",path="/v1/chat/completions",size=len(request),
+        result = dict(request=dict(method="POST",path=wire_path,size=len(request),
                                    sha256=hashlib.sha256(request).hexdigest()),transport=transport,
                       artifacts=dict(request_path=str(request_path),response_path=str(response_path),
                                      transport_path=str(transport_path),association_path=str(association_path)))

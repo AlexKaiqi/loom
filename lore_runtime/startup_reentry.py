@@ -37,7 +37,7 @@ def open_existing(cls,root,config,control):
  for original,ref in ((c['profile_ref'],profile_ref),(c['request_template_ref'],request_ref)):
   require(all(original[k]==ref[k] for k in ('bytes','sha256')),"INVALID_REQUEST","retained profile/template differs")
  profile=json.loads(profile_raw);request=json.loads(request_raw)
- require(profile['id']=='fixed-node-pi-session-v1' and profile['slot_reservation']==SLOT and request['schema_version']==2 and request['environment']==profile['id'],"INVALID_REQUEST","retained admitted profile differs")
+ require(profile['id'] in {'fixed-node-pi-session-v1','linux-browser-v1'} and profile['slot_reservation']==SLOT and request['schema_version']==2 and request['environment']==profile['id'],"INVALID_REQUEST","retained admitted profile differs")
  deps=copy.deepcopy(c['deps_mount']);readonly(deps)
  require(deps['role']=='dependencies' and deps['target']=='/opt' and deps['read_only'] is True,"UNAUTHORIZED","dependency mount differs")
  code=paths['artifact_root']/'code-source'

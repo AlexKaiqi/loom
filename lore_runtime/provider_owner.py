@@ -1,6 +1,8 @@
 """R provider responsibility around original Bridge bytes; no model or retry loop."""
 import copy
+import hashlib
 import math
+import sys
 import time
 from pathlib import Path
 from lore_control.values import decode, encode, fail, identifier
@@ -8,12 +10,63 @@ from lore_provider.request import MODEL
 from lore_session.provider import ProviderBridge, digest, same
 from .session_plan_files import compact
 
-DEFAULT_BUDGET = dict(max_requests=6, max_input_tokens=15360,
-    max_output_tokens_per_request=2048, max_request_body_bytes=15360, max_seconds=300)
+DEFAULT_BUDGET = dict(max_requests=24, max_input_tokens=49152,
+    max_output_tokens_per_request=16384, max_request_body_bytes=65536, max_seconds=1800,
+    reasoning_effort="medium")
+
+_ADMISSION_MARGIN = 64
 
 
 def require(value, message, code='reference_invalid'):
     if not value: fail(code, message)
+
+
+def _boot_identity():
+    """Boot-scoped host identity for original scope profiles.
+
+    Linux keeps the kernel boot_id. macOS (2026-09-14 platform revision) combines
+    the kernel boot UUID with the recorded boot time, so the value is stable
+    within one boot and differs across reboots, matching the original property.
+    """
+    if sys.platform == 'linux':
+        return Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+    if sys.platform == 'darwin':
+        import subprocess
+        uuid = subprocess.run(['sysctl', '-n', 'kern.uuid'], capture_output=True,
+                              text=True, timeout=5).stdout.strip()
+        boottime = subprocess.run(['sysctl', '-n', 'kern.boottime'], capture_output=True,
+                                  text=True, timeout=5).stdout.strip()
+        require(uuid and boottime, 'darwin boot identity unavailable')
+        return hashlib.sha256((uuid + '\n' + boottime).encode()).hexdigest()
+    fail('reference_invalid', 'unsupported platform for provider boot identity')
+
+
+def common_prefix_length(left, right):
+    """Byte length of the longest common prefix of two request bodies."""
+    limit = min(len(left), len(right))
+    index = 0
+    while index < limit and left[index] == right[index]:
+        index += 1
+    return index
+
+
+def projected_request_tokens(tokens_last, common_bytes, next_bytes, margin=_ADMISSION_MARGIN):
+    """Sound one-step upper bound on the next request's actual prompt tokens.
+
+    2026-09-14 recorded revision (validation/provider_budget/admission-protocol.json):
+    the previous preflight reserved next-request BYTES as tokens after the actual
+    usage, which blocked legitimate sixth steps in the recorded M01 batches. The
+    server tokenizes identical byte spans identically, and every new or rewritten
+    byte contributes at most one token per byte for any tokenizer whose tokens
+    cover non-empty byte spans, so tokens_next <= tokens_last + tail_bytes plus a
+    margin for server template growth and tokenizer merges across the boundary.
+    The authoritative post-response check on cumulative ACTUAL usage is unchanged.
+    """
+    require(type(tokens_last) is int and tokens_last >= 0, 'measured token anchor required')
+    require(type(common_bytes) is int and common_bytes >= 0, 'common prefix required')
+    require(type(next_bytes) is int and next_bytes >= 0, 'next request size required')
+    require(type(margin) is int and margin >= 0, 'admission margin required')
+    return tokens_last + max(0, next_bytes - common_bytes) + margin
 
 
 class ProviderOwner:
@@ -24,22 +77,32 @@ class ProviderOwner:
         require(root.resolve() == root and root.parent.is_dir(), 'unaliased original provider root required')
         limits = copy.deepcopy(DEFAULT_BUDGET if budget is None else budget)
         require(type(limits) is dict and set(limits) == set(DEFAULT_BUDGET), 'complete trusted budget required')
-        require(all(type(limits[k]) is int and limits[k] > 0 for k in limits if k != 'max_seconds'), 'positive token/count limits required')
+        require(all(type(limits[k]) is int and limits[k] > 0 for k in limits
+                    if k not in ('max_seconds', 'reasoning_effort')), 'positive token/count limits required')
+        require(limits.get('reasoning_effort', 'low') in ('low', 'medium', 'high', 'max'),
+                'bounded reasoning effort required')
         require(type(limits['max_seconds']) in (int,float) and math.isfinite(limits['max_seconds']) and limits['max_seconds'] > 0,
                 'finite scope duration required')
-        require(limits['max_output_tokens_per_request'] <= 2048 and limits['max_request_body_bytes'] <= 65536,
+        # Wire profile revised 2026-09-14 (m01-output-budget): glm-5.3 reasoning
+        # tokens bill against completion, so the per-request output cap rises
+        # 2048 -> 16384; the request body cap is unchanged.
+        require(limits['max_output_tokens_per_request'] <= 16384 and limits['max_request_body_bytes'] <= 65536,
                 'trusted budget exceeds original Wire profile')
-        require(type(timeout) in (int,float) and 0 < timeout <= 60 and
+        # Transport timeout ceiling revised 2026-09-14 (m01-output-budget amendment):
+        # reasoning-model round trips exceed the previous 60s bound; 300s matches
+        # the per-sample wall budget.
+        require(type(timeout) in (int,float) and 0 < timeout <= 300 and
                 (deadline_provider is None or callable(deadline_provider)), 'finite transport timeout required')
         self.control, self.root, self.principal = control, root, principal
         self.endpoint, self.budget = copy.deepcopy((endpoint, limits))
         self.credential_provider, self.timeout, self.deadline_provider = credential_provider, timeout, deadline_provider
         self.config = dict(root=str(root), principal=principal, endpoint=self.endpoint, model=MODEL,
                            budget=limits, timeout=timeout)
-        self.boot_id = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+        self.boot_id = _boot_identity()
 
     def _model(self, scope):
         return dict(model=MODEL, max_completion_tokens=self.budget['max_output_tokens_per_request'],
+                    reasoning_effort=self.budget.get('reasoning_effort', 'low'),
                     **{k:copy.deepcopy(scope[k]) for k in ('session_scope','input_ref','harness_ref','capability_ref')})
 
     def _bridge(self, payload):
@@ -98,7 +161,14 @@ class ProviderOwner:
         return result
 
     def _usage(self, rows):
+        """Cumulative ACTUAL usage over confirmed attempts (authoritative check).
+
+        2026-09-14 revision: also returns the per-row measured prompt tokens so
+        admission can anchor its one-step projection on the last measured value
+        instead of reserving next-request BYTES as tokens (the recorded blocker).
+        """
         total = 0
+        measured = []
         for row in rows:
             result = self._query_row(row)
             require(result['status'] == 'RECEIVED' and result['wire'].get('accepted') is True,
@@ -107,8 +177,22 @@ class ProviderOwner:
             require(usage['completion_tokens'] <= row['payload']['model_scope']['max_completion_tokens'],
                     'actual original output exceeded its request budget', 'budget_exceeded')
             total += usage['prompt_tokens']
+            measured.append(usage['prompt_tokens'])
         require(total <= self.budget['max_input_tokens'], 'actual original input budget exceeded', 'budget_exceeded')
-        return total
+        return total, measured
+
+    def _archived_request_bytes(self, row, scope):
+        """A past attempt's original request body, read back from the bridge's
+        saved wire record (the exact bytes the server tokenized last time)."""
+        bridge = self._bridge(row['payload'])
+        path = bridge._folder(row['id']) / 'wire' / 'request.body'
+        try:
+            value = bridge._read(path, 65536)
+        except Exception:
+            fail('original request record is unreadable', 'budget_unknown')
+        require(digest(value) == row['payload']['request_sha256'],
+                'archived request body differs from its recorded digest', 'budget_unknown')
+        return value
 
     def _admit(self, scope, rows, profile, raw):
         require(profile['boot_id'] == self.boot_id and time.monotonic() < profile['deadline_monotonic'],
@@ -120,9 +204,24 @@ class ProviderOwner:
             if same(value['binding']['session_scope'],scope['session_scope']):
                 require(value['effect_id'] in known, 'unassociated original provider attempt cannot be ignored', 'budget_unknown')
         require(len(rows) < self.budget['max_requests'], 'scope request count exhausted', 'budget_exceeded')
-        used = self._usage(rows)
-        require(len(raw) <= self.budget['max_request_body_bytes'] and used+len(raw) <= self.budget['max_input_tokens'],
-                'conservative input-byte reservation exceeds remaining budget', 'budget_exceeded')
+        # The next request's own size stays under the hard body cap; the old
+        # combined byte-as-token reservation (used+len(raw)) is the recorded
+        # M01 blocker and is replaced by the measured projection below.
+        require(len(raw) <= self.budget['max_request_body_bytes'],
+                'original request body exceeds the fixed body cap', 'budget_exceeded')
+        used, measured = self._usage(rows)
+        if not measured:
+            projected = projected_request_tokens(0, 0, len(raw))
+        else:
+            # Rows and measured tokens are ordered by admission; the last row
+            # anchors the projection and its archived body provides the shared
+            # prefix bytes (protocol: identical byte spans tokenize identically,
+            # and any byte outside the shared span adds at most one token).
+            previous = self._archived_request_bytes(rows[-1], scope)
+            projected = projected_request_tokens(measured[-1],
+                                                 common_prefix_length(previous, raw), len(raw))
+        require(used + projected <= self.budget['max_input_tokens'],
+                'projected original request exceeds the input budget', 'budget_exceeded')
 
     def _wrapper(self, row, result):
         binding = {k:row[k] for k in ('principal','id','namespace','kind','payload')}

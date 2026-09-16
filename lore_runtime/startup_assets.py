@@ -14,10 +14,19 @@ CODE_FILES = tuple("lore_session/node/"+name+".mts" for name in
                    ("entry","adapter","session","callbacks","stdio","common")) + (
     "harnesses/minimal/index.mts","harnesses/minimal/projection.mts","harnesses/runtime/index.mts")
 KINDS = ("snapshot","readonly-view","owner-receipt","grant","storage-charge")
-SLOT = dict(max_objects=3,memory_bytes=805306368,session_memory_bytes=536870912,
-            tool_memory_bytes=134217728,helper_memory_bytes=134217728,
-            cpus=dict(S=.5,tool=.25,helper=.25),all_active_writable_bytes=134217728,
-            all_active_writable_inodes=8192)
+# 2026-09-14 (m01-output-budget amendment, batch-ah counterexample): the helper
+# reservation derives from the per-execution slot envelope (3*CONTROL_BYTES /
+# 128+CONTROL_INODES); after the envelope's 8x rise the plan totals must hold
+# the concurrent reservations and retained spool debt. 128 MiB -> 256 MiB,
+# 8192 -> 16384 inodes. Old values retained in the amendment record.
+# 2026-09-15 (amendment-linux-browser): the shared tool role grows to the
+# browser workload scale (512 MiB / 0.5 cpu); the total covers S+tool+helper.
+# The default python path is unchanged at the request layer (tool_plans derives
+# request budgets from the environment profile and clamps to these role caps).
+SLOT = dict(max_objects=3,memory_bytes=1478490112,session_memory_bytes=536870912,
+            tool_memory_bytes=805306368,helper_memory_bytes=134217728,
+            cpus=dict(S=.5,tool=1.0,helper=.25),all_active_writable_bytes=536870912,
+            all_active_writable_inodes=16384)
 
 
 class StartupAssets:
@@ -51,13 +60,37 @@ class StartupAssets:
         require(c["model"].keys()<={"id","name","api","provider","reasoning","input","cost","contextWindow","maxTokens"},
                 "UNAUTHORIZED","keyless model specification only")
         limits=c["capability_limits"]
-        require(type(limits) is dict and set(limits)<={"max_steps"} and
-                (not limits or type(limits["max_steps"]) is int and 0<limits["max_steps"]<=64),
+        # Archive thresholds (m01-output-budget amendment 2026-09-14): the host
+        # records the bounded-context contract alongside max_steps; the values
+        # are validated here and enforced by the reference Harness policy.
+        def _archive_ok(value):
+            return (type(value) is dict and set(value)=={"context_tokens","reserve_tokens","tail_reserve_tokens","soft_tokens"}
+                    and all(type(value[k]) is int and value[k]>0 for k in value)
+                    and value["reserve_tokens"]<value["context_tokens"] and value["soft_tokens"]<value["context_tokens"])
+        require(type(limits) is dict and set(limits)<={"max_steps","archive"} and
+                (not limits or type(limits["max_steps"]) is int and 0<limits["max_steps"]<=64) and
+                ("archive" not in limits or _archive_ok(limits["archive"])),
                 "INVALID_REQUEST","fixed existing Harness limit only")
         profile=document(c["profile_ref"]);request=document(c["request_template_ref"])
-        require(profile["id"]=="fixed-node-pi-session-v1" and profile["slot_reservation"]==SLOT
+        # 2026-09-15 (amendment-linux-browser): admitted session environments are
+        # the registered set — the fixed Pi session profile or a registered
+        # increment (linux-browser-v1) whose slot plan and template binding hold.
+        ADMISSIONS={"fixed-node-pi-session-v1","linux-browser-v1"}
+        require(profile["id"] in ADMISSIONS and profile["slot_reservation"]==SLOT
                 and request["schema_version"]==2 and request["environment"]==profile["id"],
                 "UNAUTHORIZED","fixed admitted Node profile/slot differs")
+        extra=c.get("extra_profiles") or []
+        require(type(extra) is list,"INVALID_REQUEST","extra profiles must be a list")
+        extra_refs=[]
+        for item in extra:
+            require(type(item) is dict and set(item)=={"id","path","sha256"}
+                    and item["id"] in ADMISSIONS and item["id"]!=profile["id"],
+                    "INVALID_REQUEST","extra profile registration invalid")
+            body=document(item)
+            require(body["id"]==item["id"] and body.get("slot_reservation")==SLOT,
+                    "INVALID_REQUEST","extra profile slot plan differs")
+            extra_refs.append(immutable(directories["artifact_root"]/("node-profile-"+item["id"]+".json"),
+                file_object(item["path"])[1]))
         profile_ref=immutable(directories["artifact_root"]/"node-profile.json",file_object(c["profile_ref"]["path"])[1])
         request_ref=immutable(directories["artifact_root"]/"node-request-template.json",file_object(c["request_template_ref"]["path"])[1])
         require(all(profile_ref[k]==c["profile_ref"][k] and request_ref[k]==c["request_template_ref"][k] for k in ("bytes","sha256")),
@@ -78,7 +111,10 @@ class StartupAssets:
         slot=dict(slot_id=slot_ref["slot_id"],revision=1,namespace=c["namespace"],plan_sha256=slot_ref["plan_sha256"],
                   plan=copy.deepcopy(SLOT),allowed_principals=["trusted-S"],state_root=str(directories["state_root"]))
         trusted=dict(schema="lore-x-trusted-node-test-config/v1",transport_principal="trusted-S",
-            state_root=str(directories["state_root"]),profiles=[dict(id=profile["id"],**profile_ref)],slots=[slot],
+            state_root=str(directories["state_root"]),
+            profiles=[dict(id=profile["id"],**profile_ref)]
+                +[dict(id=item["id"],**ref) for item,ref in zip(extra,extra_refs)],
+            slots=[slot],
             grants=[],references=dict(snapshots=[],F_views=[],owner_receipts=[]),read_only_roots=[],
             allowed_harness_entries=[dict(path="/harness/lore_session/node/entry.mts",
                 sha256=c["code_sources"]["lore_session/node/entry.mts"]["sha256"],argv_modes=["--config"])],

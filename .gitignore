@@ -32,3 +32,12 @@ research/derived/
 *.log
 validation/profiles/*.json
 !validation/profiles/*.example.json
+
+# 2026-09-14 Linux container validation environment (rebuildable, machine-derived)
+.runtime-env/
+research/.venvs/
+research/.cache/
+validation/session-plan-evidence/
+validation/system/dependencies/
+design/g3/x-node-profile/dependencies.json
+validation/components/*/evidence/

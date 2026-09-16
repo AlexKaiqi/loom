@@ -6,15 +6,34 @@ import time
 from .jsoncodec import require
 
 MAX_BODY = 1048576
+_DEFAULT_PREFIX = "/v1"
+_PATH_PREFIX_CHARACTERS = frozenset(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._/_")
+
+
+def _request_path(endpoint):
+    """2026-09-14 baseline: optional fixed path_prefix (user Volcengine plan route).
+
+    Omitted prefix keeps the original fixed /v1/chat/completions behavior for
+    every existing profile; a present prefix must be a pre-registered literal
+    path fragment with no query or fragment characters.
+    """
+    prefix = endpoint.get("path_prefix", _DEFAULT_PREFIX)
+    require(isinstance(prefix, str) and prefix.startswith("/") and not prefix.endswith("/") and
+            prefix == "/" + prefix.strip("/") and len(prefix) <= 128 and
+            all(character in _PATH_PREFIX_CHARACTERS for character in prefix), "invalid_endpoint")
+    return prefix + "/chat/completions"
 
 
 def exchange(endpoint, request, timeout, authorization=None):
+    allowed = {"scheme", "host", "port", "path_prefix"}
     require(endpoint.get("scheme") in ("http", "https"), "invalid_endpoint")
     require(isinstance(endpoint.get("host"), str) and endpoint["host"] and
             type(endpoint.get("port")) is int and 0 < endpoint["port"] <= 65535, "invalid_endpoint")
-    require(set(endpoint)=={"scheme", "host", "port"}, "invalid_endpoint")
+    require(set(endpoint) <= allowed and {"scheme", "host", "port"} <= set(endpoint), "invalid_endpoint")
     factory = http.client.HTTPSConnection if endpoint["scheme"]=="https" else http.client.HTTPConnection
     connection = factory(endpoint["host"], endpoint["port"], timeout=timeout)
+    request_path = _request_path(endpoint)
     started = time.monotonic(); timer = None; timed_out = []
     status = length = None; raw = bytearray(); headers = []
     try:
@@ -31,7 +50,7 @@ def exchange(endpoint, request, timeout, authorization=None):
         request_headers = {"Content-Type":"application/json", "Connection":"close"}
         if authorization is not None:
             request_headers["Authorization"] = authorization
-        connection.request("POST", "/v1/chat/completions", body=request, headers=request_headers)
+        connection.request("POST", request_path, body=request, headers=request_headers)
         response = connection.getresponse(); status = response.status; headers = response.getheaders()
         declared = [value for key,value in headers if key.lower()=="content-length"]
         if len(declared)==1 and declared[0].isdigit(): length = int(declared[0])

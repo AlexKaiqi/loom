@@ -113,7 +113,11 @@ class RuntimeFlow:
         except Exception as error:
             current = c.query(row['principal'], row['id'])
             if current['phase'] not in ('issued', 'decide'): raise
-            c.pause(row['id'], token, 'original delivery or decision unavailable: '+type(error).__name__,
+            self.checkpoint('delivery_error', dict(request_id=row['id'], type=type(error).__name__,
+                                                   code=getattr(error, 'code', None), detail=str(error)))
+            c.pause(row['id'], token,
+                    'original delivery or decision unavailable: ' + type(error).__name__
+                    + ': ' + str(error)[:400],
                     dict(owner='R', request_id=row['id'], code=getattr(error, 'code', None)))
 
     async def drive_until(self, principal, request_id, *, deadline_monotonic):

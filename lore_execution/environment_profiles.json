@@ -1,0 +1,64 @@
+{
+  "schema": 2,
+  "profiles": [
+    {
+      "id": "fixed-python-linux-v1",
+      "image": "python@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea",
+      "image_id": "sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea",
+      "seccomp_sha256": "9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294cae9c76",
+      "engine_version": "29.1.3",
+      "network": "none",
+      "endpoints": [],
+      "interpreter_argv": [
+        [
+          "python",
+          "-c"
+        ],
+        [
+          "python3",
+          "-c"
+        ],
+        [
+          "/bin/sh",
+          "-c"
+        ]
+      ],
+      "profile_sha256": "9265304e2d511c394085142c9a36b64f214379fd5de170ed3054388c704a93b5"
+    },
+    {
+      "id": "linux-browser-v1",
+      "image": "sha256:72e95e40bfc5e1be5f3d13a5d293295bf63d10fd96bef2d6fa08f8c2e52a306d",
+      "image_id": "sha256:72e95e40bfc5e1be5f3d13a5d293295bf63d10fd96bef2d6fa08f8c2e52a306d",
+      "seccomp_path": "seccomp-browser.json",
+      "seccomp_sha256": "9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294cae9c76",
+      "engine_version": "29.1.3",
+      "network": "none",
+      "endpoints": [],
+      "interpreter_argv": [
+        [
+          "python",
+          "-c"
+        ],
+        [
+          "python3",
+          "-c"
+        ],
+        [
+          "/bin/sh",
+          "-c"
+        ]
+      ],
+      "budget_maxima": {
+        "memory_bytes": 805306368,
+        "pids": 1024,
+        "cpu": 1.0,
+        "deadline_seconds": 120,
+        "tmp_bytes": 67108864,
+        "shm_bytes": 16777216,
+        "tmp_inodes": 1024,
+        "shm_inodes": 1024
+      },
+      "profile_sha256": "aa59e1117ce1c450a7f29f6a8acbc64a22e7a6ecc08e4a03b835fe877792761c"
+    }
+  ]
+}

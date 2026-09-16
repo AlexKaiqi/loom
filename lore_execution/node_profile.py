@@ -52,7 +52,11 @@ LIMITS = {
     "archive_bytes": 18874368,
     "expanded_bytes": 16777216,
     "archive_entries": 512,
-    "deadline_seconds": 30,
+    # 2026-09-14 (m01-output-budget amendment): the step deadline rises 30 -> 300
+    # to cover real reasoning-model round trips at the step boundary; 300 -> 600
+    # after threshold archiving made per-step model re-exploration realistic
+    # (m01-real-2026-09-14aa counterexample: drive killed at 300s mid-tool).
+    "deadline_seconds": 600,
 }
 
 
@@ -70,8 +74,17 @@ def guarded(method):
             OverflowError,
             RecursionError,
         ) as exc:
+            # Surface the wrapped cause (m01-real-2026-09-14au: the bare message
+            # hid the value-dependent failure behind the new Node profile).
+            tb = exc.__traceback__
+            while tb is not None and tb.tb_next is not None:
+                tb = tb.tb_next
             raise ExecutionError(
-                "INVALID_REQUEST", "incomplete or invalid ordinary execution source"
+                "INVALID_REQUEST",
+                "incomplete or invalid ordinary execution source: "
+                + type(exc).__name__ + ": " + str(exc)
+                + " at " + (tb.tb_frame.f_code.co_filename + ":"
+                            + str(tb.tb_lineno) if tb else "?"),
             ) from exc
 
     return invoke
@@ -473,7 +486,7 @@ class NodeProfile:
             "unsupported Node request fields/schema",
         )
         require(
-            request["environment"] == "fixed-node-pi-session-v1"
+            request["environment"] in self.profiles
             and request["domain"] == "session",
             "INVALID_REQUEST",
             "internal Node profile/domain required",
@@ -499,10 +512,15 @@ class NodeProfile:
                 "stable request identity required",
             )
         b = request["budgets"]
+        # 2026-09-15 (amendment-linux-browser): per-profile budget maxima — the
+        # profile document may raise ceilings for its environment via an optional
+        # `budget_maxima` (same form as the X registry); absent means the base
+        # LIMITS. The request still carries the full budget set every time.
+        effective = {**LIMITS, **profile.get("budget_maxima", {})}
         require(
-            set(b) == set(LIMITS), "INVALID_REQUEST", "complete Node budget required"
+            set(b) == set(effective), "INVALID_REQUEST", "complete Node budget required"
         )
-        for key, ceiling in LIMITS.items():
+        for key, ceiling in effective.items():
             require(
                 type(b[key]) in (int, float)
                 and math.isfinite(b[key])

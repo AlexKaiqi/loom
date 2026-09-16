@@ -28,10 +28,15 @@ export async function run(config:any,request:any,transport:any){
  let pauseResolve:(v:any)=>void;const paused=new Promise<any>(resolve=>{pauseResolve=resolve;});
  const delegates=callbacks(pi,store,binding,transport,value=>pauseResolve(value));
  const policyModule=await import(pathToFileURL(config.harness_entry).href);
- const policy=await policyModule.create({pi,store,binding,...delegates});
  if(request.action==='accept'){
   requireValue(!observed.lane?.currentOperationId,'lane_busy','another original operation is active');
+  // Registration precedes any policy decision (m01-real-2026-09-14v/w revision):
+  // a policy-level step-budget stop below must leave the binding as a recorded
+  // fact so the confirm descriptor and facts chain reference this operation.
   if(observed.binding===null)await store.set('lore.s.binding',op,binding);
+ }
+ const policy=await policyModule.create({pi,store,binding,...delegates});
+ if(request.action==='accept'){
   const accepted=await policy.lane.accept({kind:'prompt',operationId:op,prompt:policy.prompt},pi.context);
   requireValue(accepted.ok,'invalid_request','Pi rejected original acceptance');
   observed=await store.inspect(op);requireValue(observed.meta&&observed.state,'session_corrupt','accepted original missing');

@@ -1,0 +1,71 @@
+# lore-substrate-virtiofs.yaml — substrate 批次 V1–V4 钉定模板（主批）
+# 状态：DRAFT / UNVERIFIED。判据与身份：validation/substrate/protocol-substrate-001.json
+# 约束：本文件是预登记身份的一部分；修改必须走重新预登记（停止条件 S0），不得就地改。
+# 钉定依据（2026-09-15 观测）：
+#   - Lima v2.2.0（peeled commit de0816ea4bdc5267b428ab21025889b8dd785526）
+#   - noble release-20260705 per-arch digest：lima-vm/lima templates/_images/ubuntu-24.04.yaml
+#   - docker-ce 29.1.3 仅在 noble pool（resolute 无）：download.docker.com
+#   - vmType vz + mountType virtiofs：Lima mount/vmtype 文档（macOS >= 13 默认形态）
+minimumLimaVersion: 2.0.0
+
+vmType: "vz"
+mountType: "virtiofs"
+# V2 主判据批测 native 传播：shim 显式关闭（shim 对照批另行登记，不在此模板内）
+mountInotify: false
+# Rosetta/binfmt 不得承载判据运行（协议 §5 arm64 修订）：显式关闭
+rosetta:
+  enabled: false
+  binfmt: false
+
+images:
+- location: "https://cloud-images.ubuntu.com/releases/noble/release-20260705/ubuntu-24.04-server-cloudimg-arm64.img"
+  arch: "aarch64"
+  digest: "sha256:7df0201546f75b8bcc1044594c806c35749421ad3c9bc1be2a3ab806cfae39cc"
+  variant: "server"
+- location: "https://cloud-images.ubuntu.com/releases/noble/release-20260705/ubuntu-24.04-server-cloudimg-amd64.img"
+  arch: "x86_64"
+  digest: "sha256:ffe6203da54deeb6db5d2a98a83f9ec8e55f149d3f7ba622e1abe5fa966ee3d6"
+  variant: "server"
+# 协议钉定规则：只保留带 digest 条目；上游模板的无 digest fallback 条目不得出现。
+
+cpu: 4
+memory: "8GiB"
+disk: "60GiB"
+
+# 仓库工作副本按同路径进入 VM（与 scripts/lore_batch.sh 的 $ROOT:$ROOT 同形）。
+# run-v1-v4.sh 用 sed 将 {{.Param.LORE_ROOT}} 替换为绝对路径生成实例文件，两份 sha256 均记录。
+mounts:
+- location: "{{.Param.LORE_ROOT}}"
+  mountPoint: "{{.Param.LORE_ROOT}}"
+  writable: true
+
+# containerd 由 Docker 管理（对齐 Lima docker 模板语义）；Engine 版本不得用 get.docker.com 浮动安装。
+containerd:
+  system: false
+  user: false
+
+provision:
+- mode: system
+  script: |
+    #!/bin/bash
+    set -eux -o pipefail
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -y
+    apt-get install -y --no-install-recommends ca-certificates curl gnupg python3
+    if command -v docker >/dev/null 2>&1; then
+      exit 0
+    fi
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu noble stable" \
+      > /etc/apt/sources.list.d/docker.list
+    apt-get update -y
+    # 钉定安装：解析 apt 池中的完整版本串（含 epoch），只装 29.1.3-1~ubuntu.24.04~noble。
+    WANT="29.1.3-1~ubuntu.24.04~noble"
+    FULL=$(apt-cache madison docker-ce | awk -v w="$WANT" '$3 ~ ("(^|:)" w "$") {print $3; exit}')
+    test -n "$FULL" || { echo "docker-ce $WANT not in noble pool (S0 identity gate)" >&2; exit 1; }
+    apt-get install -y --allow-downgrades \
+      docker-ce="$FULL" \
+      docker-ce-cli="$(apt-cache madison docker-ce-cli | awk -v w="$WANT" '$3 ~ ("(^|:)" w "$") {print $3; exit}')" \
+      containerd.io
+    apt-mark hold docker-ce docker-ce-cli containerd.io

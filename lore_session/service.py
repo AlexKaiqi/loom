@@ -1,6 +1,7 @@
 """Trusted transport glue for the existing Pi Session. No model or policy loop."""
 import base64
 import copy
+import json
 import math
 import time
 
@@ -45,7 +46,12 @@ class SessionService:
                               ('operation_id', 'harness_ref', 'input_ref', 'source_result_ref', 'capability_ref')})
             run = SessionRun(self.execution, self.snapshots, x_request, plan['authority'], binding['operation_id'])
         except Exception as error:
-            raise SessionServiceError(getattr(error, 'code', 'invalid_frame'), str(error), {}) from error
+            tb = error.__traceback__
+            while tb is not None and tb.tb_next is not None:
+                tb = tb.tb_next
+            location = (tb.tb_frame.f_code.co_filename + ":" + str(tb.tb_lineno)) if tb else "?"
+            raise SessionServiceError(getattr(error, 'code', 'invalid_frame'),
+                                      str(error) + " at " + location, {}) from error
         invocation = _Invocation(self, run, request, binding, deadline_monotonic)
         return invocation.invoke()
 
@@ -131,7 +137,10 @@ class _Invocation:
         self.evidence['pending_receipt'] = copy.deepcopy(result)
         self.hook('effect_received', {'callback':frame, 'owner_result':result})
         if result.get('status') == 'UNKNOWN':
-            raise SnapshotError('paused_unknown', 'original external effect remains unresolved')
+            detail = result.get('error')
+            raise SnapshotError('paused_unknown',
+                                'original external effect remains unresolved: '
+                                + (json.dumps(detail, default=str) if detail else 'no owner error recorded'))
         if result.get('fresh') is not True:
             raise SnapshotError('paused_reconciliation_required', 'retained original receipt cannot be replayed into orphan pending')
         require(result.get('status') == 'RECEIVED', 'external owner did not return a complete receipt')

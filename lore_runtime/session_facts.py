@@ -1,5 +1,6 @@
 """Read-only projection of original X release and normal S ownership; no ledger."""
 import copy
+import json
 from pathlib import Path
 
 from lore_execution.errors import ExecutionError
@@ -130,7 +131,19 @@ class SessionFacts:
         confirmation_id = facility['confirmation_request_id']; bundle = self.snapshots.query(confirmation_id)
         require(same(bundle, facility['session_confirmation']), 'original confirmation bundle differs')
         owner = decode(read_ref(bundle['owner_record_ref'], CONTROL_LIMIT)[1])
-        require(same(owner['scope'], binding['session_scope']) and same(owner['original_session']['binding'], binding), 'original confirmed Session binding differs')
+        if not (same(owner['scope'], binding['session_scope']) and same(owner['original_session']['binding'], binding)):
+            # Observability revision 2026-09-14: keep the sealed check, surface the
+            # differing identity fields (no session content) for diagnosis.
+            def _brief(value):
+                if not isinstance(value, dict):
+                    return type(value).__name__
+                return {k: (v if isinstance(v, (str, int, bool)) else type(v).__name__)
+                        for k, v in value.items() if k in ('session_id', 'session_generation',
+                                                           'surface_id', 'operation_id', 'response_entry_id')}
+            raise ExecutionError('IDENTITY_MISMATCH', 'original confirmed Session binding differs: owner.scope=' +
+                                 json.dumps(_brief(owner.get('scope')), sort_keys=True, default=str) +
+                                 ' owner.binding=' + json.dumps(_brief(owner.get('original_session', {}).get('binding')), sort_keys=True, default=str) +
+                                 ' x.binding=' + json.dumps(_brief(binding), sort_keys=True, default=str))
         self._retention(record, bundle, owner)
         require(self.engine.inspect(record['binding']['container_id']) is None and
                 self.engine.call('GET', '/volumes/'+record['binding']['volume_id'], missing=True) is None,

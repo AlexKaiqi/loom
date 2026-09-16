@@ -1,7 +1,14 @@
 """The finite authorized Pi text/function context to fixed completion request."""
 from .jsoncodec import WireError, depth, encode, require
 
-MODEL = "gpt-5.6-terra"
+# Wire baseline switched 2026-09-15 (design/g3/provider/amendment-model-baseline-2026-09-15):
+# deepseek-v4-flash is required for the M07 image-input prerequisite; glm-5.3
+# rejects image content ("Model only support text input", protocol-002 evidence-004).
+# The endpoint echoes this model under the dated alias pinned below; the alias is
+# an observed endpoint fact (protocol-001/002/003, evidence-001/004/005) and its
+# rotation fails loudly in response validation, requiring a new amendment.
+MODEL = "deepseek-v4-flash"
+MODEL_ALIAS = "deepseek-v4-flash-ga-260731"
 SHELL = dict(name="shell", description="Run ordinary Shell in an authorized target",
              parameters=dict(type="object", properties=dict(target=dict(type="string", enum=["runtime", "workspace"]),
                              script=dict(type="string")), required=["target", "script"], additionalProperties=False))
@@ -77,7 +84,7 @@ def messages(context):
 
 def encode_request(intent, scope):
     try:
-        require(isinstance(intent, dict) and set(intent)=={"binding", "model", "max_completion_tokens", "context"})
+        require(isinstance(intent, dict) and set(intent)=={"binding", "model", "max_completion_tokens", "reasoning_effort", "context"})
         require(isinstance(scope, dict) and set(scope)==BINDING)
         require(encode(intent["binding"])==encode(scope))
         for key in ("session_id", "operation_id", "response_entry_id"):
@@ -89,11 +96,24 @@ def encode_request(intent, scope):
                     all(c in "0123456789abcdef" for c in scope[key]["sha256"]))
         require(intent["model"]==MODEL)
         budget = intent["max_completion_tokens"]
-        require(type(budget) is int and 0 < budget <= 2048)
+        # Wire cap revised 2026-09-14 (m01-output-budget amendment): 2048 -> 16384
+        # so reasoning-model output budgets fit the recorded intent budget.
+        require(type(budget) is int and 0 < budget <= 16384)
+        # Reasoning-effort control added 2026-09-14 (m01-output-budget amendment):
+        # the baseline reasoning models (glm-5.3 then, deepseek-v4-flash now) both
+        # emit reasoning tokens and cannot disable thinking; without a bounded
+        # effort the reasoning consumed the whole output budget (finish=length).
+        require(intent["reasoning_effort"] in ("low", "medium", "high", "max"))
         context = intent["context"]
         require(isinstance(context, dict) and set(context)=={"systemPrompt", "messages", "tools"})
         require(encode(context["tools"])==encode([SHELL]))
+        # parallel_tool_calls=False added 2026-09-14 (m01-output-budget amendment):
+        # the reference Harness executes exactly one shell call per step and blocks
+        # multi-call steps; glm-5.3 emitted parallel calls stochastically
+        # (m01-real-2026-09-14y M01-v5-2 counterexample). The full production shape
+        # was revalidated for deepseek-v4-flash in provider-compatibility-003.
         raw = encode(dict(model=MODEL,n=1,stream=False,max_completion_tokens=budget,
+                          parallel_tool_calls=False,reasoning_effort=intent["reasoning_effort"],
                           messages=messages(context),tools=[dict(type="function",function=SHELL)]))
         require(len(raw)<=65536)
         return raw
