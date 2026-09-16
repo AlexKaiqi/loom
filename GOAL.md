@@ -1,6 +1,6 @@
 # Harness Runtime：设计、调研、构建与独立验收目标
 
-公开源码快照：2026-09-13。完整目标与完成标准保留；发布源码不表示目标完成，当前进展见 [验证状态](docs/validation-status.md)。开发、验证与部署面向 Linux；WSL 使用 Linux 原生文件系统。
+公开源码快照：2026-09-13。完整目标与完成标准保留；发布源码不表示目标完成，当前进展见 [验证状态](docs/validation-status.md)。2026-09-14 起开发、验证与部署面向 Unix 系统（macOS/Linux）；容器执行使用 Linux 容器运行时，历史上 WSL 证据仍属其原环境范围。
 
 ## 目标正文
 
@@ -13,7 +13,7 @@
 - [开源调研清单](harness-runtime-open-source-research-list.md)：主清单、候选身份、专项及各项目交付要求。
 - [执行指南](governance/execution-guide.md)、[检查表](governance/checklists.md)、[证据指南](governance/evidence-guide.md)。
 - [性质验收映射](governance/runtime-acceptance-map.md)与[记录模板](governance/templates.md)：作为细化起点，不能代替原始要求的完整覆盖。
-- [Linux 执行环境](governance/linux-environment.md)与[模型验证配置](governance/validation-environment.md)：明确 WSL 原生工作目录、Linux 部署目标和项目外凭据引用。
+- [执行环境](governance/linux-environment.md)与[模型验证配置](governance/validation-environment.md)：明确 Unix 主机执行目标（macOS/Linux）、Linux 容器运行时和项目外凭据引用。
 
 保留目标与原则，区分核心不变量、候选实现、事实、假设与未知项。候选项目、示例接口和目录不能反向决定目标；工程决策可以因新证据修订并留下依据。
 

@@ -14,8 +14,8 @@
     "session_generation": 1
   },
   "object_generation": 1,
-  "environment": "fixed-node-pi-session-v1",
-  "profile_sha256": "1a09d078f7b0cb263d8bb94296774e9e02e11ecd516f138a5f784fd3b902fcf6",
+  "environment": "linux-browser-v1",
+  "profile_sha256": "f1d66b1b2c9d2b502c5df7c447564da6c2ea9339dfffa6ab308072b63bb2e71a",
   "base_version": "@sha256.canonical_snapshot_ref",
   "snapshot_ref": {
     "owner": "S",
@@ -108,7 +108,7 @@
   ],
   "cwd": "/work",
   "environment_values": {
-    "PATH": "/opt/node/bin:/usr/local/bin:/usr/bin:/bin",
+    "PATH": "/usr/local/bin:/usr/bin:/bin",
     "HOME": "/work",
     "LANG": "C.UTF-8",
     "TSX_TSCONFIG_PATH": "/opt/lore/config/tsconfig.json"
@@ -118,13 +118,13 @@
   "budgets": {
     "memory_bytes": 536870912,
     "memory_swap_bytes": 536870912,
-    "pids": 64,
+    "pids": 512,
     "cpu": 0.5,
-    "work_bytes": 16777216,
+    "work_bytes": 33554432,
     "work_inodes": 512,
-    "tmp_bytes": 33554432,
-    "tmp_inodes": 2048,
-    "shm_bytes": 1048576,
+    "tmp_bytes": 67108864,
+    "tmp_inodes": 1024,
+    "shm_bytes": 16777216,
     "shm_inodes": 64,
     "stdout_bytes": 1048576,
     "stderr_bytes": 1048576,
@@ -133,6 +133,6 @@
     "archive_bytes": 18874368,
     "expanded_bytes": 16777216,
     "archive_entries": 512,
-    "deadline_seconds": 600
+    "deadline_seconds": 120
   }
 }

@@ -21,7 +21,7 @@
             "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           }
         },
-        "model": "gpt-5.6-terra",
+        "model": "deepseek-v4-flash",
         "max_completion_tokens": 1024,
         "context": {
           "systemPrompt": "Read authorized ordinary files.",
@@ -107,7 +107,7 @@
             "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           }
         },
-        "model": "gpt-5.6-terra",
+        "model": "deepseek-v4-flash",
         "max_completion_tokens": 1024,
         "context": {
           "systemPrompt": "Read authorized ordinary files.",
@@ -226,7 +226,7 @@
             "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           }
         },
-        "model": "gpt-5.6-terra",
+        "model": "deepseek-v4-flash",
         "max_completion_tokens": 1024,
         "context": {
           "systemPrompt": "Read authorized ordinary files.",
@@ -339,7 +339,7 @@
             "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           }
         },
-        "model": "gpt-5.6-terra",
+        "model": "deepseek-v4-flash",
         "max_completion_tokens": 1024,
         "context": {
           "systemPrompt": "Read authorized ordinary files.",
@@ -420,7 +420,7 @@
             "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           }
         },
-        "model": "gpt-5.6-terra",
+        "model": "deepseek-v4-flash",
         "max_completion_tokens": 2049,
         "context": {
           "systemPrompt": "Read authorized ordinary files.",
@@ -500,7 +500,7 @@
             "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           }
         },
-        "model": "gpt-5.6-terra",
+        "model": "deepseek-v4-flash",
         "max_completion_tokens": 1024,
         "context": {
           "systemPrompt": "Read authorized ordinary files.",
@@ -580,7 +580,7 @@
             "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           }
         },
-        "model": "gpt-5.6-terra",
+        "model": "deepseek-v4-flash",
         "max_completion_tokens": 1024,
         "context": {
           "systemPrompt": "Read authorized ordinary files.",
@@ -980,7 +980,7 @@
             "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           }
         },
-        "model": "gpt-5.6-terra",
+        "model": "deepseek-v4-flash",
         "max_completion_tokens": 1024,
         "context": {
           "systemPrompt": "Read authorized ordinary files.",
@@ -1066,7 +1066,7 @@
             "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           }
         },
-        "model": "gpt-5.6-terra",
+        "model": "deepseek-v4-flash",
         "max_completion_tokens": 1024,
         "context": {
           "systemPrompt": "Read authorized ordinary files.",

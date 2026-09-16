@@ -1,6 +1,6 @@
 {
   "profile": "F-host-v1",
-  "platform": "Linux-only; WSL Ubuntu native ext4 /path/to/loom",
+  "platform": "Linux 本地文件系统（运行时验证在 Linux 容器内执行）；2026-09-14 平台修订：目标为 Unix（macOS/Linux）主机，F 的 lease+inotify 观测与 renameat2 交换保留已验证的 Linux 语义，非 Linux 平台导入安全但显式 UNSUPPORTED（lore_files/window.py 派发 + lore_files/window_linux.py；darwin kqueue 后端为未来工作，非当前基线）。",
   "python": "3.10.12",
   "git": "git version 2.34.1",
   "tar": "tar (GNU tar) 1.34",

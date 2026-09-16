@@ -1,8 +1,8 @@
 # Loom
 
-面向 Linux 的可持久接续 Agent Runtime。Runtime 管理状态、事件和隔离执行；Harness 独立定义模型可见上下文与推进策略。
+面向 Unix 系统（macOS/Linux）的可持久接续 Agent Runtime。Runtime 管理状态、事件和隔离执行；Harness 独立定义模型可见上下文与推进策略。
 
-**当前是开发中的源码快照，尚未完成系统验收。** 已有真实模型单例闭环，但原 M01 六样本整批仍未通过；最近一批在第六次请求前触发输入预算限制。M02 的 15 个固定响应安全场景已通过独立证据审查。完整状态和限制见 [验证状态](docs/validation-status.md)。
+**当前是开发中的源码快照，尚未完成系统验收。** M01 最简真实模型闭环已按 2026-09-14 修订预算在 Linux 容器内取得整批 6/6 真实模型通过（批次 m01-real-2026-09-14z，glm-5.3）；修订记录与反例证据见 [验证状态](docs/validation-status.md)。M02 的 15 个固定响应安全场景已通过独立证据审查。完整状态和限制见 [验证状态](docs/validation-status.md)。
 
 ## 从哪里看
 
@@ -32,7 +32,7 @@
 
 ## 可直接运行的源码检查
 
-在 Linux 或 WSL 的 Linux 文件系统中执行：
+在 Unix（macOS/Linux）系统中执行：
 
 需要 Python 3.10+ 及可用的 `venv`/pip；Debian 或 Ubuntu 通常需先安装系统包 `python3-venv`。
 

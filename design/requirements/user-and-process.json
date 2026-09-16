@@ -146,5 +146,29 @@
     "acceptance_outline": "核对契约与用例版本差异、所有实验批次和修复记录；覆盖旧失败或无独立理由降低标准，机械或独立审查必须拒绝终验。",
     "unresolved": [],
     "status": "UNVERIFIED"
+  },
+  {
+    "id": "U013",
+    "source_section": "用户平台更正 2026-09-14",
+    "source_quote": "项目中不需要强调 wsl，我们暂时是针对 unix 系统做的",
+    "kind": "contract",
+    "requirement": "目标平台修订为 Unix 系统（macOS/Linux）：开发、构建与验证在 Unix 主机执行，容器执行使用 Linux 容器运行时；平台相关行为按 sys.platform 显式分支并记录证据范围。U007 的 WSL 工作副本结论保留为其原环境历史。",
+    "properties": [],
+    "stage": "M+X",
+    "acceptance_outline": "平台分支代码与探针证据标注 sys.platform 范围；新宿主物理身份 manifest 重新生成；历史 WSL 证据不被引用为当前平台通过。",
+    "unresolved": [],
+    "status": "UNVERIFIED"
+  },
+  {
+    "id": "U014",
+    "source_section": "用户平台更正 2026-09-14",
+    "source_quote": "项目中不需要强调 wsl，我们暂时是针对 unix 系统做的",
+    "kind": "non_goal",
+    "requirement": "文档与产品不强调 WSL/Windows 语义；不把单一宿主（WSL、开发者机器）路径或机制作为产品依赖或验收前提（修订并保留 U008 原判据）。",
+    "properties": [],
+    "stage": "M+X",
+    "acceptance_outline": "依赖与部署审查确认无 WSL/Windows 专属语义；历史证据文档保留原文并标注历史范围。",
+    "unresolved": [],
+    "status": "UNVERIFIED"
   }
 ]

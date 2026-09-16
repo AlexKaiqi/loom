@@ -3798,7 +3798,441 @@
         "restore_drops_dependency",
         "restore_mutates_original_result"
       ]
+    },
+{
+    "id": "X029",
+    "title": "未登记执行环境引用拒绝",
+    "actions": [
+      {
+        "op": "invoke",
+        "args": {
+          "method": "execute",
+          "arguments": {
+            "request_overrides": {
+              "environment": "unregistered-profile",
+              "profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        }
+      },
+      {
+        "op": "collect",
+        "args": {
+          "tag": "rejected"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "path": "rejected.api.error.code",
+        "comparison": "eq",
+        "value": "INVALID_REQUEST"
+      }
+    ],
+    "source_requirement_ids": [
+      "V5-B001"
+    ],
+    "properties": [
+      "P12"
+    ],
+    "initial": {
+      "script": "identity",
+      "parameters": {}
+    },
+    "known_bad_variant": {
+      "name": "accept_unregistered_profile",
+      "failure": "未登记 environment 或错误 profile_sha256 被受理即违反授权边界；不得替换 expected。"
+    },
+    "dependencies": [
+      "real_docker",
+      "X_test_adapter"
+    ],
+    "status": "UNVERIFIED",
+    "parameter_rules": {
+      "zip_groups": [],
+      "repetitions_are_fixed": true
     }
+  },
+{
+    "id": "X030",
+    "title": "执行环境 profile 摘要不匹配拒绝",
+    "actions": [
+      {
+        "op": "invoke",
+        "args": {
+          "method": "execute",
+          "arguments": {
+            "request_overrides": {
+              "environment": "fixed-python-linux-v1",
+              "profile_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          }
+        }
+      },
+      {
+        "op": "collect",
+        "args": {
+          "tag": "rejected"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "path": "rejected.api.error.code",
+        "comparison": "eq",
+        "value": "INVALID_REQUEST"
+      }
+    ],
+    "source_requirement_ids": [
+      "V5-B001"
+    ],
+    "properties": [
+      "P12"
+    ],
+    "initial": {
+      "script": "identity",
+      "parameters": {}
+    },
+    "known_bad_variant": {
+      "name": "accept_unregistered_profile",
+      "failure": "未登记 environment 或错误 profile_sha256 被受理即违反授权边界；不得替换 expected。"
+    },
+    "dependencies": [
+      "real_docker",
+      "X_test_adapter"
+    ],
+    "status": "UNVERIFIED",
+    "parameter_rules": {
+      "zip_groups": [],
+      "repetitions_are_fixed": true
+    }
+  },
+{
+  "id": "X031",
+  "title": "linux-browser profile 接受与固定页面读取",
+  "source_requirement_ids": [
+    "V5-A024",
+    "V5-A025",
+    "V5-B001",
+    "V5-B003",
+    "V5-B004",
+    "V5-B012"
+  ],
+  "properties": [
+    "P02",
+    "P05"
+  ],
+  "initial": {
+    "script": "browser_page_read",
+    "parameters": {
+      "page_html": "<html><head><title>fixed-browser-page</title></head><body><p>hello</p></body></html>",
+      "title": "fixed-browser-page"
+    }
+  },
+  "actions": [
+    {
+      "op": "invoke",
+      "args": {
+        "method": "execute",
+        "arguments": {
+          "request_overrides": {
+            "environment": "linux-browser-v1",
+            "profile_sha256": "@profile_sha256:linux-browser-v1",
+            "budgets": {
+              "memory_bytes": 268435456,
+              "pids": 512,
+              "cpu": 1.0,
+              "volume_bytes": 2097152,
+              "inodes": 128,
+              "tmp_inodes": 512,
+            "tmp_bytes": 67108864,
+              "shm_bytes": 16777216,
+              "stdout_bytes": 65536,
+              "stderr_bytes": 65536,
+              "combined_output_bytes": 98304,
+              "archive_bytes": 8388608,
+              "expanded_bytes": 12582912,
+              "deadline_seconds": 120
+            }
+          }
+        }
+      }
+    },
+    {
+      "op": "collect",
+      "args": {
+        "tag": "running"
+      }
+    },
+    {
+      "op": "invoke",
+      "args": {
+        "method": "await_exit",
+        "arguments": {}
+      }
+    },
+    {
+      "op": "collect",
+      "args": {
+        "tag": "completed"
+      }
+    },
+    {
+      "op": "invoke",
+      "args": {
+        "method": "checkpoint",
+        "arguments": {
+          "purpose": "formal-test"
+        }
+      }
+    },
+    {
+      "op": "collect",
+      "args": {
+        "tag": "prepared"
+      }
+    },
+    {
+      "op": "invoke",
+      "args": {
+        "method": "seal",
+        "arguments": {}
+      }
+    },
+    {
+      "op": "collect",
+      "args": {
+        "tag": "stopped"
+      }
+    }
+  ],
+  "expected": [
+    {
+      "path": "running.physical.task_uid",
+      "comparison": "eq",
+      "value": 1000
+    },
+    {
+      "path": "completed.physical.exec.ExitCode",
+      "comparison": "eq",
+      "value": 0
+    },
+    {
+      "path": "prepared.archive.files.result.json.json.title",
+      "comparison": "eq",
+      "value": "$parameter.title"
+    }
+  ],
+  "known_bad_variant": {
+    "name": "accept_browser_without_profile_digest",
+    "failure": "linux-browser 请求缺少正确 profile_sha256 或超预算被受理即违反 profile 资产化；不得替换 expected。"
+  },
+  "dependencies": [
+    "real_docker",
+    "X_test_adapter",
+    "linux_browser_image"
+  ],
+  "status": "UNVERIFIED",
+  "parameter_rules": {
+    "zip_groups": [],
+    "repetitions_are_fixed": true
+  }
+},
+{
+  "id": "X032",
+  "title": "linux-browser 预算上限按 profile 生效",
+  "actions": [
+    {
+      "op": "invoke",
+      "args": {
+        "method": "execute",
+        "arguments": {
+          "request_overrides": {
+            "environment": "linux-browser-v1",
+            "profile_sha256": "@profile_sha256:linux-browser-v1",
+            "budgets": {
+              "memory_bytes": 536870913,
+              "pids": 32,
+              "cpu": 0.5,
+              "volume_bytes": 2097152,
+              "inodes": 128,
+              "tmp_bytes": 1048576,
+              "shm_bytes": 1048576,
+              "stdout_bytes": 65536,
+              "stderr_bytes": 65536,
+              "combined_output_bytes": 98304,
+              "archive_bytes": 8388608,
+              "expanded_bytes": 12582912,
+              "deadline_seconds": 20
+            }
+          }
+        }
+      }
+    },
+    {
+      "op": "collect",
+      "args": {
+        "tag": "rejected"
+      }
+    }
+  ],
+  "expected": [
+    {
+      "path": "rejected.api.error.code",
+      "comparison": "eq",
+      "value": "INVALID_REQUEST"
+    }
+  ],
+  "source_requirement_ids": [
+    "V5-B001"
+  ],
+  "properties": [
+    "P12"
+  ],
+  "initial": {
+    "script": "identity",
+    "parameters": {}
+  },
+  "known_bad_variant": {
+    "name": "apply_v1_maxima_to_browser_profile",
+    "failure": "对 linux-browser 请求套用 v1 全局上限（128MiB 即拒）或放行超其 profile 上限的请求都违反按 profile 校验预算；不得替换 expected。"
+  },
+  "dependencies": [
+    "real_docker",
+    "X_test_adapter"
+  ],
+  "status": "UNVERIFIED",
+  "parameter_rules": {
+    "zip_groups": [],
+    "repetitions_are_fixed": true
+  }
+},
+{
+  "id": "X033",
+  "title": "linux-browser 出网阻断留证",
+  "source_requirement_ids": [
+    "V5-A024",
+    "V5-A025",
+    "V5-B001",
+    "V5-B003",
+    "V5-B004",
+    "V5-B012"
+  ],
+  "properties": [
+    "P02",
+    "P05"
+  ],
+  "initial": {
+    "script": "browser_egress_probe",
+    "parameters": {
+      "egress_url": "https://example.com/loom-probe"
+    }
+  },
+  "actions": [
+    {
+      "op": "invoke",
+      "args": {
+        "method": "execute",
+        "arguments": {
+          "request_overrides": {
+            "environment": "linux-browser-v1",
+            "profile_sha256": "@profile_sha256:linux-browser-v1",
+            "budgets": {
+              "memory_bytes": 268435456,
+              "pids": 512,
+              "cpu": 1.0,
+              "volume_bytes": 2097152,
+              "inodes": 128,
+              "tmp_inodes": 512,
+            "tmp_bytes": 67108864,
+              "shm_bytes": 16777216,
+              "stdout_bytes": 65536,
+              "stderr_bytes": 65536,
+              "combined_output_bytes": 98304,
+              "archive_bytes": 8388608,
+              "expanded_bytes": 12582912,
+              "deadline_seconds": 120
+            }
+          }
+        }
+      }
+    },
+    {
+      "op": "collect",
+      "args": {
+        "tag": "running"
+      }
+    },
+    {
+      "op": "invoke",
+      "args": {
+        "method": "await_exit",
+        "arguments": {}
+      }
+    },
+    {
+      "op": "collect",
+      "args": {
+        "tag": "completed"
+      }
+    },
+    {
+      "op": "invoke",
+      "args": {
+        "method": "checkpoint",
+        "arguments": {
+          "purpose": "formal-test"
+        }
+      }
+    },
+    {
+      "op": "collect",
+      "args": {
+        "tag": "prepared"
+      }
+    },
+    {
+      "op": "invoke",
+      "args": {
+        "method": "seal",
+        "arguments": {}
+      }
+    },
+    {
+      "op": "collect",
+      "args": {
+        "tag": "stopped"
+      }
+    }
+  ],
+  "expected": [
+    {
+      "path": "completed.physical.exec.ExitCode",
+      "comparison": "eq",
+      "value": 0
+    },
+    {
+      "path": "prepared.archive.files.result.json.json.egress",
+      "comparison": "eq",
+      "value": "blocked"
+    }
+  ],
+  "known_bad_variant": {
+    "name": "browser_egress_succeeds",
+    "failure": "network=none 下外连成功或阻断事实未落产物即违反 P3；不得替换 expected。"
+  },
+  "dependencies": [
+    "real_docker",
+    "X_test_adapter",
+    "linux_browser_image"
+  ],
+  "status": "UNVERIFIED",
+  "parameter_rules": {
+    "zip_groups": [],
+    "repetitions_are_fixed": true
+  }
+}
+
   ],
   "restore_supplement": "restore-supplement-001.json"
 }

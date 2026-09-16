@@ -119,3 +119,57 @@ Git、OCI、Linux 文档，以及此前契约讨论引用的其他框架，继�
 [15] [OpenBot 仓库](https://github.com/CopilotKit/OpenBot)，重点为模板定位、agent 接入及架构说明。  
 [16] [NATS Server](https://github.com/nats-io/nats-server)；[JetStream 官方文档](https://docs.nats.io/concepts/jetstream)。  
 [17] [Daytona 历史公开仓库](https://github.com/daytonaio/daytona)，维护状态说明。
+
+## 11. 2026-09-15 增补：执行编排与沙箱底座相邻身份（用户简报五项）
+
+用户简报指出开源界对"LLM 编排层 + 隔离执行沙箱"已有成熟实现，点名 OpenHands 应用本体、SWE-agent、AutoCodeRover、E2B、Daytona，并附一套 MVP 技术栈建议。本节只登记身份与调研记录入口，不改动上文主清单口径与历史记录。
+
+| 项目与仓库（2026-09-15 观测地址） | 钉定版本 | 与主清单的关系 |
+| --- | --- | --- |
+| **OpenHands 应用本体** — [OpenHands/OpenHands](https://github.com/OpenHands/OpenHands)（原 All-Hands-AI） | v1.18.0 | §3 已列其 SDK 重写版 software-agent-sdk；本项为 v1 事件流应用本体，双轨并行 |
+| **SWE-agent** — [SWE-agent/SWE-agent](https://github.com/SWE-agent/SWE-agent)（原 princeton-nlp） | v1.1.0 | §2 已列其极简衍生 mini-swe-agent；本项为 ACI 提出者父项目 |
+| **AutoCodeRover** — [AutoCodeRoverSG/auto-code-rover](https://github.com/AutoCodeRoverSG/auto-code-rover)（原 nus-apr） | v1.1.0 | 新候选：AST 结构检索 + 测试反馈闭环，Harness 策略层对照 |
+| **E2B** — [e2b-dev/E2B](https://github.com/e2b-dev/E2B)（SDK）与 [e2b-dev/infra](https://github.com/e2b-dev/infra)（自托管底座） | @e2b/python-sdk@2.49.1 | 新候选：Firecracker microVM 云沙箱服务，D-X-SEAM-001 远端后端的公开同构物 |
+| **Daytona** — [daytonaio/daytona](https://github.com/daytonaio/daytona) | v0.190.0 | §1 原标注"历史公开实现参考"，现转为正式候选；与 §4 OpenSandbox 同位，择一深查 |
+
+调研记录（职责与状态归属、可复用位置、不采纳/适配缺口、拟验证实验、纠错与核对来源）：[design/g2/execution-platforms-survey-2026-09-15.md](design/g2/execution-platforms-survey-2026-09-15.md)。该记录为文档级调研：版本钉定来自 releases/latest 重定向页（GitHub API 本轮限流，未取得 commit SHA），架构结论均为 README/官方页声称级，源码审查与运行实验后置。
+
+[18] [OpenHands releases/latest](https://github.com/OpenHands/OpenHands/releases/latest)；[19] [SWE-agent releases/latest](https://github.com/SWE-agent/SWE-agent/releases/latest)；[20] [AutoCodeRover releases/latest](https://github.com/AutoCodeRoverSG/auto-code-rover/releases/latest)；[21] [E2B releases/latest](https://github.com/e2b-dev/E2B/releases/latest)；[22] [Daytona releases/latest](https://github.com/daytonaio/daytona/releases/latest)。
+
+## 12. 2026-09-15 增补：Cursor Cloud Agent 产品形态参照
+
+用户确认 Cursor Cloud Agent（早期名 Background Agents）即目标形态：云端 Harness + 每任务隔离 VM 沙箱 + 异步端到端交付（环境构建→修改→测试/自修→录屏产物→PR）+ 自托管沙箱选项。产品不开源，登记为**形态与机制参照**（非代码候选），按文档快照日期钉定（2026-09-15 观测），不设版本 tag。
+
+调研记录（架构逐点核实、与 Loom 契约的映射表、差异与不采纳、修正三处简报偏差）：[design/g2/cursor-cloud-agent-reference-2026-09-15.md](design/g2/cursor-cloud-agent-reference-2026-09-15.md)。
+
+[23] [Cursor background/cloud agents 官方文档](https://cursor.com/help/ai-features/background-agents.md)；[24] [Cloud Environment Setup](https://cursor.com/docs/cloud-agent/setup.md)；[25] [Secrets & Network](https://cursor.com/docs/cloud-agent/security-network.md)；[26] [What we've learned building cloud agents](https://cursor.com/blog/cloud-agent-lessons)；[27] [agent computer use 公告](https://cursor.com/blog/agent-computer-use)；[28] [Self-Hosted Cloud Agents](https://cursor.com/de/blog/self-hosted-cloud-agents) 与 [Cloudflare 自托管教程](https://developers.cloudflare.com/sandbox/tutorials/cursor-cloud-agents/index.md)。
+
+**借鉴取舍入口**：以上调研（§11/§12）的借鉴评估与优先级落位见 [design/g2/adoption-assessment-2026-09-15.md](design/g2/adoption-assessment-2026-09-15.md)——A 立即（并入 linux-browser §5 流程修订）/ B 近期（专项判据）/ C 后置（登记防遗失）/ D 明确不采纳及理由。
+
+## 13. 2026-09-15 增补：macOS 宿主基座（Linux VM appliance）候选
+
+产品部署要求 macOS 宿主提供与 Linux 同构的运行时物理事实（renameat2、inotify、钉死 Docker Engine 28.0.1、固定 volume 路径与 /proc 判据）；现状依赖 Docker Desktop，其中 Engine 版本浮动、volume 不可钉、物理判据不可复现为耦合副作用。用户 2026-09-15 确认原则：**不重复造 sandbox/VM 底座轮子，macOS 基座复用成熟 VM appliance，自研 VZ 应用仅登记为后期演进项**。业界对应形态（Docker Desktop、Podman machine、Rancher Desktop、Finch）均为"自带 Linux VM appliance"。
+
+2026-09-15 起草时本整理环境无外网，本节最初为身份登记（版本一律待钉定）；**同日稍后已完成在线核对与钉定（git ls-remote 直连 refs + releases/latest 重定向，GitHub API 限流同前），核对记录与证据见 [design/g2/macos-host-substrate-survey-2026-09-15.md §7](design/g2/macos-host-substrate-survey-2026-09-15.md)**，判据 V1–V4 预登记见 [substrate 验证协议](design/g2/substrate-verification-protocol-2026-09-15.md)，均未执行。
+
+| 项目与仓库 | 钉定版本（2026-09-15 观测） | 定位与重点调研 |
+| --- | --- | --- |
+| **Lima** — [lima-vm/lima](https://github.com/lima-vm/lima) | **v2.2.0**，peeled commit `de0816ea4bdc5267b428ab21025889b8dd785526`（预发布 v2.3.0-beta.0 不钉定） | **主候选**：Finch/Rancher Desktop 共同底座。钉死内核与 appliance 版本、VZ 加速 arm64、VM 内 dockerd 与 docker.sock、共享目录上 renameat2/inotify/dev-ino 行为、deps volume 固定路径可行性 |
+| **AWS Finch** — [runfinch/finch](https://github.com/runfinch/finch) | **v1.17.2**，commit `c0f8e88c60793fa0a92030136c2281bdbf06683c`（其 go.mod 钉 Lima v2.1.3，版本解耦先例） | Lima 生产化封装先例：安装器、镜像钉定、更新渠道组织 |
+| **Podman machine / podman-machine-os** — [podman-container-tools/podman-machine-os](https://github.com/podman-container-tools/podman-machine-os)（原 containers/ 迁移重定向） | **v6.1.2**，peeled commit `0a7a56040f65c42d666fd13df2e9afbb6bfce0c0` | appliance 版本化与升级模型先例；Apple VZ/libkrun 后端选型参考 |
+| **Docker Desktop** — 官方文档 | 形态参照（非代码候选），不钉定 | 现行开发模式事实底座；版本浮动与判据不可复现是"继续依赖"不成立的直接依据 |
+| **Apple Containerization framework** — [apple/container](https://github.com/apple/container)、[Virtualization 文档](https://developer.apple.com/documentation/virtualization) | **1.4.1**，commit `9a8917ca2da5cd6ba059b9ba5ca5a74892e9bb7d`（登记项） | 系统级新变量："每容器一个轻量 VM"，不提供 Docker Engine；与 X profile 冲突，登记为未来 X 后端可评估项，采纳即"换 Engine"须重新验证 |
+
+[29] [Lima 仓库](https://github.com/lima-vm/lima)；[30] [Finch 仓库](https://github.com/runfinch/finch)；[31] [Podman machine 文档](https://docs.podman.io)，appliance 说明；[32] [Docker Desktop 文档](https://docs.docker.com/desktop/)；[33] [apple/container 仓库](https://github.com/apple/container)与 [Apple Virtualization framework 文档](https://developer.apple.com/documentation/virtualization)。
+
+## 14. 2026-09-16 增补：Temporal（durable execution 参照，用户点名）
+
+用户确认 Temporal 思想与本项目高度重合（持久推进责任、durable execution），指定登记并充分调研。定位：**设计参照与机制对照物**（非代码候选——跨语言与系统形态差异，见调研记录 §4；2026-09-16 更正：分布式服务器本体为规模化**暂缓路线图**而非不采纳，单机不是项目目的，详见调研记录 §12）。clone 至 `research/repos/temporal`（gitignore 内；head=172d1b409，2026-09-16 观测；未钉定 release，跟随主分支）。归属：与 §5 DBOS 同类（持久推进），按用户点名单列。
+
+| 项目与仓库 | 版本（2026-09-16 观测） | 定位与重点调研 |
+| --- | --- | --- |
+| **Temporal** — [temporalio/temporal](https://github.com/temporalio/temporal) | 主分支 head `172d1b409` | **服务器/SDK 分工**：事件日志+完成校验（服务端）vs 确定性执行+重放（SDK worker）；**continue-as-new** 与 Loom 后继机制同构性；历史尺寸分档（warn/suggest/error）；**MutableStateRebuilder**+checksum 的确定性重建与完整性校验；重试策略结构；CHASM 状态机库；与 Loom 未决项（暂停后重放、压缩再驱动冲突）的映射 |
+
+调研记录（架构逐点源码核实、未决项映射表、CHASM 全文精读、sdk-core 重放引擎与确定性执行点、可复用组件判定、借鉴项 A/B/C/D 优先级落位、不采纳及理由）：[design/g3/x/temporal-research-2026-09-16.md](design/g3/x/temporal-research-2026-09-16.md)。文档级+源码审查已完成（服务器四服务、事件溯源充分性契约、workflow task 三型、continue-as-new、历史尺寸分档、CHASM、update 状态机、archival/versioning、retry、sdk-core TMPRL1100 确定性执行点）；未运行实验（本地起 Temporal 验证 continue-as-new 行为等需另行授权预算）。sdk-core 克隆于 research/repos/sdk-core（2026-09-16）。
+
+[34] [Temporal 仓库](https://github.com/temporalio/temporal)；[35] [Temporal 官方文档](https://docs.temporal.io)；[36] [sdk-core 仓库与 ARCHITECTURE.md](https://github.com/temporalio/sdk-core)。

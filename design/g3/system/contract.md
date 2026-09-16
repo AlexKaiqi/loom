@@ -42,4 +42,4 @@ X04活跃吞吐：固定64个相同规模CPU/文件工作任务，使用原Pi的
 
 M/X产物oracle读取独立源输入，不复用Harness求和代码或其claimed sum；实际report内容、notes的历史可访问引用、source hash/原Session/原NATS/Engine和Linux过程事实共同构成断言。程序或模型说PASS不能替代任何一项。正式批次缺组件、缺case或缺实际采样时保持UNVERIFIED/FAIL。
 
-当前Linux范围是记录的WSL内核与Docker Linux Engine；可复现启动不要求Windows特性，部署目标为兼容Linux内核/Engine并先跑环境前置验证。不能把WSL测试外推到未测发行版、远端失联、多副本/power-loss或无上限保留。
+2026-09-14 修订：目标平台为 Unix（macOS/Linux），容器执行使用 Linux 容器运行时；历史 WSL 证据保留其原环境范围，不自动迁移为当前平台结论。平台相关行为按 `sys.platform` 显式分支并逐项验证；不能把任一宿主的测试外推到未测发行版、远端失联、多副本/power-loss或无上限保留。

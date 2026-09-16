@@ -1,10 +1,11 @@
 {
-  "description": "Product source snapshot; hashes bind published bytes, not proof that system acceptance passed.",
-  "date": "2026-09-13",
+  "description": "Product source snapshot; hashes bind published bytes, not proof that system acceptance passed. 2026-09-14 更新：平台分支（window.py 派发 + window_linux.py、install.py 惰性 syscall 绑定）、provider 端点 path_prefix 与模型基线 glm-5.3。2026-09-15 更新：X 执行后端接缝声明（lore_execution/backend.py，非行为变更，D-X-SEAM-001）与符合性测试；同日更新：provider 基线切换 deepseek-v4-flash（amendment-model-baseline-2026-09-15，回显别名规则）。同日第二批：X environment profile 引用契约修订（新增 environment_profiles.json；requests/engine/store/tool_plans/archives/ordinary_sources 平台分支：DOCKER_CLI 解析、xattr 守卫、输入归档确定性打包）；同日第三批：linux-browser profile 登记（registry schema 2 + 逐条目预检 + 创建路径泛化，amendment-linux-browser-2026-09-15）。",
+  "date": "2026-09-15",
   "product_files": [
     {
       "path": "harnesses/minimal/index.mts",
-      "sha256": "017f8b119bdd5df00b136f61f0c742b956501d4cd171c844f2fa9a91f143ae5f"
+      "sha256": "68f838e8a720dd40f53b4203d017f50a1790d6b967bfe5b161f832a3081092f1",
+      "bytes": 9556
     },
     {
       "path": "harnesses/minimal/projection.mts",
@@ -116,7 +117,13 @@
     },
     {
       "path": "lore_execution/archives.py",
-      "sha256": "76a5c6170051f25978a1ed849fe6dc586df830cca05b861cf7649a7f53ca119d"
+      "sha256": "08d8437bdc96896bed6421fec9c5b7e3d8c24de0738b0f39f25a2962bf97a957",
+      "bytes": 7683
+    },
+    {
+      "path": "lore_execution/backend.py",
+      "sha256": "f7e42d1425e2eb009cc9a8e137c5f8b3fbfd892d59841b7f8ff5c2da67ef6bfe",
+      "bytes": 4124
     },
     {
       "path": "lore_execution/calls.py",
@@ -124,11 +131,17 @@
     },
     {
       "path": "lore_execution/channel.py",
-      "sha256": "099297b3ee4334ad8597486830227bcf5433ff542c2b847ac0acc4f1fec27f57"
+      "sha256": "c026798de34781d0d0b3bdcf51b969337ed2b8b825c8ae20e30aa8bb04e785b5",
+      "bytes": 11338
     },
     {
       "path": "lore_execution/engine.py",
-      "sha256": "64dc118828b603b15b32afcb0d23d1f7ddf2a8250f8b8664eacb5662f7854b27"
+      "sha256": "76e3d11763a620e3fd17bbd0983ae00039991a26d93b5f66df8f742807873756",
+      "bytes": 11679
+    },
+    {
+      "path": "lore_execution/environment_profiles.json",
+      "sha256": "c36da0963a9372866709338ddd056af54c9f41c3100d6c46e7d3e904bb00d616"
     },
     {
       "path": "lore_execution/errors.py",
@@ -144,23 +157,31 @@
     },
     {
       "path": "lore_execution/node_profile.py",
-      "sha256": "879f8f587af671ffd932001c51f8c7f700f81c0a65cfe1e7426e23152ee51d4b"
+      "sha256": "39e848735cb22c9760b486b64c00afeb227b7e0d6f36d06d3d77a8df25f24683",
+      "bytes": 29296
     },
     {
       "path": "lore_execution/ordinary_sources.py",
-      "sha256": "122e691b3b8056714d81da6cd2c5bfdf445360ebfab16febacc8ebcdeb646161"
+      "sha256": "3d696cea7ddca985c743947d8887d13ab7e453ae655502c7bab478dcce00e39f",
+      "bytes": 14112
     },
     {
       "path": "lore_execution/profile.json",
-      "sha256": "b9afaecca5f39e5a8c3ec002cb57671fe2972948c963c6f70addb3d661ed2e61"
+      "sha256": "161179204e891eaf77dbebbdc0a8600d2d225021a8c3c3f2b40d9ba1027004e2",
+      "bytes": 715
     },
     {
       "path": "lore_execution/requests.py",
-      "sha256": "a3edaf06dbf437756aad83ed8178faefcbbf5d14bdc852f2b4aa8855724f8b33"
+      "sha256": "ecc08dd332f565639e29bedf52282b9e60d9e3942860758c1a16ef41592cdb8f",
+      "bytes": 11716
     },
     {
       "path": "lore_execution/retention.py",
       "sha256": "d88e0bc217ba43fb566318baa210030b44e5f8353de3b7f0cfe27ffa3aad26a1"
+    },
+    {
+      "path": "lore_execution/seccomp-browser.json",
+      "sha256": "9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294cae9c76"
     },
     {
       "path": "lore_execution/seccomp.json",
@@ -168,11 +189,13 @@
     },
     {
       "path": "lore_execution/slots.py",
-      "sha256": "6265a996d94d7f206338ce8f30881950c769f7d35e786099a274a4558e37bc9e"
+      "sha256": "9b4577ad6927085addd251631251dd7d15d17eceabf39ac89081234eb41f6231",
+      "bytes": 19121
     },
     {
       "path": "lore_execution/store.py",
-      "sha256": "0d2d59d3f24b319ea68e9a3757e724d591a7b0635664e0db6bb5b16b8792fb4d"
+      "sha256": "bedd100acdcda3719abe9a2df6621f90aa8df5404a1961908b91b985b3451f78",
+      "bytes": 18277
     },
     {
       "path": "lore_files/__init__.py",
@@ -196,11 +219,12 @@
     },
     {
       "path": "lore_files/install.py",
-      "sha256": "2dd82e6e481d82efb27bedce89a1bafb88b2c4e5fe51d2981ebb1f5ce43c009e"
+      "sha256": "950b377c309192edbd37098551bb5bc8d999da764cdf8ab070e505d1236b69ce",
+      "bytes": 7921
     },
     {
       "path": "lore_files/metadata.py",
-      "sha256": "3f7fcbd42a618f79d3b901a4d92480fe2b05d6ec9449e47c303a737634e59ac8"
+      "sha256": "275b8064c6bc0f5ca4e68ff24d3f2f0e4e359ff0051aa903601258c27bfec3bc"
     },
     {
       "path": "lore_files/store.py",
@@ -216,7 +240,13 @@
     },
     {
       "path": "lore_files/window.py",
-      "sha256": "c5995853e5e878d6fb7b3cedaee6484b114591ff223610b63282810165c13060"
+      "sha256": "61351f3751881accb494999d59eda5d574c85b008b4ed11a625f71f23cb18fb4",
+      "bytes": 1726
+    },
+    {
+      "path": "lore_files/window_linux.py",
+      "sha256": "89efdaf905c84c3d6b64e4c644355bd6294e05fcac64d2e633ad46bff98a056e",
+      "bytes": 9607
     },
     {
       "path": "lore_provider/__init__.py",
@@ -224,7 +254,8 @@
     },
     {
       "path": "lore_provider/client.py",
-      "sha256": "b0f2c015820c39754d0a521df31bbdfd2e2338eefd8a39ae105f819f83922c1d"
+      "sha256": "85ae7f989fa9fb95523fc9c56e90c6870dc2651d2e6404ad54443bb0917dc30a",
+      "bytes": 3546
     },
     {
       "path": "lore_provider/jsoncodec.py",
@@ -236,15 +267,18 @@
     },
     {
       "path": "lore_provider/request.py",
-      "sha256": "cde5bdf85c3c0a34b0c339e1d1603eca70ddc5bd6805cab4d46e1b6acac17842"
+      "sha256": "b383248769acaf7034a7cc6ffca3c5be6b88e5aea58e11ad010bc2009589f469",
+      "bytes": 6367
     },
     {
       "path": "lore_provider/response.py",
-      "sha256": "0f3b728838f2c70b3e4a85b7737130f390a6092c6d5f8e2649af8a1c4d5527fc"
+      "sha256": "7ad83ba484afe5dcdd90499ddc9c53c1cf0effdaaaa31423770eaca1d31c6774",
+      "bytes": 4589
     },
     {
       "path": "lore_provider/transport.py",
-      "sha256": "bde7c82c569b3924106db221107fc278c6ba6baf5b743967b0d3ec54fda727b2"
+      "sha256": "38c7b318ac2bb64c6e0502217aa628551ff40c22a34fc358b15086ba0a2d437e",
+      "bytes": 3799
     },
     {
       "path": "lore_runtime/__init__.py",
@@ -280,7 +314,8 @@
     },
     {
       "path": "lore_runtime/flow.py",
-      "sha256": "1423575ffac1ebc93e7fa34aa95131a06a50bcca8c482bcc2bcf833818560bd7"
+      "sha256": "17ec65bd0b9aaf64e32f44a712e1339b7061b66c0a8b4706aecf8c0186fe7d44",
+      "bytes": 7480
     },
     {
       "path": "lore_runtime/host_files.py",
@@ -288,7 +323,8 @@
     },
     {
       "path": "lore_runtime/provider_owner.py",
-      "sha256": "7a10118029c215c04098db24b50ffa2dd9d6f762bef552d8dd8ceb324f73fcd4"
+      "sha256": "eddc80762cf81af52afc5bf498e911dc588b7ce76fc715e6b982a79c9f6f783d",
+      "bytes": 18064
     },
     {
       "path": "lore_runtime/runtime.py",
@@ -300,7 +336,8 @@
     },
     {
       "path": "lore_runtime/session_facts.py",
-      "sha256": "616b4c79f3d04b1d05b048e6c426beed0420368db68633eb317a70099824d687"
+      "sha256": "ddfd558561d722af99a57ccdee4097e276ede7bb5a31949ebf202e86a8a8d61f",
+      "bytes": 14824
     },
     {
       "path": "lore_runtime/session_plan_files.py",
@@ -316,11 +353,12 @@
     },
     {
       "path": "lore_runtime/startup_assets.py",
-      "sha256": "f191afdf4e86ed470d1280b02b85cd95c8446274ea5e542a6fdefdd35e25dfd8"
+      "sha256": "b87a443c9fbaab7d69bc74eab6e1e5cc3487eb2453d7b51bfb10a5073b80b20d",
+      "bytes": 12391
     },
     {
       "path": "lore_runtime/startup_reentry.py",
-      "sha256": "9b5a91b1ec208acbd6986b73bdba2825a3288906b142ca4e50b5ddcd15776f8a"
+      "sha256": "c02a4e77bbf8f60913be2dd2665b875a17501ba391d3baad466629623fab8859"
     },
     {
       "path": "lore_runtime/tool_facts.py",
@@ -328,11 +366,12 @@
     },
     {
       "path": "lore_runtime/tool_plans.py",
-      "sha256": "522b4b5f1e1fa74c75b445d95c4727e7957396be7403d261674eb5dd730cd79a"
+      "sha256": "c970071101bc442391ba10d2e87c8ef641bedc69ebaccbc1776abfc179f96ae0",
+      "bytes": 9827
     },
     {
       "path": "lore_runtime/tool_service.py",
-      "sha256": "4b970198aaaf7ad35d267b6eb1a9ef1e37101ec0ecd51ffcc497b068464a16de"
+      "sha256": "d4678ededada1568390f6db973713c3eb34ed079424a4b0330941012f7cb3547"
     },
     {
       "path": "lore_session/execution.py",
@@ -340,11 +379,17 @@
     },
     {
       "path": "lore_session/node/adapter.mts",
-      "sha256": "16e7306b3e9f5edded911641dfcebf8f62230b313037c142d7b50e6f60674eeb"
+      "sha256": "be7e1d10da7f05a34e56e71f4a94ea1d832192cf766f2770c7e203f965700ebd",
+      "bytes": 4287
     },
     {
       "path": "lore_session/node/callbacks.mts",
       "sha256": "3f89cb269f9f5a90d00f6624793fc959692d3e196a363a37ef7592b2a47adaa9"
+    },
+    {
+      "path": "lore_session/node/check_public.py",
+      "sha256": "2b85924a32be807801ae3072a4203dfc46d8a4e3c3bcc1fe27f28f38c87db5c9",
+      "bytes": 13260
     },
     {
       "path": "lore_session/node/common.mts",
@@ -364,7 +409,8 @@
     },
     {
       "path": "lore_session/provider.py",
-      "sha256": "c42091839d1c6ca99d50af401a01167fe4cb09b9c720a591d996d9689d13048e"
+      "sha256": "94e7fe1c2014ae21f80cde94cc21758a71b608a0c32f3cee00ed61ab89375782",
+      "bytes": 11223
     },
     {
       "path": "lore_session/references.py",
@@ -372,7 +418,8 @@
     },
     {
       "path": "lore_session/service.py",
-      "sha256": "526f5554bb042be46f51373c2dedc5e65e1bab707d783f6d67222ca18c50a88b"
+      "sha256": "8da5f59c291d1db0cd02466ef262a2fdab10dfb476bc340eb2305f8abce9a65a",
+      "bytes": 13809
     },
     {
       "path": "lore_session/snapshot_files.py",

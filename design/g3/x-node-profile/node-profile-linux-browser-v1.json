@@ -1,5 +1,5 @@
 {
-  "id": "fixed-node-pi-session-v1",
+  "id": "linux-browser-v1",
   "status": "PREREGISTERED_INCREMENT_NOT_ENABLED",
   "domain": "session",
   "caller": "trusted-S-only",
@@ -7,7 +7,7 @@
     "runtime",
     "task"
   ],
-  "image": "python@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea",
+  "image": "sha256:72e95e40bfc5e1be5f3d13a5d293295bf63d10fd96bef2d6fa08f8c2e52a306d",
   "node_version": "24.21.0",
   "pi_commit": "71dca871bc80b6bc97be37f0ca3189399d651fff",
   "dependency_manifest": {
@@ -29,13 +29,13 @@
   "keeper_capabilities": [],
   "no_new_privileges": true,
   "seccomp_sha256": "9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294cae9c76",
-  "memory_bytes": 536870912,
+  "memory_bytes": 805306368,
   "memory_swap_bytes": 536870912,
-  "pids": 64,
-  "cpu": 0.5,
+  "pids": 512,
+  "cpu": 1.0,
   "io_mode": "duplex",
   "environment": {
-    "PATH": "/opt/node/bin:/usr/local/bin:/usr/bin:/bin",
+    "PATH": "/usr/local/bin:/usr/bin:/bin",
     "HOME": "/work",
     "LANG": "C.UTF-8",
     "TSX_TSCONFIG_PATH": "/opt/lore/config/tsconfig.json"
@@ -44,13 +44,13 @@
     "session_work": {
       "mount": "/work",
       "kind": "generation-private bounded local tmpfs named volume",
-      "bytes": 16777216,
-      "inodes": 512
+      "bytes": 33554432,
+      "inodes": 1024
     },
     "tmp": {
       "mount": "/tmp",
-      "bytes": 33554432,
-      "inodes": 2048,
+      "bytes": 67108864,
+      "inodes": 1024,
       "flags": [
         "nosuid",
         "nodev",
@@ -142,11 +142,18 @@
     "scope": "Same selected882files/fourlinks and logical /opt targets. Single accepted upstream bug guard only; no projection expansion."
   },
   "platform_revision": {
-    "date": "2026-09-14",
-    "note": "dependency selection manifest and physical identity regenerated for the linux/arm64 container build; previous pin preserved in the revision record; slot tool role enlarged to the browser scale (512 MiB/0.5 cpu), amendment-linux-browser",
-    "previous_dependency_manifest": {
-      "path": "design/g3/x-node-profile/dependencies.json",
-      "sha256": "888ba3c5636aa227dbcfaae8780f7ce66e2d7d23170de25983e4df15fb5ebad9"
-    }
+    "date": "2026-09-15",
+    "note": "browser session increment per amendment-linux-browser-2026-09-15: image adds chromium/playwright layers on the frozen session environment image; /opt dependency closure unchanged; budgets from component-level evidence (linux-browser-013: pids counts threads, /tmp inodes); tool cpu raised to 1.0 and tool deadline to 120s after chromium launch-watchdog SIGTRAP evidence at 0.5 cpu, amendment-linux-browser",
+    "base_image": "sha256:6e58a110508338395c3c5bbbc325bb4d2492da3d63f8fe73b4839fe237ed5009"
+  },
+  "budget_maxima": {
+    "pids": 512,
+    "cpu": 1.0,
+    "tmp_bytes": 67108864,
+    "tmp_inodes": 1024,
+    "shm_bytes": 16777216,
+    "work_bytes": 33554432,
+    "memory_bytes": 805306368,
+    "deadline_seconds": 120
   }
 }
