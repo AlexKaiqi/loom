@@ -1,6 +1,7 @@
 # 修订记录：工具执行默认由"30s 硬杀"改为"check 先行"（2026-09-17）
 
-状态：**待实施修订记录**（设计已定，**实现未改**）。不是验收结论；改后须独立复跑才能计入通过。
+状态：**已实施，独立复跑未做**（2026-09-17 当日实施；离线判据与既有套件已通过，见文末）。
+不是验收结论；独立复跑前不得计入"check 先行"的通过。
 依据：用户 2026-09-17 裁决"默认应是**提醒 check 事件**，runtime 负责避免死掉，但不是超时工具就不执行"；
 设计见 [voice-assistant/execution-timeouts.md](voice-assistant/execution-timeouts.md)。
 契约归属：本修订落在 **task runtime（`lore_task/`）**，不属语音专属。
@@ -67,3 +68,17 @@
 - **D2** `check` 落面事实还是观测域（频率待测）。
 - **D3** 硬上限/并发上限的配置来源（X budget maxima vs `task.json.policy`）。
 - **D4** 资源安全网与既有租约（M03/M04 的 ~30 s 租约）如何对齐，避免两套计时。
+
+## 8. 实施记录（2026-09-17 当日补记；上方第 1–6 节原文保留）
+
+- §6 顺序已执行：先落预登记可执行判据 `validation/task_runtime/offline_tool_liveness.py`
+  （VO37–VO42 + exit 126/0 保持性），再改实现，再复跑。
+- 实现：`lore_task/round.py`（托管执行 `_run_shell_managed`：select 增量读、check 退避、
+  进程组 SIGTERM→宽限→SIGKILL、硬上限回收即 `abandoned/unknown`）、`lore_task/cli.py`
+  （`--tool-timeout` 移除，新增 `--tool-check-interval/--tool-budget/--tool-hard-cap`，取舍见
+  [task-runtime-contract.md](task-runtime-contract.md) 修订记录第 3 条）。
+- 契约：`sys.tool.result` 增加 `outcome/side_effects/duration_ms/call_id`（U28 取合并），
+  十个 harness 的契约副本收敛为规范一份。
+- 结果：`offline_tool_liveness.py` 全部 PASS；既有 `validation/task_runtime/offline_*.py` 全部通过，
+  判据未放宽（唯一断言文本更新：invariants 的拒绝消息动词随 deliver→relay 更名，判据本身不变）。
+- **未做**：独立验收者复跑（AGENTS.md 门槛）；因此本修订在独立复跑前保持"已实施未独立复跑"状态。

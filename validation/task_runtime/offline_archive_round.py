@@ -37,7 +37,7 @@ def main() -> int:
                  "recent-1.md": "recent one\n", "recent-2.md": "recent two\n"}
     for name, text in originals.items():
         (content / name).write_text(text)
-    round_mod.ingest(base, "arc-1", "archive.requested", {"reason": "context pressure"})
+    round_mod.admit(base, "arc-1", "archive.requested", {"reason": "context pressure"})
 
     result = round_mod.run_round(base, provider.FauxProvider(RESPONSE), max_steps=4)
     checks = []

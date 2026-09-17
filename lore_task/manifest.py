@@ -130,7 +130,11 @@ def load(base, *, verify: bool = True) -> Manifest:
             if verify:
                 actual = ref_digest(harness_base, entry["ref"])
                 declared = entry.get("digest")
-                if declared and declared != actual:
+                if not declared:
+                    raise ManifestError(
+                        "role %s entry %s declares a ref without digest (R2: registration is strict)"
+                        % (role, entry["id"]))
+                if declared != actual:
                     raise ManifestError("role %s entry %s digest mismatch: declared %s, actual %s"
                                         % (role, entry["id"], declared, actual))
 
@@ -151,7 +155,10 @@ def load(base, *, verify: bool = True) -> Manifest:
             if verify:
                 actual = ref_digest(harness_base, contract["ref"])
                 declared = contract.get("digest")
-                if declared and declared != actual:
+                if not declared:
+                    raise ManifestError(
+                        f"kind {kind} contract ref without digest (R2: registration is strict)")
+                if declared != actual:
                     raise ManifestError("kind %s contract digest mismatch: declared %s, actual %s"
                                         % (kind, declared, actual))
 
@@ -163,7 +170,14 @@ def load(base, *, verify: bool = True) -> Manifest:
                 raise ManifestError(f"trigger {trig['id']} references undeclared kind {kind}")
         when = trig.get("when")
         if when and verify:
-            ref_digest(harness_base, when["ref"])
+            actual = ref_digest(harness_base, when["ref"])
+            declared = when.get("digest")
+            if not declared:
+                raise ManifestError(
+                    f"trigger {trig['id']} when-ref without digest (R2: registration is strict)")
+            if declared != actual:
+                raise ManifestError("trigger %s when digest mismatch: declared %s, actual %s"
+                                    % (trig["id"], declared, actual))
 
     for view in data.get("views", []):
         if "id" not in view or "source" not in view:
@@ -172,7 +186,10 @@ def load(base, *, verify: bool = True) -> Manifest:
         if resolver and verify:
             actual = ref_digest(harness_base, resolver["ref"])
             declared = resolver.get("digest")
-            if declared and declared != actual:
+            if not declared:
+                raise ManifestError(
+                    "view %s resolver ref without digest (R2: registration is strict)" % view["id"])
+            if declared != actual:
                 raise ManifestError("view %s resolver digest mismatch: declared %s, actual %s"
                                     % (view["id"], declared, actual))
 

@@ -9,6 +9,8 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import select
+import signal
 import subprocess
 import time
 from pathlib import Path
@@ -20,9 +22,17 @@ from .layout import LAYOUT_VERSION, atomic_write, paths, read_json, tree_digest,
 
 TOOL_OUTPUT_INLINE = 4000
 
+# Tool liveness defaults (amendment-task-tool-liveness-2026-09-17; U26 values
+# pending measurement — these are M1 placeholders, documented in the contract).
+TOOL_CHECK_INTERVAL = 10.0   # s: first sys.tool.check cadence, then ×2 backoff
+TOOL_CHECK_CAP = 60.0        # s: backoff ceiling
+TOOL_HARD_CAP = 600.0        # s: runtime resource safety net per call
+TERMINATE_GRACE = 5.0        # s: SIGTERM → SIGKILL grace for the process group
+
 ACTION_PROTOCOL = (
     'Reply with exactly one JSON object, no prose: '
-    '{"action":{"type":"shell","script":"..."}} to run a shell command inside the task content directory, '
+    '{"action":{"type":"shell","script":"...","budget_ms":30000}} to run a shell command inside the task content directory '
+    '(budget_ms is optional: the harness/model policy budget in milliseconds; exceeding the runtime hard cap is refused), '
     '{"action":{"type":"emit","kind":"<declared kind>","payload":{...}}} to declare a state change, or '
     '{"action":{"type":"final","text":"..."}} to end this round.'
 )
@@ -50,9 +60,135 @@ def _session_append(p, round_id: str, row: dict) -> None:
         os.fsync(fh.fileno())
 
 
-def _run_shell(cwd, script: str, timeout: float) -> dict:
-    proc = subprocess.run(["/bin/sh", "-c", script], cwd=str(cwd), capture_output=True, text=True, timeout=timeout)
-    return {"exit": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr}
+def _terminate_group(proc, grace: float = TERMINATE_GRACE) -> None:
+    """Terminate the whole process group: SIGTERM, grace, then SIGKILL.
+
+    POSIX-only (the execution platform per AGENTS.md). start_new_session=True
+    makes proc.pid the group leader, so killpg reaches grandchildren too.
+    """
+    try:
+        os.killpg(proc.pid, signal.SIGTERM)
+    except (ProcessLookupError, PermissionError):
+        try:
+            proc.terminate()
+        except OSError:
+            pass
+    try:
+        proc.wait(timeout=grace)
+        return
+    except subprocess.TimeoutExpired:
+        pass
+    try:
+        os.killpg(proc.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        pass
+    try:
+        proc.wait(timeout=grace)
+    except subprocess.TimeoutExpired:
+        pass
+
+
+def _run_shell_managed(cwd, script: str, *, call_id: str, observe, check_interval: float,
+                       budget_s, hard_cap_s: float) -> dict:
+    """One shell execution with liveness observation and a resource safety net.
+
+    Semantics (design/g3/amendment-task-tool-liveness-2026-09-17,
+    voice-assistant/execution-timeouts.md):
+    - `check_interval` only emits `sys.tool.check` (opt-in by declaration); it
+      never kills. Backoff x2, capped at TOOL_CHECK_CAP.
+    - `budget_s` is the harness/operator policy judgment (per-call budget_ms or
+      the runtime-level default): exceeding it stops the wait — SIGTERM the
+      process group, grace, SIGKILL — and yields outcome "timeout". The call
+      did run; the result is unconfirmed and must not be rerun blindly.
+    - `hard_cap_s` is the runtime safety net nobody may raise from the action:
+      exceeding it yields outcome "unknown" plus `sys.tool.abandoned` — the
+      result is unknown, never faked as success or failure.
+    Output is read incrementally (select) so large streams cannot deadlock the
+    Round; exit remains a compatibility mirror, outcome is authoritative.
+    """
+    started = time.monotonic()
+    proc = subprocess.Popen(["/bin/sh", "-c", script], cwd=str(cwd),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            start_new_session=True)
+    observe("sys.tool.started", {"call_id": call_id, "tool": "shell", "cwd": str(cwd),
+                                 "budget_ms": int(budget_s * 1000) if budget_s is not None else None,
+                                 "hard_cap_ms": int(hard_cap_s * 1000)})
+    out_buf, err_buf = bytearray(), bytearray()
+    last_output = started
+    check_seq = 0
+    next_check = started + check_interval
+    backoff = check_interval
+    budget_deadline = None if budget_s is None else started + budget_s
+    hard_deadline = started + hard_cap_s
+    outcome, abandoned_reason = None, None
+    while proc.poll() is None:
+        now = time.monotonic()
+        wakes = [hard_deadline, now + 0.05]
+        if budget_deadline is not None:
+            wakes.append(budget_deadline)
+        wake = min(wakes)
+        ready, _, _ = select.select([proc.stdout, proc.stderr], [], [], max(0.0, wake - now))
+        for fh in ready:
+            try:
+                chunk = os.read(fh.fileno(), 65536)
+            except BlockingIOError:
+                continue
+            if chunk:
+                (out_buf if fh is proc.stdout else err_buf).extend(chunk)
+                last_output = time.monotonic()
+        now = time.monotonic()
+        if proc.poll() is not None:
+            break
+        if next_check is not None and now >= next_check:
+            check_seq += 1
+            observe("sys.tool.check", {
+                "call_id": call_id, "check_seq": check_seq,
+                "elapsed_ms": int((now - started) * 1000),
+                "silent_for_ms": int((now - last_output) * 1000),
+                "backoff_ms": int(backoff * 1000),
+            })
+            backoff = min(backoff * 2, TOOL_CHECK_CAP)
+            next_check = now + backoff
+        if budget_deadline is not None and now >= budget_deadline:
+            _terminate_group(proc)
+            outcome, abandoned_reason = "timeout", None
+            break
+        if now >= hard_deadline:
+            _terminate_group(proc)
+            outcome, abandoned_reason = "unknown", "resource_limit"
+            break
+    if outcome is None:
+        # Natural exit (detected either by the loop condition or inside the body).
+        outcome = "ok" if proc.returncode == 0 else "failed"
+    # Bounded drain: the process is gone; a still-open pipe (e.g. a backgrounded
+    # grandchild) must not hang the Round.
+    for _ in range(8):
+        ready, _, _ = select.select([proc.stdout, proc.stderr], [], [], 0.05)
+        if not ready:
+            break
+        for fh in ready:
+            try:
+                chunk = os.read(fh.fileno(), 65536)
+            except BlockingIOError:
+                continue
+            if chunk:
+                (out_buf if fh is proc.stdout else err_buf).extend(chunk)
+    proc.wait()
+    out_text = out_buf.decode("utf-8", "replace")
+    err_text = err_buf.decode("utf-8", "replace")
+    if abandoned_reason:
+        observe("sys.tool.abandoned", {"call_id": call_id, "reason": abandoned_reason,
+                                       "last_known_state": "terminated after resource limit"})
+    return {
+        "call_id": call_id,
+        "exit": proc.returncode,
+        "outcome": outcome,
+        "side_effects": "unknown" if abandoned_reason else "possible",
+        "duration_ms": int((time.monotonic() - started) * 1000),
+        "stdout_digest": _digest_text(out_text),
+        "stdout": out_text,
+        "stderr": err_text,
+    }
 
 
 def _default_projection(task, all_facts, new, head, content_dir) -> dict:
@@ -277,15 +413,15 @@ def recover(base, *, keep=None, reason="uncommitted tail from an interrupted Rou
     return {"status": "recovered", **row}
 
 
-def ingest(base, foreign_id: str, kind: str, payload: dict, *, source=None, sender=None) -> dict:
-    """External fact admission: single gate, idempotent by foreign id."""
+def admit(base, foreign_id: str, kind: str, payload: dict, *, source=None, sender=None) -> dict:
+    """Fact Admission: single gate, idempotent by foreign id (glossary: Fact Admission)."""
     _require_supported_layout(read_json(paths(base)["task"]))
     man = manifest_mod.load(base)
     entry = man.require_kind(kind)
     if entry.get("requires_relation") and sender is None:
         # admission is not authorization: a cross-task kind must arrive through
         # `deliver`, which checks wants+grants and the host authority entry.
-        raise ValueError("kind %s requires relation-mediated delivery (use deliver with wants+grants)" % kind)
+        raise ValueError("kind %s requires relation-mediated relay (use relay with wants+grants)" % kind)
     for row in ledger.read_jsonl(paths(base)["admission"]):
         if row.get("foreign_id") == foreign_id:
             if row.get("digest") != ledger.admission_digest(kind, payload):
@@ -313,7 +449,7 @@ def relate(base, *, want=None, grant=None) -> dict:
 
     `wants` is declared by the consumer (which peer/kinds it accepts); `grants`
     by the sender (which peer/kinds it allows itself to send). Both sides are
-    required for a delivery — a copy of a task directory never inherits either.
+    required for a relay — a copy of a task directory never inherits either.
     """
     p = paths(base)
     task = read_json(p["task"])
@@ -328,8 +464,8 @@ def relate(base, *, want=None, grant=None) -> dict:
     return {"task_id": task.get("task_id"), "relations": relations}
 
 
-def deliver(from_base, to_base, foreign_id: str, kind: str, payload: dict) -> dict:
-    """Deliver one event from one task's fact stream to another task's admission.
+def relay(from_base, to_base, foreign_id: str, kind: str, payload: dict) -> dict:
+    """Relay one event from one task's fact stream through another task's Fact Admission.
 
     Authorized only when (a) both tasks are registered in their root's host
     authority file at their current location, and (b) the receiver *wants* it and
@@ -364,11 +500,22 @@ def deliver(from_base, to_base, foreign_id: str, kind: str, payload: dict) -> di
             "decision": "rejected", "from": sender_id,
             "reason": "missing %s" % ("wants" if not wants else "grants")})
         return {"delivered": False, "reason": row["reason"], "admission": row}
-    result = ingest(to_base, foreign_id, kind, payload, source="relation", sender=sender_id)
+    result = admit(to_base, foreign_id, kind, payload, source="relation", sender=sender_id)
     return {"delivered": result["admission"].get("decision") == "accepted", "from": sender_id, **result}
 
 
-def run_round(base, provider, *, max_steps: int = 8, tool_timeout: float = 30.0) -> dict:
+def run_round(base, provider, *, max_steps: int = 8,
+              tool_check_interval: float = TOOL_CHECK_INTERVAL,
+              tool_budget=None, tool_hard_cap: float = TOOL_HARD_CAP) -> dict:
+    """Run one Round: trigger → projection → model → tool → admission → commit.
+
+    Tool liveness (amendment-task-tool-liveness-2026-09-17): `tool_budget` is
+    the operator-level default policy budget (ms) for calls that do not declare
+    their own budget_ms; `tool_hard_cap` is the runtime resource safety net that
+    action-declared values may never exceed. Neither is a silent hard kill: the
+    check cadence only observes, the budget ends the wait (timeout), the cap
+    abandons with an unknown result.
+    """
     p = paths(base)
     man = manifest_mod.load(base)
     task = read_json(p["task"])
@@ -481,17 +628,56 @@ def run_round(base, provider, *, max_steps: int = 8, tool_timeout: float = 30.0)
         if kind == "shell":
             target = action.get("target", "content")
             cwd = _resolve_target(task, p["content"], target)
+            budget_ms = action.get("budget_ms")
+            if budget_ms is None:
+                budget_ms = tool_budget
+            hard_cap_ms = int(tool_hard_cap * 1000)
+            if budget_ms is not None and (not isinstance(budget_ms, (int, float))
+                                          or isinstance(budget_ms, bool)
+                                          or budget_ms <= 0 or int(budget_ms) > hard_cap_ms):
+                # VO41: an explicit budget must stay within the runtime cap; the
+                # refusal is a fact, and the call never starts (no side effects).
+                if "sys.action.rejected" not in man.kinds:
+                    raise manifest_mod.ManifestError(
+                        "shell budget_ms requires a declared sys.action.rejected kind")
+                fact = facts_mod.append_fact(base, "sys.action.rejected", {
+                    "action": "shell",
+                    "reason": "invalid budget_ms %r (must be a positive number within the runtime hard cap %dms)"
+                              % (budget_ms, hard_cap_ms),
+                }, source="runtime")
+                steps.append({"step": step, "action": "budget_refused", "reason": fact["payload"]["reason"],
+                              "finish_reason": reply.get("finish_reason"), "usage": reply.get("usage")})
+                emitted.append(fact["id"])
+                all_facts = facts_mod.read_facts(base)
+                state["facts"] = all_facts
+                if not _should_continue(man, state):
+                    break
+                continue
+            call_id = "%s:%d" % (round_id, step)
+
+            def _observe(obs_kind, obs_payload):
+                # Liveness observations (sys.tool.started/check/abandoned) are
+                # opt-in by declaration; they never kill anything by themselves.
+                if obs_kind in man.kinds:
+                    facts_mod.append_fact(base, obs_kind, obs_payload, source="runtime")
+
             if cwd is None:
-                out = {"exit": 126, "stdout": "", "stderr": "unauthorized or unknown shell target: %s" % target}
+                out = {"call_id": call_id, "exit": 126, "outcome": "failed", "side_effects": "none",
+                       "duration_ms": 0, "stdout": "",
+                       "stderr": "unauthorized or unknown shell target: %s" % target,
+                       "stdout_digest": _digest_text("")}
             else:
-                try:
-                    out = _run_shell(cwd, action.get("script", ""), tool_timeout)
-                except subprocess.TimeoutExpired:
-                    out = {"exit": 124, "stdout": "", "stderr": "timeout"}
+                out = _run_shell_managed(
+                    cwd, action.get("script", ""), call_id=call_id, observe=_observe,
+                    check_interval=tool_check_interval,
+                    budget_s=None if budget_ms is None else int(budget_ms) / 1000.0,
+                    hard_cap_s=tool_hard_cap)
             fact = facts_mod.append_fact(base, "sys.tool.result", {
-                "script": action.get("script", ""), "target": target,
-                "cwd": str(cwd) if cwd is not None else None, "exit": out["exit"],
-                "stdout_digest": _digest_text(out["stdout"]), "stdout": _truncate(out["stdout"]),
+                "call_id": call_id, "script": action.get("script", ""), "target": target,
+                "cwd": str(cwd) if cwd is not None else None,
+                "exit": out["exit"], "outcome": out["outcome"], "side_effects": out["side_effects"],
+                "duration_ms": out["duration_ms"],
+                "stdout_digest": out["stdout_digest"], "stdout": _truncate(out["stdout"]),
                 "stderr": _truncate(out["stderr"]),
             }, source="runtime")
             emitted.append(fact["id"])

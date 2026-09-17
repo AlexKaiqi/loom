@@ -29,7 +29,7 @@ def main() -> int:
 
     # I1: unknown higher layout_version is refused
     a = layout.create_task(root, "v-99", ROOT / "lore_harness" / "goal")
-    round_mod.ingest(a, "o1", "task.objective.set", {"objective": "x"})
+    round_mod.admit(a, "o1", "task.objective.set", {"objective": "x"})
     task = layout.read_json(a / "task.json")
     task["layout_version"] = 99
     layout.write_json(a / "task.json", task)
@@ -39,7 +39,7 @@ def main() -> int:
     except ValueError as exc:
         check("layout_version_refused", "unsupported task layout_version 99" in str(exc), str(exc))
     try:
-        round_mod.ingest(a, "o2", "task.objective.set", {"objective": "y"})
+        round_mod.admit(a, "o2", "task.objective.set", {"objective": "y"})
         check("layout_version_refused_on_ingest", False, "ingest accepted layout_version=99")
     except ValueError as exc:
         check("layout_version_refused_on_ingest", "unsupported" in str(exc), str(exc))
@@ -62,13 +62,13 @@ def main() -> int:
     round_mod.relate(receiver, want=("snd", ["task.delegated"]))
     round_mod.relate(sender, grant=("rcv", ["task.delegated"]))
     payload = {"child": "rcv", "scope": "x", "input_refs": []}
-    ok_here = round_mod.deliver(sender, receiver, "d-orig", "task.delegated", payload)
+    ok_here = round_mod.relay(sender, receiver, "d-orig", "task.delegated", payload)
     check("registered_pair_delivers", ok_here.get("delivered") is True, json.dumps(ok_here))
 
     copy_root = Path(tempfile.mkdtemp(prefix="lore-copy-"))
     shutil.copytree(sender, copy_root / "snd")
     shutil.copytree(receiver, copy_root / "rcv")
-    copied = round_mod.deliver(copy_root / "snd", copy_root / "rcv", "d-copy", "task.delegated", payload)
+    copied = round_mod.relay(copy_root / "snd", copy_root / "rcv", "d-copy", "task.delegated", payload)
     check("copy_has_no_authority", copied.get("delivered") is False and "not registered" in copied.get("reason", ""),
           json.dumps(copied))
     rejected = [json.loads(l) for l in (copy_root / "rcv" / "ledger" / "admission.jsonl").read_text().split("\n") if l.strip()]
@@ -77,15 +77,18 @@ def main() -> int:
     # A-N5: a relation-required kind cannot be admitted directly (admission != authorization)
     child = layout.create_task(root, "child-rel", ROOT / "lore_harness" / "delegation_child")
     try:
-        round_mod.ingest(child, "direct-1", "task.delegated", {"child": "child-rel", "scope": "x"})
+        round_mod.admit(child, "direct-1", "task.delegated", {"child": "child-rel", "scope": "x"})
         check("relation_required_kind_refuses_direct_ingest", False, "direct ingest accepted task.delegated")
     except ValueError as exc:
-        check("relation_required_kind_refuses_direct_ingest", "requires relation-mediated delivery" in str(exc), str(exc))
+        # Criterion unchanged (refusal of relation-required kinds on direct
+        # admission); only the verb in the refusal message was renamed
+        # deliver -> relay per glossary v3.2 (tombstone: delivery).
+        check("relation_required_kind_refuses_direct_ingest", "requires relation-mediated relay" in str(exc), str(exc))
 
     # A-N6: an imported task can be adopted explicitly by the new host, then it may deliver
     layout.register_authority(copy_root, "snd", copy_root / "snd")
     layout.register_authority(copy_root, "rcv", copy_root / "rcv")
-    adopted = round_mod.deliver(copy_root / "snd", copy_root / "rcv", "d-adopted", "task.delegated", payload)
+    adopted = round_mod.relay(copy_root / "snd", copy_root / "rcv", "d-adopted", "task.delegated", payload)
     check("explicit_adoption_restores_authority", adopted.get("delivered") is True, json.dumps(adopted))
 
     # R8-adjacent: a corrupt LEDGER row must error loudly (same rule as facts)

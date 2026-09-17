@@ -31,7 +31,7 @@ def main() -> int:
     content = base / "surface" / "content"
     for name, text in CORPUS.items():
         (content / name).write_text(text)
-    round_mod.ingest(base, "q-1", "research.question.set",
+    round_mod.admit(base, "q-1", "research.question.set",
                      {"question": "What does the corpus say about cache eviction and TTL?",
                       "scope": "cite the files"})
 
@@ -93,7 +93,7 @@ def main() -> int:
     content2 = base2 / "surface" / "content"
     (content2 / "a-notes.md").write_text(CORPUS["a-notes.md"])
     (content2 / "b-design.md").write_text(CORPUS["b-design.md"])
-    round_mod.ingest(base2, "q-2", "research.question.set", {"question": "cache?", "scope": "corpus"})
+    round_mod.admit(base2, "q-2", "research.question.set", {"question": "cache?", "scope": "corpus"})
     round_mod.run_round(base2, provider.FauxProvider([
         json.dumps({"action": {"type": "emit", "kind": "research.source.added",
                                "payload": {"source_ref": "missing.md"}}}),
@@ -121,7 +121,7 @@ def main() -> int:
     content3 = base3 / "surface" / "content"
     (content3 / "a-notes.md").write_text(CORPUS["a-notes.md"])
     (content3 / "b-design.md").write_text(CORPUS["b-design.md"])
-    round_mod.ingest(base3, "q-3", "research.question.set", {"question": "cache?", "scope": "corpus"})
+    round_mod.admit(base3, "q-3", "research.question.set", {"question": "cache?", "scope": "corpus"})
     round_mod.run_round(base3, provider.FauxProvider([
         json.dumps({"action": {"type": "emit", "kind": "research.source.added",
                                "payload": {"source_ref": "a-notes.md"}}}),

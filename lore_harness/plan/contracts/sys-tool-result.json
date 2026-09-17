@@ -1,9 +1,16 @@
 {
   "kind": "sys.tool.result",
   "producer": "runtime",
+  "note": "Runtime observation of one shell execution inside the task content directory. Canonical contract shared by all harnesses (runtime writes every listed field). outcome is authoritative; exit is a compatibility mirror (negative values = terminated by signal).",
   "payload": {
+    "call_id": "string (<round_id>:<step>)",
     "script": "string",
-    "exit": "integer",
+    "target": "string",
+    "cwd": "string or null",
+    "exit": "integer (compatibility mirror; 126 = unauthorized target, negative = killed by signal)",
+    "outcome": "ok | failed | timeout | unknown",
+    "side_effects": "none (refused before start) | possible (executed) | unknown (abandoned)",
+    "duration_ms": "integer",
     "stdout_digest": "sha256 of the full stdout bytes",
     "stdout": "string (inline, bounded)",
     "stderr": "string (inline, bounded)"

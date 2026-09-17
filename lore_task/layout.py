@@ -132,6 +132,49 @@ def authority_entry(root, task_id: str):
     return (read_json(path).get("tasks") or {}).get(task_id)
 
 
+def stamp_manifest_digests(harness_dir) -> dict:
+    """Fill per-ref digests into manifest.json (landing §4.5 R2).
+
+    A harness template ships unstamped; registration stamps every declared ref
+    (role entries, kind contracts, trigger `when`, view resolvers) with its
+    content digest so load-time verification is exact, not existence-only.
+    Idempotent: an already-correct digest is kept. Default-path fallbacks stay
+    unstamped — they are covered by the whole-harness digest in task.json.
+    """
+    harness_dir = Path(harness_dir)
+    mpath = harness_dir / "manifest.json"
+    data = read_json(mpath)
+    stamped = []
+
+    def _stamp(entry: dict) -> None:
+        ref = entry.get("ref")
+        if not ref:
+            return
+        actual = ref_digest(harness_dir, ref)
+        if entry.get("digest") != actual:
+            entry["digest"] = actual
+            stamped.append(ref)
+
+    for entries in (data.get("roles") or {}).values():
+        for entry in entries:
+            _stamp(entry)
+    for kind in (data.get("facts") or {}).get("kinds", []):
+        contract = kind.get("contract")
+        if contract and contract.get("ref"):
+            _stamp(contract)
+    for trig in (data.get("facts") or {}).get("triggers", []):
+        when = trig.get("when")
+        if when and when.get("ref"):
+            _stamp(when)
+    for view in data.get("views", []):
+        resolver = view.get("resolver")
+        if resolver and resolver.get("ref"):
+            _stamp(resolver)
+    if stamped:
+        write_json(mpath, data)
+    return {"stamped": stamped}
+
+
 def create_task(root, task_id: str, harness_src, meta=None, workspaces=None) -> Path:
     base = task_path(root, task_id)
     if base.exists() and any(base.iterdir()):
@@ -143,6 +186,7 @@ def create_task(root, task_id: str, harness_src, meta=None, workspaces=None) -> 
     p["content"].mkdir(parents=True, exist_ok=True)
     p["ledger"].mkdir(parents=True, exist_ok=True)
     shutil.copytree(harness_src, p["harness"])
+    stamp = stamp_manifest_digests(p["harness"])
     p["facts"].write_bytes(b"")
     p["admission"].write_bytes(b"")
     p["rounds"].write_bytes(b"")
@@ -155,7 +199,6 @@ def create_task(root, task_id: str, harness_src, meta=None, workspaces=None) -> 
         "model_refs": {},
         "workspaces": list(workspaces or []),
         "relations": {"wants": [], "grants": []},
-        "landing": {"boundary": 0, "last_round": None},
     }
     if meta:
         task.update(meta)

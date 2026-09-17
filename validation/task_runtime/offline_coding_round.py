@@ -39,7 +39,7 @@ def main() -> int:
     workspace = Path(tempfile.mkdtemp(prefix="lore-ws-"))
     base = layout.create_task(root, "code-1", ROOT / "lore_harness" / "coding",
                               workspaces=[{"id": workspace.name, "path": str(workspace), "mode": "rw"}])
-    round_mod.ingest(base, "obj-1", "task.objective.set",
+    round_mod.admit(base, "obj-1", "task.objective.set",
                      {"objective": "add(a,b) plus a passing test", "acceptance": ["test_add.py exits 0"]})
     result = round_mod.run_round(base, provider.FauxProvider(STEPS), max_steps=8)
     checks = []

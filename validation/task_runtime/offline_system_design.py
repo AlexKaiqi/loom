@@ -46,7 +46,7 @@ def main() -> int:
 
     # A) two units, dependency order, completion only after both are frozen
     a = layout.create_task(root, "d-two", ROOT / "lore_harness" / "system_design")
-    round_mod.ingest(a, "obj-a", "design.objective.set", TWO_UNITS)
+    round_mod.admit(a, "obj-a", "design.objective.set", TWO_UNITS)
     r1 = round_mod.run_round(a, provider.FauxProvider([write_unit("u1", "interface v1"), accepted("u1", revision(a))]),
                              max_steps=4)
     kinds_a1 = [f["kind"] for f in facts_mod.read_facts(a)]
@@ -65,7 +65,7 @@ def main() -> int:
 
     # B) a stale base revision is refused by the runtime, then the correct one is accepted
     b = layout.create_task(root, "d-stale", ROOT / "lore_harness" / "system_design")
-    round_mod.ingest(b, "obj-b", "design.objective.set",
+    round_mod.admit(b, "obj-b", "design.objective.set",
                      {"objective": "one unit", "units": [{"id": "u1", "deliverable": "spec"}]})
     rb = round_mod.run_round(b, provider.FauxProvider([write_unit("u1", "spec"), accepted("u1", "sha256:stale"),
                                                        accepted("u1", revision(b))]), max_steps=4)
@@ -78,7 +78,7 @@ def main() -> int:
 
     # C) freeze violation on a rogue byte change, then amendment -> re-freeze -> stale dependent
     c = layout.create_task(root, "d-amend", ROOT / "lore_harness" / "system_design")
-    round_mod.ingest(c, "obj-c", "design.objective.set", TWO_UNITS)
+    round_mod.admit(c, "obj-c", "design.objective.set", TWO_UNITS)
     round_mod.run_round(c, provider.FauxProvider([write_unit("u1", "interface v1"), accepted("u1", revision(c))]),
                         max_steps=4)
     (c / "surface" / "content" / "units" / "u1.md").write_text("interface v1 ROGUE EDIT\n")
@@ -88,8 +88,8 @@ def main() -> int:
     check("C_violation_detected", kinds_c.count("design.freeze.violation") == 1, str(kinds_c))
     check("C_completion_blocked", "task.completed" not in kinds_c, str(kinds_c))
 
-    round_mod.ingest(c, "am-1", "design.amendment.requested", {"unit_id": "u1", "reason": "interface changed"})
-    round_mod.ingest(c, "am-2", "design.amendment.accepted", {"unit_id": "u1", "reason": "approved"})
+    round_mod.admit(c, "am-1", "design.amendment.requested", {"unit_id": "u1", "reason": "interface changed"})
+    round_mod.admit(c, "am-2", "design.amendment.accepted", {"unit_id": "u1", "reason": "approved"})
     round_mod.run_round(c, provider.FauxProvider([write_unit("u1", "interface v2"), accepted("u1", revision(c))]),
                         max_steps=4)
     kinds_c2 = [f["kind"] for f in facts_mod.read_facts(c)]

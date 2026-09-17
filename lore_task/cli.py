@@ -1,4 +1,4 @@
-"""Command line entry: create / ingest / run / status / facts.
+"""Command line entry: create / admit / run / status / facts.
 
 Credentials: `--env-file` (default `~/.env`) + `--api-key-env` (default
 `ARC_PLAN_API_KEY`). The key is read into process memory only; it is never
@@ -36,12 +36,12 @@ def build_parser() -> argparse.ArgumentParser:
     create.add_argument("--workspace", action="append", default=[],
                         help="authorized file range outside the task dir (repeatable; path)")
 
-    ingest = sub.add_parser("ingest", help="admit an external fact through Fact Admission")
-    ingest.add_argument("--root", required=True)
-    ingest.add_argument("--task-id", required=True)
-    ingest.add_argument("--foreign-id", required=True)
-    ingest.add_argument("--kind", required=True)
-    ingest.add_argument("--payload", default="{}")
+    admit = sub.add_parser("admit", help="admit an external fact through Fact Admission")
+    admit.add_argument("--root", required=True)
+    admit.add_argument("--task-id", required=True)
+    admit.add_argument("--foreign-id", required=True)
+    admit.add_argument("--kind", required=True)
+    admit.add_argument("--payload", default="{}")
 
     run = sub.add_parser("run", help="run one Round if a trigger condition is met")
     run.add_argument("--root", required=True)
@@ -56,7 +56,12 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--max-tokens", type=int, default=4096)
     run.add_argument("--max-steps", type=int, default=8)
     run.add_argument("--timeout", type=float, default=180.0)
-    run.add_argument("--tool-timeout", type=float, default=30.0)
+    run.add_argument("--tool-check-interval", type=float, default=round_mod.TOOL_CHECK_INTERVAL,
+                     help="seconds between sys.tool.check observations (never kills)")
+    run.add_argument("--tool-budget", type=float, default=None,
+                     help="default policy budget in ms for calls without budget_ms (ends the wait -> timeout)")
+    run.add_argument("--tool-hard-cap", type=float, default=round_mod.TOOL_HARD_CAP,
+                     help="runtime resource safety net in seconds (-> abandoned, unknown)")
 
     status = sub.add_parser("status", help="print task status")
     status.add_argument("--root", required=True)
@@ -81,14 +86,14 @@ def build_parser() -> argparse.ArgumentParser:
     register.add_argument("--root", required=True)
     register.add_argument("--task-id", required=True)
 
-    deliver = sub.add_parser("deliver", help="deliver one event to another task (authorized by wants+grants)")
-    deliver.add_argument("--from-root", required=True)
-    deliver.add_argument("--from-task", required=True)
-    deliver.add_argument("--to-root", required=True)
-    deliver.add_argument("--to-task", required=True)
-    deliver.add_argument("--foreign-id", required=True)
-    deliver.add_argument("--kind", required=True)
-    deliver.add_argument("--payload", default="{}")
+    relay = sub.add_parser("relay", help="relay one event through another task's Fact Admission (authorized by wants+grants)")
+    relay.add_argument("--from-root", required=True)
+    relay.add_argument("--from-task", required=True)
+    relay.add_argument("--to-root", required=True)
+    relay.add_argument("--to-task", required=True)
+    relay.add_argument("--foreign-id", required=True)
+    relay.add_argument("--kind", required=True)
+    relay.add_argument("--payload", default="{}")
 
     return parser
 
@@ -116,8 +121,8 @@ def main(argv=None) -> int:
                          ensure_ascii=False, indent=2))
         return 0
 
-    if args.command == "deliver":
-        result = round_mod.deliver(
+    if args.command == "relay":
+        result = round_mod.relay(
             layout.task_path(args.from_root, args.from_task),
             layout.task_path(args.to_root, args.to_task),
             args.foreign_id, args.kind, _json_arg(args.payload))
@@ -126,8 +131,8 @@ def main(argv=None) -> int:
 
     base = layout.task_path(args.root, args.task_id)
 
-    if args.command == "ingest":
-        result = round_mod.ingest(base, args.foreign_id, args.kind, _json_arg(args.payload))
+    if args.command == "admit":
+        result = round_mod.admit(base, args.foreign_id, args.kind, _json_arg(args.payload))
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
 
@@ -170,7 +175,10 @@ def main(argv=None) -> int:
             client = provider_mod.OpenAICompatProvider(
                 args.base_url, key, args.model, alias=args.model_alias,
                 timeout=args.timeout, max_tokens=args.max_tokens)
-        result = round_mod.run_round(base, client, max_steps=args.max_steps, tool_timeout=args.tool_timeout)
+        result = round_mod.run_round(base, client, max_steps=args.max_steps,
+                                     tool_check_interval=args.tool_check_interval,
+                                     tool_budget=args.tool_budget,
+                                     tool_hard_cap=args.tool_hard_cap)
         result["provider"] = client.name
         result["model"] = getattr(client, "model", None)
         print(json.dumps(result, ensure_ascii=False, indent=2))

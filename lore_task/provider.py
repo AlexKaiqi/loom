@@ -1,6 +1,6 @@
 """Model providers for the task runtime.
 
-`OpenAICompatProvider` targets the ARC plan endpoint
+`OpenAICompatProvider` targets the Volcengine Ark plan endpoint
 (design/g3/provider/amendment-model-baseline-2026-09-16-ark.md). Credentials are
 read from an env file outside the repository and never stored in a task dir.
 """

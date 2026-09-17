@@ -27,8 +27,8 @@ cat > "$C/d-metrics.md" <<'MD'
 With TTL 300s the measured p99 read latency is 12 ms and the eviction rate is about 3%.
 MD
 
-$PY -m lore_task ingest --root "$ROOT" --task-id research-1 --foreign-id q-001 --kind research.question.set \
-  --payload '{"question":"What does this corpus say about cache eviction and TTL? Cite the files you used.","scope":"content corpus only"}' > "$EV/02-ingest.json"
+$PY -m lore_task admit --root "$ROOT" --task-id research-1 --foreign-id q-001 --kind research.question.set \
+  --payload '{"question":"What does this corpus say about cache eviction and TTL? Cite the files you used.","scope":"content corpus only"}' > "$EV/02-admit.json"
 
 for i in 1 2 3 4; do
   echo "=== research round $i ==="

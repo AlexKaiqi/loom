@@ -28,7 +28,7 @@ COMPLETE = [
 def main() -> int:
     root = Path(tempfile.mkdtemp(prefix="lore-crash-"))
     base = layout.create_task(root, "c-1", ROOT / "lore_harness" / "goal")
-    round_mod.ingest(base, "obj-1", "task.objective.set", {"objective": "produce final.txt"})
+    round_mod.admit(base, "obj-1", "task.objective.set", {"objective": "produce final.txt"})
     checks = []
 
     def check(name, ok, detail=""):
@@ -98,7 +98,7 @@ def main() -> int:
 
     # (3) crash between the ledger commit row and the head write -> publish, never discard
     fresh = layout.create_task(root, "c-2", ROOT / "lore_harness" / "goal")
-    round_mod.ingest(fresh, "obj-2", "task.objective.set", {"objective": "produce final.txt"})
+    round_mod.admit(fresh, "obj-2", "task.objective.set", {"objective": "produce final.txt"})
     round_mod.run_round(fresh, provider.FauxProvider(COMPLETE), max_steps=4)
     committed_facts = facts_mod.read_facts(fresh)
     head = layout.read_json(fresh / "surface" / "head")
@@ -121,7 +121,7 @@ def main() -> int:
 
     # (4) acceptance A-N1: a complete JSON line missing ONLY its trailing newline
     fresh2 = layout.create_task(root, "c-3", ROOT / "lore_harness" / "goal")
-    round_mod.ingest(fresh2, "obj-3", "task.objective.set", {"objective": "x"})
+    round_mod.admit(fresh2, "obj-3", "task.objective.set", {"objective": "x"})
     facts2 = fresh2 / "surface" / "facts.jsonl"
     facts2.write_bytes(facts2.read_bytes().rstrip(b"\n"))          # drop the final newline
     n_before = len(facts_mod.read_facts(fresh2))
@@ -136,7 +136,7 @@ def main() -> int:
 
     # (5) acceptance A-N2: an interrupted Round whose uncommitted tail is TORN
     fresh3 = layout.create_task(root, "c-4", ROOT / "lore_harness" / "goal")
-    round_mod.ingest(fresh3, "obj-4", "task.objective.set", {"objective": "produce final.txt"})
+    round_mod.admit(fresh3, "obj-4", "task.objective.set", {"objective": "produce final.txt"})
     try:
         round_mod.run_round(fresh3, provider.FauxProvider(CRASH), max_steps=2)
     except provider.ProviderError:
@@ -158,7 +158,7 @@ def main() -> int:
 
     # (6) acceptance A-N3: a fault after recover truncated but before it wrote the abort marker
     fresh4 = layout.create_task(root, "c-5", ROOT / "lore_harness" / "goal")
-    round_mod.ingest(fresh4, "obj-5", "task.objective.set", {"objective": "produce final.txt"})
+    round_mod.admit(fresh4, "obj-5", "task.objective.set", {"objective": "produce final.txt"})
     try:
         round_mod.run_round(fresh4, provider.FauxProvider(CRASH), max_steps=2)
     except provider.ProviderError:
@@ -178,7 +178,7 @@ def main() -> int:
 
     # (7) acceptance A-N7: a SECOND recover must be a no-op, not delete admitted facts
     fresh5 = layout.create_task(root, "c-6", ROOT / "lore_harness" / "goal")
-    round_mod.ingest(fresh5, "obj-6", "task.objective.set", {"objective": "produce final.txt"})
+    round_mod.admit(fresh5, "obj-6", "task.objective.set", {"objective": "produce final.txt"})
     try:
         round_mod.run_round(fresh5, provider.FauxProvider(CRASH), max_steps=2)
     except provider.ProviderError:
@@ -198,7 +198,7 @@ def main() -> int:
 
     # (8) acceptance A-N8: a NEWLINE-TERMINATED malformed last line is also repaired
     fresh6 = layout.create_task(root, "c-7", ROOT / "lore_harness" / "goal")
-    round_mod.ingest(fresh6, "obj-7", "task.objective.set", {"objective": "x"})
+    round_mod.admit(fresh6, "obj-7", "task.objective.set", {"objective": "x"})
     facts6 = fresh6 / "surface" / "facts.jsonl"
     before6 = len(facts_mod.read_facts(fresh6))
     with open(facts6, "ab") as fh:
@@ -215,7 +215,7 @@ def main() -> int:
 
     # (9) acceptance A-R1: a hand-edited `start` row without trigger_seq must refuse, not KeyError
     fresh7 = layout.create_task(root, "c-8", ROOT / "lore_harness" / "goal")
-    round_mod.ingest(fresh7, "obj-8", "task.objective.set", {"objective": "x"})
+    round_mod.admit(fresh7, "obj-8", "task.objective.set", {"objective": "x"})
     (fresh7 / "ledger" / "rounds.jsonl").write_text(
         json.dumps({"phase": "start", "round_id": "r-foreign"}) + "\n")
     try:
@@ -227,7 +227,7 @@ def main() -> int:
 
     # (10) acceptance A-R2: corruption in the MIDDLE of the stream errors loudly
     fresh8 = layout.create_task(root, "c-9", ROOT / "lore_harness" / "goal")
-    round_mod.ingest(fresh8, "obj-9", "task.objective.set", {"objective": "x"})
+    round_mod.admit(fresh8, "obj-9", "task.objective.set", {"objective": "x"})
     facts8 = fresh8 / "surface" / "facts.jsonl"
     good = facts8.read_bytes()
     later = json.dumps({"seq": 3, "id": "sys.tool.result#3", "kind": "sys.tool.result", "source": "runtime",
@@ -247,7 +247,7 @@ def main() -> int:
 
     # (11) acceptance A-R5: retrying a publish must not duplicate the trace row
     fresh9 = layout.create_task(root, "c-10", ROOT / "lore_harness" / "goal")
-    round_mod.ingest(fresh9, "obj-10", "task.objective.set", {"objective": "produce final.txt"})
+    round_mod.admit(fresh9, "obj-10", "task.objective.set", {"objective": "produce final.txt"})
     round_mod.run_round(fresh9, provider.FauxProvider(COMPLETE), max_steps=4)
     for _ in range(2):
         head9 = layout.read_json(fresh9 / "surface" / "head")
@@ -267,7 +267,7 @@ def main() -> int:
     for label, char in (("U+2028", "\u2028"), ("U+2029", "\u2029"), ("U+0085", "\u0085")):
         freshA = layout.create_task(root, "c-" + label.replace("+", ""), ROOT / "lore_harness" / "goal")
         objective = "before" + char + "after"
-        round_mod.ingest(freshA, "obj-" + label, "task.objective.set", {"objective": objective})
+        round_mod.admit(freshA, "obj-" + label, "task.objective.set", {"objective": objective})
         parsed = facts_mod.read_facts(freshA)
         check("unicode_%s_roundtrip" % label.replace("+", ""),
               len(parsed) == 1 and parsed[0]["payload"]["objective"] == objective,
@@ -278,7 +278,7 @@ def main() -> int:
 
     # (13) acceptance A-R7: the reported physical line number counts real lines
     freshB = layout.create_task(root, "c-line", ROOT / "lore_harness" / "goal")
-    round_mod.ingest(freshB, "obj-line", "task.objective.set", {"objective": "x"})
+    round_mod.admit(freshB, "obj-line", "task.objective.set", {"objective": "x"})
     factsB = freshB / "surface" / "facts.jsonl"
     factsB.write_bytes(factsB.read_bytes() + b"\n\n" + b'{"broken\n')
     try:

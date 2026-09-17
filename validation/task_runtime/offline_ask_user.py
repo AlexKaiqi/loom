@@ -28,7 +28,7 @@ ROUND_2 = [
 def main() -> int:
     root = Path(tempfile.mkdtemp(prefix="lore-ask-"))
     base = layout.create_task(root, "q-1", ROOT / "lore_harness" / "ask_user")
-    round_mod.ingest(base, "obj-1", "task.objective.set",
+    round_mod.admit(base, "obj-1", "task.objective.set",
                      {"objective": "write the greeting the user chooses into answer.md",
                       "acceptance": ["answer.md contains the chosen greeting"]})
     checks = []
@@ -47,7 +47,7 @@ def main() -> int:
     waiting = round_mod.run_round(base, provider.FauxProvider([]), max_steps=1)
     check("waits_without_answer", waiting.get("status") == "no_trigger", json.dumps(waiting))
 
-    result = round_mod.ingest(base, "ans-1", "ask.answered", {"ask_id": "q1", "answer": "bonjour", "by": "user"})
+    result = round_mod.admit(base, "ans-1", "ask.answered", {"ask_id": "q1", "answer": "bonjour", "by": "user"})
     check("answer_admitted", result["admission"]["decision"] == "accepted", json.dumps(result["admission"]))
 
     r2 = round_mod.run_round(base, provider.FauxProvider(ROUND_2), max_steps=4)

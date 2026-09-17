@@ -31,7 +31,7 @@ STAGE_2 = [
 def main() -> int:
     root = Path(tempfile.mkdtemp(prefix="lore-plan-"))
     base = layout.create_task(root, "p-1", ROOT / "lore_harness" / "plan")
-    round_mod.ingest(base, "plan-1", "plan.created", {
+    round_mod.admit(base, "plan-1", "plan.created", {
         "plan_id": "p1",
         "stages": [
             {"id": "s1", "title": "stage one", "deliverable": "stage-1.md"},

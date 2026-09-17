@@ -31,7 +31,7 @@ def main() -> int:
     def check(name, ok, detail=""):
         checks.append((name, bool(ok), detail))
 
-    round_mod.ingest(parent, "obj-1", "task.objective.set",
+    round_mod.admit(parent, "obj-1", "task.objective.set",
                      {"objective": "get the child to produce report.md", "child": "child-1",
                       "scope": "write report.md whose exact content is sum=10"})
 
@@ -46,7 +46,7 @@ def main() -> int:
     check("parent_waits_without_report", waiting.get("status") == "no_trigger", json.dumps(waiting))
 
     # unauthorized delivery first (no relations declared yet)
-    refused = round_mod.deliver(parent, child, "d-refused", "task.delegated", delegated[0]["payload"])
+    refused = round_mod.relay(parent, child, "d-refused", "task.delegated", delegated[0]["payload"])
     check("unauthorized_refused", refused["delivered"] is False and "wants" in refused["reason"], json.dumps(refused))
 
     # declare both directions: consumer wants, sender grants
@@ -55,7 +55,7 @@ def main() -> int:
     round_mod.relate(parent, want=("child-1", ["task.reported"]))
     round_mod.relate(child, grant=("parent-1", ["task.reported"]))
 
-    delivered = round_mod.deliver(parent, child, "d-1", "task.delegated", delegated[0]["payload"])
+    delivered = round_mod.relay(parent, child, "d-1", "task.delegated", delegated[0]["payload"])
     check("authorized_delivered", delivered.get("delivered") is True, json.dumps(delivered))
 
     # child Round 1: do the scoped work and report
@@ -71,7 +71,7 @@ def main() -> int:
           repr(deliverable.read_bytes()[:20]) if deliverable.is_file() else "missing")
 
     reported = [f for f in facts_mod.read_facts(child) if f["kind"] == "task.reported"][0]["payload"]
-    back = round_mod.deliver(child, parent, "d-2", "task.reported", reported)
+    back = round_mod.relay(child, parent, "d-2", "task.reported", reported)
     check("report_delivered_to_parent", back.get("delivered") is True, json.dumps(back))
 
     # parent Round 2: acknowledge

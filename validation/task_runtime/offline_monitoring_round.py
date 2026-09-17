@@ -31,7 +31,7 @@ def main() -> int:
     # 1) deadline path: not due -> no trigger; after the deadline -> one Round
     base = layout.create_task(root, "m-deadline", ROOT / "lore_harness" / "monitoring")
     deadline = int(time.time()) + 2
-    round_mod.ingest(base, "cond-1", "monitor.condition.set",
+    round_mod.admit(base, "cond-1", "monitor.condition.set",
                      {"monitor_id": "m1", "predicate": "content/ready.flag exists",
                       "check": "test -f ready.flag", "deadline_epoch": deadline})
     before = round_mod.run_round(base, provider.FauxProvider([]), max_steps=1)
@@ -48,12 +48,12 @@ def main() -> int:
 
     # 2) signal path: a far deadline, but an external signal opens the Round
     base2 = layout.create_task(root, "m-signal", ROOT / "lore_harness" / "monitoring")
-    round_mod.ingest(base2, "cond-2", "monitor.condition.set",
+    round_mod.admit(base2, "cond-2", "monitor.condition.set",
                      {"monitor_id": "m2", "predicate": "external signal",
                       "deadline_epoch": int(time.time()) + 86400})
     idle = round_mod.run_round(base2, provider.FauxProvider([]), max_steps=1)
     check("far_deadline_idle", idle.get("status") == "no_trigger", json.dumps(idle))
-    round_mod.ingest(base2, "sig-1", "monitor.signal", {"monitor_id": "m2", "detail": "upstream changed"})
+    round_mod.admit(base2, "sig-1", "monitor.signal", {"monitor_id": "m2", "detail": "upstream changed"})
     fired = round_mod.run_round(base2, provider.FauxProvider([
         json.dumps({"action": {"type": "emit", "kind": "monitor.condition.expired",
                                "payload": {"monitor_id": "m2", "reason": "signal only, condition not verifiable"}}})]),

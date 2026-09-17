@@ -1,0 +1,8 @@
+{
+  "kind": "liveness.done",
+  "producer": "harness",
+  "note": "Fixture terminal fact: the requested case finished (unused by the fixture's should_continue, kept for schema completeness).",
+  "payload": {
+    "case": "string"
+  }
+}
