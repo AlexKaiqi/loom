@@ -67,7 +67,7 @@ def main() -> int:
     ok = all(item[1] for item in checks)
     for name, passed, detail in checks:
         print(("PASS " if passed else "FAIL ") + name + ("" if passed else "  :: " + detail))
-    print(json.dumps({"task_root": str(root), "facts": [f["kind"] for f in facts_2]}, ensure_ascii=False))
+    print(json.dumps({"work_root": str(root), "facts": [f["kind"] for f in facts_2]}, ensure_ascii=False))
     return 0 if ok else 1
 
 
