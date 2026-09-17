@@ -4,17 +4,26 @@
 
 | 范围 | 当前状态 | 结论边界 |
 | --- | --- | --- |
-| 顶层抽象、论证、模拟与定向调研 | 已形成阶段资产 | 见 `design/g1`、`design/g2`；不是生产系统通过 |
+| 顶层抽象、论证、模拟与定向调研 | 已形成阶段资产 | 见 `design/archive/g1`、`design/archive/g2`；不是生产系统通过 |
 | R/E/F/X/S 与 Runtime 组件 | 有独立组件及固定响应装配证据 | 组件结论不等于真实模型整体验收 |
+| 工作目录 runtime M1（G3 路线，`lore_work`） | **术语对齐 v3.3 + 十示例 harness 迁移共享基座；离线判据全绿（实现者自跑）** | 独立复跑未做；组件不声称通过；判据与证据见 [design/g3/work-runtime-contract.md](../design/g3/work-runtime-contract.md) |
 | 预算准入修订（budget-admission-001） | **探针通过** | 真实 R/ProviderBridge + 本地 HTTP 固定响应；不是真实模型批次证据 |
 | M01 最简真实模型闭环：2 种输入 × 3 次 | **整批 6/6 通过**（批次 z，真实 glm-5.3） | 通过依 2026-09-14 预算修订；固定响应装配探针独立，不混同 |
 | M02：5 类安全场景 × 3 次 | **15/15 已独立核验** | 使用真实 Pi/Runtime/Docker/NATS 和本地固定 HTTP 响应，不是 15 次真实模型测试 |
 | M03：5 类崩溃接续 × 3 次 | **实际执行 15/15 PASS**（m03-execute-007，2026-09-16） | 预登记判据独立判定：切点 SIGKILL、新进程只读 query、租约到期后恢复、外部效果计数与暂停不重做全过；工具环境派生回归与夹具编码缺陷修复记录于修订稿 |
 | M04：新容器读取原会话并接续 | **实际执行 3/3 PASS**（m04-execute-003，2026-09-16） | 预登记判据独立判定：result_saved 切点销毁后资源 404 归零、只读 query 保持原状、显式 Session 查询恢复字节前缀完整且零新效果、租约到期后恰一次结清原决定；确认归档前缀语义适配记录于修订稿 |
 | M05 及其后故障/恢复场景、多 Surface、多策略、规模测试 | 未完成 | 完整目标保留，未以最简 Harness 代替 |
-| M06 浏览器沙箱环境（2026-09-15 立项） | **性质契约与用例已建立**（[m06-browser-environment.md](../design/g3/system/m06-browser-environment.md)） | 未运行；不依赖图像通道；实现前须先完成 environment→profile 引用的契约修订并独立验证 |
+| M06 浏览器沙箱环境（2026-09-15 立项） | **性质契约与用例已建立**（[m06-browser-environment.md](../design/archive/g3/system/m06-browser-environment.md)） | 未运行；不依赖图像通道；实现前须先完成 environment→profile 引用的契约修订并独立验证 |
 | M07 computer-use GUI 沙箱 | **未立项** | 前置：图像 artifact 通道（backend-seam.md §5a）未实现；模型侧模态已探明（见 2026-09-15 增量） |
 | G6 最终独立验收 | **未完成** | 不具备完成声明 |
+
+## 2026-09-17 增量：work-directory runtime M1 术语对齐、harness 共享基座与文档归档（实现者自跑全绿；独立复跑未做）
+
+- **术语对齐两轮（用户裁决）**：glossary v3.2——`ingest`→`admit`（Fact Admission）、`deliver`→`relay`（墓碑兑现）；glossary v3.3——**Task→Work、Workspace→Userspace**（task 日常读法双重歧义；为 Work 让位近形词）。机械改名 145+ 文件：包 `lore_work`、`work.json`、schema `lore-work/v1`、CLI `--work-id`/`--userspace`、事件命名空间 `work.*`、target `userspace[:id]`、验证目录 `validation/work_runtime`。历史记录旧名照原样保留。
+- **R2 digest 严格化 + 工具存活修订实施**：登记时对声明 ref 盖章、加载时缺失/不匹配即拒；`check` 先行（只观测不杀，退避×2 封顶 60s）、`budget_ms` 策略预算（timeout）、runtime 硬上限（abandoned/unknown）三参数制，`outcome` 权威、`exit` 兼容镜像；`sys-tool-result` 契约十份收敛规范一份。判据 VO37–42 预登记后实现，未放宽。
+- **harness 共享基座**：`lore_harness_base.py`（stdlib-only、不进 harness digest）收敛 11 份 parse 前缀/协议文本等重复；十示例 harness 全部迁移，域语义（kind 含义、payload 索引、不吃 final 的轮门）留在各 harness。
+- **验证（全为实现者自跑）**：12 离线用例 + VO37–42 + `verify_goal_work.py` 端到端全绿；独立校验器不 import runtime、只重算盘上字节。**独立复跑未做，组件不声称通过**。
+- **文档与归档**：[contract 修订记录](../design/g3/work-runtime-contract.md) D1–D7；[harness-catalog 派生路径](../design/g3/harness-catalog/README.md)；外部评审包 [design-review-package-2026-09-17.md](../design/g3/design-review-package-2026-09-17.md)（4119 行自包含）；已结束阶段组件记录整批归档 [design/archive/](../design/archive/README.md)（内容未动，活链接已改指新路径）。
 
 ## 2026-09-16 增量：M03 崩溃接续套件首次实际执行（15/15 PASS）
 
