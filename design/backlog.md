@@ -2,19 +2,19 @@
 
 地位：跨阶段的**想法/事项登记簿**，不是验收证据、不是门禁、不声称任何能力通过。
 用途：用户想法与散落的"下一步"有唯一落点；每条给出与既有决定/合同的关系、下一步动作与需要的证据门槛。
-不重复既有登记：未知项见 [unknowns.md](unknowns.md)（Q01–Q15）；X 组件未决项见 [g3/x/pending-items-2026-09-16.md](g3/x/pending-items-2026-09-16.md)；已验证/失败/未运行范围见 [../docs/validation-status.md](../docs/validation-status.md)；阶段门槛见 [../GOAL.md](../GOAL.md)。
+不重复既有登记：未知项见 [unknowns.md](unknowns.md)（Q01–Q15）；X 组件未决项见 [g3/x/pending-items-2026-09-16.md](archive/g3/x/pending-items-2026-09-16.md)；已验证/失败/未运行范围见 [../docs/validation-status.md](../docs/validation-status.md)；阶段门槛见 [../GOAL.md](../GOAL.md)。
 状态词：`IDEA`（只有想法）｜`PENDING`（已登记待做，前提满足）｜`ADJUDICATE`（需用户/独立复核裁决）｜`DOING`｜`DONE`（附证据引用）｜`REJECTED`（附理由）。**DONE 必须指到证据，不能只写完成。**
 
 | ID | 想法 / 事项 | 来源 | 状态 | 下一步 | 依赖 / 证据门槛 |
 |---|---|---|---|---|---|
-| B01 | **沙箱服务化 + 本地地址验证**：X 执行后端以本地服务形态提供，调用经本地地址（loopback）而非 in-process/unix socket；用同一套契约用例跨 transport 复跑，证明接缝没有绑定 Docker/本机文件系统 | 用户 2026-09-16 | IDEA | 出接缝扩展记录（在 [g3/x/backend-seam.md](g3/x/backend-seam.md) 上续写）：endpoint 类型抽象、wire = §2 方法集、profile 归属；解 `engine.py` 的 `unix://` 硬校验；本地服务启动/监管与预算会计；用例跨 transport 等价 + 非 loopback 拒绝 | 同一批 X 用例在两种 transport 下产出**同一组合同事实**（stopped proof、checkpoint manifest、幂等/UNKNOWN 语义）；请求只收授权引用不收宿主路径；模型/工作不可达服务 |
+| B01 | **沙箱服务化 + 本地地址验证**：X 执行后端以本地服务形态提供，调用经本地地址（loopback）而非 in-process/unix socket；用同一套契约用例跨 transport 复跑，证明接缝没有绑定 Docker/本机文件系统 | 用户 2026-09-16 | IDEA | 出接缝扩展记录（在 [g3/x/backend-seam.md](archive/g3/x/backend-seam.md) 上续写）：endpoint 类型抽象、wire = §2 方法集、profile 归属；解 `engine.py` 的 `unix://` 硬校验；本地服务启动/监管与预算会计；用例跨 transport 等价 + 非 loopback 拒绝 | 同一批 X 用例在两种 transport 下产出**同一组合同事实**（stopped proof、checkpoint manifest、幂等/UNKNOWN 语义）；请求只收授权引用不收宿主路径；模型/工作不可达服务 |
 | B02 | 工作目录 D1：目录 = 工作侧 T0 落盘层 + 每工作设施根，host 共享机制留目录外 | [g3/work-directory-landing.md](g3/work-directory-landing.md) §12 U1 | ADJUDICATE | 用户裁决后收敛 v2 件 | 裁决记录；后续实现与用例 |
 | B03 | 三分区与 glossary T0 修订（T0 = 接续区 ∪ 观测原件；接续集 = 接续区） | 同上 U2 | ADJUDICATE | 裁决后改 glossary 并注明沿革 | 独立复核；不动墓碑词 |
 | B04 | content revision 机制：F `capture`（versions.git + archive/manifest）为主，worktree git 为 conventions 选项 | 同上 U3 | ADJUDICATE | 裁决后写入 v2 件 §12.1 | 与 F 合同/已有 oracle 一致 |
 | B05 | R 控制库归属：工作侧运行账本随目录 / host 侧登记·授权·跨工作关系索引留 host（拆分） | 同上 U4 | ADJUDICATE | 裁决后拟 R 合同修订 | 拆分不得削弱授权边界；需 R 用例 |
 | B06 | 可移植性措辞与外部 Userspace 迁移责任 | 同上 U5 | ADJUDICATE | 写进 v2 件 | 与 v5:38 / G1:25 对齐 |
 | B07 | 事件导出时机：默认每 Round；每 Step 为 conventions 选项；导出接口形态（复用 runtime 读端 vs E 窄接口） | 同上 U6 | ADJUDICATE | 裁决后定接口 | 需 E/runtime 侧用例 |
-| B08 | M06 ARCHIVE 对齐 + 自有批次重跑（运行包络已对齐，M06 未同步） | g3/x/pending-items 2026-09-16 | PENDING | 对齐后重跑 M06 套件 | 自有批次证据；不许以旧批次顶替 |
+| B08 | M06 ARCHIVE 对齐 + 自有批次重跑（运行包络已对齐，M06 未同步） | archive/g3/x/pending-items 2026-09-16 | PENDING | 对齐后重跑 M06 套件 | 自有批次证据；不许以旧批次顶替 |
 | B09 | M02 原始证据未随环境迁移：重建 M02 证据或正式标注历史证据失效 | 同上（验收发现） | PENDING | 二选一并落 [../docs/validation-status.md](../docs/validation-status.md) | 原始证据可复核，或明确降级 |
 | B10 | 工具链：virtiofs 陈旧缓存导致新旧混合文件，编辑后容器侧核验惯例未机制化 | 同上（未决 6） | PENDING | 固化为协议（sleep+grep/ast 核验）并留反例 | 反例可复现；协议可机械执行 |
 | B11 | 工作目录的拓展机制：`harness/tools/`、`harness/budget/` 是否入选标准点；manifest 事件声明 schema 已定语义（§4.5），剩余正式字段与 runtime 解析实现 | 用户 2026-09-16；[g3/work-directory-landing.md](g3/work-directory-landing.md) §4.1、§4.5 | PENDING | 进组件合同；配 VD13/VD14/VE06 用例 | 新增拓展点不改 runtime；未知条目保真；声明但 digest 不符须拒 |

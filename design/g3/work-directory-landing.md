@@ -24,7 +24,7 @@
 - 实际落盘以 `sha256(具体 id)` 为键，**没有任何 `work_id` 或工作根**：R 控制库（`lore_control/storage.py:8,24-33`，登记含 realpath/dev/ino，`lore_control/registration.py:22,34`）、E 的 NATS stream `<prefix><ns>`（`lore_events/service.py:41-63`）与输入发布 `<input_root>/<sha256(invocation)>/{events.jsonl,invocation.json,execution-targets.json,manifest.json}`（`lore_events/input_files.py:7,18-30`）及 `.puback` 回执（`lore_events/receipts.py:9`）、S 快照库 `confirm-<sha256(request_id)>/…`（`lore_session/snapshots.py:99-119`）、X 执行库 `sha256(execution_id)/record.json`+blobs 与 `.slots/`、`.owner-lock`（`lore_execution/journal.py:47-100`、`slots.py:84-115`）、F `versions.git`+`artifacts/<sha256(ref)>/`（`lore_files/versions.py:14-60`）、provider wire `<sha256(effect_id)>/`（`lore_session/provider.py:111-129`）、plan 投影（`lore_runtime/session_plan_files.py:48-129`）。
 - 只有 `startup_root` 已长得像工作根（`artifacts/ plans/ authority/ X-state/ E-inputs/`，`lore_runtime/startup_assets.py:42-46`）；NATS、Docker、控制库、F/S/provider 根、共享依赖卷是**有意 host 全局**的。
 - 存在可复用的先例：验证驱动已把 R/F/S/provider 根放进同一个 `out/`，把 X-state/plans 放进 `host/`（`validation/system/m01_run.py:100-103`）——"每工作设施根"已被实际跑过，只是没被命名为工作目录。
-- S 侧的**持久屏障已设计**：X 暂停 namespace → 导出同 exec/generation 的 Session manifest 与精确字节 → 校验后**外部持久化** → resume（`design/g3/s/contract.md:29,41`）。这条"外部持久化"至今没有指定落点；工作目录正是它的落点。
+- S 侧的**持久屏障已设计**：X 暂停 namespace → 导出同 exec/generation 的 Session manifest 与精确字节 → 校验后**外部持久化** → resume（`design/archive/g3/s/contract.md:29,41`）。这条"外部持久化"至今没有指定落点；工作目录正是它的落点。
 
 结论：v1 的目录树不是今天磁盘上已经成立的事实，而是一个**尚未接线的新分组**。补全件必须先回答"目录里的字节从哪来、和活设施谁是权威"。
 
@@ -59,7 +59,7 @@
 | plan 投影 | `startup_root/plans` | `derived/plans/` | C | 可重建 |
 | Docker Engine / 共享依赖卷 | `engine_endpoint` / 绝对路径 | — | T2 | 不进目录 |
 
-与 v5 的一致性：v5 明确 `events.jsonl` 可以是**输入视图或导出格式**（v5:131）；R 合同禁止把 NATS 事件正文复制成"竞争真相"（`design/g3/r/contract.md:7`）——本模型的落盘副本由原所有者 manifest 绑定、恢复时回灌同一稳定身份，不新增可写真相，满足该禁令。G1 允许"受控导出/缓存，但须标明来源、版本及非权威性质"（G1:32），落盘层的 `index.json`/manifest 必须记录来源设施、范围与 digest。
+与 v5 的一致性：v5 明确 `events.jsonl` 可以是**输入视图或导出格式**（v5:131）；R 合同禁止把 NATS 事件正文复制成"竞争真相"（`design/archive/g3/r/contract.md:7`）——本模型的落盘副本由原所有者 manifest 绑定、恢复时回灌同一稳定身份，不新增可写真相，满足该禁令。G1 允许"受控导出/缓存，但须标明来源、版本及非权威性质"（G1:32），落盘层的 `index.json`/manifest 必须记录来源设施、范围与 digest。
 
 ---
 

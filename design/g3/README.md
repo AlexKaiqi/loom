@@ -44,12 +44,14 @@ Work 的完整解剖——实时语音双工、对话记录目录化、日程复
 
 ## 4. 历史层（review 时不作为当前设计，供追溯）
 
-- `harness-runtime-revised-v5.md`（v5 系统设计，**锁定**；glossary 墓碑多处引用其行号）
-- G3/G4 期组件记录：`e/ f/ r/ s/ v/ x/ system/ reviews/ provider/ tool-service/
-  file-publication/ session-plans/`、`coordination.md`、`x-*.md`、
-  `minimal-harness-extension-points.md`（早期接口说明，拓展点语义已被 landing §4 吸收）
-- 修订与验收记录（dated，旧名照原样保留）：`amendment-*.md`；
-  `validation/work_runtime/FINDINGS-2026-09-16.md`、`acceptance/`、`docs/validation-status.md`
+- `harness-runtime-revised-v5.md`（v5 系统设计，仓库根，**锁定**；glossary 墓碑多处引用其行号）
+- **G3/G4 期组件记录已整批归档至 [design/archive/](../archive/README.md)**（2026-09-17）：
+  E/F/R/S/V/X 组件契约与用例、容器 profile 证据链、独立评审记录、provider/tool-service/
+  file-publication/session-plans、coordination.md、x-*.md、minimal-harness-extension-points.md、
+  以及 g1/g2/g4 阶段记录——布局与短码引用约定见 [archive/README.md](../archive/README.md)
+- 修订与验收记录（dated，旧名照原样保留）：`amendment-task-tool-liveness-2026-09-17.md`
+  （留 g3 顶层，被 contract 修订记录引用）；`validation/work_runtime/FINDINGS-2026-09-16.md`、
+  `acceptance/`、`docs/validation-status.md`
 
 ## 5. 建议的 review 检查清单
 

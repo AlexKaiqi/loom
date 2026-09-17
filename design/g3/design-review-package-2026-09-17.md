@@ -4102,7 +4102,7 @@ PyPI 最新 `1.8.1.post0`，2026-09-14；`requires_dist: livekit-agents>=1.8.1,<
 沙箱隔离（X）/ 租约 / 调度 crontab / 对外投递 / 流式观测 / 媒体 artifact / host 登记/索引 / B21 行形状 / landing §13 用例执行 / voice-assistant 全部 / 独立验收。
 
 ## 14.4 历史层（不是当前设计）
-`harness-runtime-revised-v5.md`（v5 系统设计，锁定，墓碑多处引用其行号）；G3/G4 期组件记录（design/g3 的 e/f/r/s/v/x/system/reviews/provider/tool-service/file-publication/session-plans 目录、coordination.md、x-*.md、minimal-harness-extension-points.md）；dated 记录（amendment-*、FINDINGS/RECORD/acceptance、docs/validation-status.md——其中冻结判据名 `task_uid` 等旧名照原样保留）。
+`harness-runtime-revised-v5.md`（v5 系统设计，锁定，墓碑多处引用其行号）；G3/G4 期组件记录已于 2026-09-17 整批归档至 **design/archive/**（E/F/R/S/V/X 组件契约与用例、x-node-profile 证据链、reviews 独立评审、provider/tool-service/file-publication/session-plans、coordination.md、x-*.md、minimal-harness-extension-points.md，及 g1/g2/g4 阶段记录；布局与短码引用约定见 archive/README.md）；dated 记录（amendment-*、FINDINGS/RECORD/acceptance、docs/validation-status.md——其中冻结判据名 `task_uid` 等旧名照原样保留）。
 
 ---
 
