@@ -16,7 +16,7 @@ def _plan(facts):
     return spec, [p.get("stage_id") for p in folded["plan.stage.completed"]]
 
 
-def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None, workspaces=None, revision=None):
+def build(*, work, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None, userspaces=None, revision=None):
     spec, completed = _plan(facts)
     stages = (spec or {}).get("stages", [])
     remaining = [s for s in stages if s.get("id") not in completed]
@@ -63,7 +63,7 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
     ]
     return {
         "system": (
-            "You are the model inside one Round of a plan-mode task. Advance exactly one stage, in order, "
+            "You are the model inside one Round of a plan-mode work. Advance exactly one stage, in order, "
             "inside the content directory. Declare stage results only with declared kinds."
         ),
         "messages": [{"role": "user", "content": "\n".join(lines)}],

@@ -13,25 +13,25 @@
         }
       },
       {
-        "kind": "task.delegated",
+        "kind": "work.delegated",
         "producer": "external",
         "contract": {
-          "ref": "contracts/task-delegated.json"
+          "ref": "contracts/work-delegated.json"
         },
         "requires_relation": true
       },
       {
-        "kind": "task.reported",
+        "kind": "work.reported",
         "producer": "harness",
         "contract": {
-          "ref": "contracts/task-reported.json"
+          "ref": "contracts/work-reported.json"
         }
       },
       {
-        "kind": "task.completed",
+        "kind": "work.completed",
         "producer": "harness",
         "contract": {
-          "ref": "contracts/task-completed.json"
+          "ref": "contracts/work-completed.json"
         }
       }
     ],
@@ -39,7 +39,7 @@
       {
         "id": "delegation",
         "on": [
-          "task.delegated"
+          "work.delegated"
         ]
       }
     ]

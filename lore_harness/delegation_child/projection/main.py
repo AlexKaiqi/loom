@@ -5,15 +5,15 @@ import lore_harness_base as base
 
 ACTION_PROTOCOL = base.action_protocol([
     '{"action":{"type":"shell","script":"<sh script writing the deliverable in content>"}}',
-    '{"action":{"type":"emit","kind":"task.reported","payload":{"result_ref":"<relative file>","evidence_refs":["<relative file>"]}}}',
+    '{"action":{"type":"emit","kind":"work.reported","payload":{"result_ref":"<relative file>","evidence_refs":["<relative file>"]}}}',
     base.FINAL_EXAMPLE,
 ])
 
 
-def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None,
-          workspaces=None, revision=None):
-    folded = base.fold(facts, latest=("task.delegated",), flags=("task.reported",))
-    delegated, reported = folded["task.delegated"], folded["task.reported"]
+def build(*, work, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None,
+          userspaces=None, revision=None):
+    folded = base.fold(facts, latest=("work.delegated",), flags=("work.reported",))
+    delegated, reported = folded["work.delegated"], folded["work.reported"]
     scripts = [f["payload"].get("script", "") for f in base.facts_since(facts, "sys.tool.result", 0)]
     lines = [
         "# Delegated scope",
@@ -32,12 +32,12 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
     lines += [
         "# Rules",
         "1. Produce the deliverable with a RELATIVE path inside your own content area.",
-        "2. Then emit task.reported with result_ref and evidence_refs naming the real file(s).",
+        "2. Then emit work.reported with result_ref and evidence_refs naming the real file(s).",
         "3. Do not report success for a file you did not actually create.",
     ]
     lines += base.rejected_final_lines(rejected_final)
     lines += ["", ACTION_PROTOCOL]
     return {
-        "system": "You are the delegated child task. Do the scoped work in your own content area and report it.",
+        "system": "You are the delegated child work. Do the scoped work in your own content area and report it.",
         "messages": [{"role": "user", "content": "\n".join(lines)}],
     }

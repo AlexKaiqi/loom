@@ -2,7 +2,7 @@
 
 状态：UNVERIFIED 设计稿。schema 为候选契约。
 相关：[architecture.md](architecture.md)、[duplex.md](duplex.md)、
-[task-directory-landing.md](../task-directory-landing.md) §4.6 示例 3 / §4.7（信息项 / 投影 / 呈现）。
+[work-directory-landing.md](../work-directory-landing.md) §4.6 示例 3 / §4.7（信息项 / 投影 / 呈现）。
 
 ## 1. 目标
 
@@ -76,7 +76,7 @@
 
 对齐 landing §4.7 的三层，逐层收窄，任何一层都不删依据：
 
-| 层 | 落点 | 本任务里做什么 |
+| 层 | 落点 | 本工作里做什么 |
 |---|---|---|
 | **① 信息项（views）** | manifest `views` | 声明"全文/检索结果/工具输出/记忆摘要/当前轮状态"等可供展示项；有稳定 id、来源可定位、缺失显式 |
 | **② 投影（projection）** | `roles.projection` | **选**最相关的 top-k 片段 + 给全文指针；注入"口语简报帧"；**不灌全文** |
@@ -109,7 +109,7 @@
 | 方言 | `additions.explicit_dialect`（如 `beijing`/`sichuan`） | |
 | **情感** | **不支持**（2.0 无 `emotion`） | 属 1.0 `*_mars_*` 多情感音色；不要下发 |
 
-> 该映射属**适配器职责**，不属风格预设 schema；换 TTS 供应商只改适配器，预设与任务面不变。
+> 该映射属**适配器职责**，不属风格预设 schema；换 TTS 供应商只改适配器，预设与工作面不变。
 
 ## 4. 守门（guard）：预算超了就压缩，不是截断了事
 
@@ -136,7 +136,7 @@ else:
 
 - 长回答 → 更容易被打断 → 预算约束同时服务"别念太长"和"打断点可控"。
 - 用户打断后说"继续"：从 `kept_ref` 的断点续说，而不是从头念（[duplex.md](duplex.md) §2）。
-- backchannel 不打断，但可用于"边听边嗯"的自然感（会话层回放，不入任务事实）。
+- backchannel 不打断，但可用于"边听边嗯"的自然感（会话层回放，不入工作事实）。
 
 ## 6. 反例（不得变成什么）
 

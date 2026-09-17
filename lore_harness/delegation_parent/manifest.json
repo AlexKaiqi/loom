@@ -13,32 +13,32 @@
         }
       },
       {
-        "kind": "task.objective.set",
+        "kind": "work.objective.set",
         "producer": "external",
         "contract": {
-          "ref": "contracts/task-objective-set.json"
+          "ref": "contracts/work-objective-set.json"
         }
       },
       {
-        "kind": "task.delegated",
+        "kind": "work.delegated",
         "producer": "harness",
         "contract": {
-          "ref": "contracts/task-delegated.json"
+          "ref": "contracts/work-delegated.json"
         }
       },
       {
-        "kind": "task.reported",
+        "kind": "work.reported",
         "producer": "external",
         "contract": {
-          "ref": "contracts/task-reported.json"
+          "ref": "contracts/work-reported.json"
         },
         "requires_relation": true
       },
       {
-        "kind": "task.completed",
+        "kind": "work.completed",
         "producer": "harness",
         "contract": {
-          "ref": "contracts/task-completed.json"
+          "ref": "contracts/work-completed.json"
         }
       }
     ],
@@ -46,13 +46,13 @@
       {
         "id": "objective",
         "on": [
-          "task.objective.set"
+          "work.objective.set"
         ]
       },
       {
         "id": "report",
         "on": [
-          "task.reported"
+          "work.reported"
         ]
       }
     ]

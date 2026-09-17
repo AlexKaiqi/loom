@@ -5,17 +5,17 @@ import lore_harness_base as base
 def _state(facts):
     folded = base.fold(facts, latest=("research.question.set",),
                        collect=("research.source.added", "research.finding.recorded", "sys.recall.result"),
-                       flags=("research.saturation.reached", "task.completed"))
+                       flags=("research.saturation.reached", "work.completed"))
     return folded
 
 
-def should_start(*, task, facts, new, head, now=None):
+def should_start(*, work, facts, new, head, now=None):
     folded = _state(facts)
-    if folded["research.question.set"] is None or folded["task.completed"] or not new:
+    if folded["research.question.set"] is None or folded["work.completed"] or not new:
         return False
-    # Only `task.completed` ends the work. A saturation CLAIM does not: the harness
+    # Only `work.completed` ends the work. A saturation CLAIM does not: the harness
     # derives saturation from verified evidence, so an early claim must not freeze
-    # a task that still needs sources.
+    # a work that still needs sources.
     return True
 
 

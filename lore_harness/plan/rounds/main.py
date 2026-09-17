@@ -15,7 +15,7 @@ def _state(facts):
     return spec, completed, folded["plan.completed"]
 
 
-def should_start(*, task, facts, new, head, now=None):
+def should_start(*, work, facts, new, head, now=None):
     spec, _completed, done = _state(facts)
     if done or spec is None:
         return False

@@ -13,7 +13,7 @@ def _last(facts, kind):
     return next((fact for fact in reversed(facts) if fact["kind"] == kind), None)
 
 
-def should_start(*, task, facts, new, head, now=None):
+def should_start(*, work, facts, new, head, now=None):
     if any(fact["kind"] == "archive.requested" for fact in new):
         return True
     usage = _last(facts, "sys.context.usage")

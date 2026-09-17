@@ -29,7 +29,7 @@ def _state(facts):
             stale[payload.get("unit_id")] = seq
         elif kind == "design.freeze.violation":
             violations[payload.get("unit_id")] = seq
-        elif kind == "task.completed":
+        elif kind == "work.completed":
             done = True
     return spec, accepted, frozen, amended, stale, violations, done
 
@@ -155,7 +155,7 @@ def settle(state):
             complete = False
             break
     if complete:
-        out.append({"kind": "task.completed",
+        out.append({"kind": "work.completed",
                     "payload": {"units": [u.get("id") for u in spec.get("units", [])],
                                 "revision": state.get("base_rev")}})
     return out

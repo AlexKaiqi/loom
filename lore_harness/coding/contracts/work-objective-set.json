@@ -1,0 +1,5 @@
+{
+  "kind": "work.objective.set",
+  "producer": "external",
+  "payload": { "objective": "string (required)", "acceptance": "array of strings (optional)" }
+}

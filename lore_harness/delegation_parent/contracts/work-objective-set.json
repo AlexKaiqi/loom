@@ -1,0 +1,1 @@
+{"kind":"work.objective.set","producer":"external","payload":{"objective":"string (required)","child":"string (required, child work id)","scope":"string (required, what the child must produce)"}}

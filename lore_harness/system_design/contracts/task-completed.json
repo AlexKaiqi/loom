@@ -1,6 +1,0 @@
-{
-  "kind": "task.completed",
-  "producer": "harness",
-  "note": "Derived only when every unit is frozen, current, and free of violations.",
-  "payload": { "units": "array of unit ids", "revision": "string" }
-}

@@ -1,6 +1,6 @@
 """Parent admission: objectives from outside, reports from the delegated child."""
 import lore_harness_base as base
 
-ACCEPTED = ("task.objective.set", "task.reported")
+ACCEPTED = ("work.objective.set", "work.reported")
 
 accept = base.make_accept(*ACCEPTED)

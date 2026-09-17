@@ -1,7 +1,7 @@
 # 助手需要定义哪些事件（词表 + 契约）
 
 状态：UNVERIFIED 设计稿。本文件是五件套①（词表 + 契约）的完整清单，供事件声明与 Fact Contract 使用。
-相关：[assistant-task.md](assistant-task.md)、[latency-and-curation.md](latency-and-curation.md)、
+相关：[assistant-work.md](assistant-work.md)、[latency-and-curation.md](latency-and-curation.md)、
 [architecture.md](architecture.md)、[../harness-catalog/voice-assistant.md](../harness-catalog/voice-assistant.md)。
 
 ## 1. 先立三条规矩（否则词表会失控）
@@ -10,22 +10,22 @@
 2. **只有"语义声明"与"轮次级观测"进事实流**：分片、音频、逐 token、VAD 抖动**不是事实**（见 §3）。
 3. **`sys.*` 只能由 runtime 声明**（landing §4.5 R5）；助手自有事件一律落在 `voice.*` 命名空间。
 
-另外一条本任务特有的判定：**runner 观测到的现实（用户说了什么、何时打断、时延多少）按 `external` 受理**，
+另外一条本工作特有的判定：**runner 观测到的现实（用户说了什么、何时打断、时延多少）按 `external` 受理**，
 不是 `harness` 声明——runner 是本 harness 的代码，但它报告的是外部世界，必须过 Fact Admission 的契约校验，
 一个坏 runner 不能靠"我是 harness"就改写状态。**策略性结论**（配置好什么、压缩了什么、卡片更新了）才按 `harness` 声明。
 
 ## 2. 产生者三类 + 触发分流
 
-| 产生者 | 含义 | 本任务里是谁 |
+| 产生者 | 含义 | 本工作里是谁 |
 |---|---|---|
-| `runtime`（`sys.*`） | runtime 的规范观测 | 上下文用量、空闲、工作空间变更、时延 |
-| `harness`（`voice.*`） | 助手的策略性声明 | 策略包、压缩、记忆合并、工作空间卡片 |
+| `runtime`（`sys.*`） | runtime 的规范观测 | 上下文用量、空闲、用户空间变更、时延 |
+| `harness`（`voice.*`） | 助手的策略性声明 | 策略包、压缩、记忆合并、用户空间卡片 |
 | `external`（`voice.*`） | 外来事实，经受理 | 用户轮次、打断、会话起止、风格/偏好设置 |
 
 触发分流（对应 [latency-and-curation.md](latency-and-curation.md) 的两个循环）：
 
 - **会话循环（热）**：`voice.session.started`、`voice.user.turn.final`
-- **维护循环（冷）**：`voice.session.ended`、`sys.workspace.changed`、`sys.memory.size`、`sys.idle`、
+- **维护循环（冷）**：`voice.session.ended`、`sys.userspace.changed`、`sys.memory.size`、`sys.idle`、
   `voice.style.set`（配置变更后重建策略包）
 
 ## 3. 明确**不是**事实的东西（观测域，落 `session/`）
@@ -73,7 +73,7 @@
 | `voice.reply.interrupted` | external | `reply_id, at_ms, spoken_sentences, resume_ref?` | 消费：支持"继续" | `reply_id` | O |
 | `voice.reply.resumed` | external | `reply_id, from_ref` | 消费：投影 | `reply_id + from_ref` | O |
 | `voice.reply.degraded` | harness | `reply_id, reason(model_error\|budget\|policy)` | 消费：投影/告警 | `reply_id + reason` | O |
-| `voice.utterance` | harness | `reply_id, text, style_id, prosody` | **仅 R2 方案**（任务面生成文本）才需要 | `reply_id` | O |
+| `voice.utterance` | harness | `reply_id, text, style_id, prosody` | **仅 R2 方案**（工作面生成文本）才需要 | `reply_id` | O |
 
 ### 4.4 风格 / 人格 / 偏好（用户配置侧）
 
@@ -100,19 +100,19 @@
 | `voice.memory.consolidated` | harness | `consolidation_id, from_refs[], to_ref, mode(lossless\|lossy), fold_digest` | 消费：投影；**有损必留指针** | `consolidation_id` | M |
 | `voice.memory.recall.missed` | external | `query_ref, reason` | 观测：召回质量 | `query_ref` | O |
 
-### 4.7 工作空间认知（冷路径）
+### 4.7 用户空间认知（冷路径）
 
 | 事件 | 产生者 | 关键 payload | 触发/消费 | 幂等键 | |
 |---|---|---|---|---|---|
-| `sys.workspace.changed` | runtime | `ws_id, revision, source, observed_at` | 冷触发：刷新卡片 | `ws_id + revision` | M |
-| `voice.workspace.card.updated` | harness | `ws_id, card_ref, observed_revision, prev_ref?` | 消费：投影（**带新鲜度**） | `ws_id + observed_revision` | M |
-| `voice.workspace.access.denied` | external | `ws_id, op, reason` | 观测：**认知≠授权**留痕 | `ws_id + op + observed_at` | O |
+| `sys.userspace.changed` | runtime | `ws_id, revision, source, observed_at` | 冷触发：刷新卡片 | `ws_id + revision` | M |
+| `voice.userspace.card.updated` | harness | `ws_id, card_ref, observed_revision, prev_ref?` | 消费：投影（**带新鲜度**） | `ws_id + observed_revision` | M |
+| `voice.userspace.access.denied` | external | `ws_id, op, reason` | 观测：**认知≠授权**留痕 | `ws_id + op + observed_at` | O |
 
 ### 4.8 时钟 / 空闲 / 承诺（见 [scheduling.md](scheduling.md)）
 
 | 事件 | 产生者 | 关键 payload | 触发/消费 | 幂等键 | |
 |---|---|---|---|---|---|
-| `sys.clock` | runtime | `now, monotonic_ms, tz_offset_min, tick` | **时钟观测**：时钟推进即求值各任务触发条件（`should_start(now=)`） | `tick` | M |
+| `sys.clock` | runtime | `now, monotonic_ms, tz_offset_min, tick` | **时钟观测**：时钟推进即求值各工作触发条件（`should_start(now=)`） | `tick` | M |
 | `sys.schedule.fired` | runtime | `schedule_id, occurrence, fired_at, lateness_ms, event_kind` | **日程到点**：runtime 按标准 crontab/一次性时刻 materialize 后触发；再求值开轮 | `schedule_id + occurrence` | O |
 | `sys.idle` | runtime | `idle_since, idle_for_ms` | 冷触发：深整理 | `idle_since` | M |
 | `voice.commitment.made` | harness | `commitment_id, what_ref, due_at?, tz?, cron?, source_turn_id?` | 投影未结承诺；**日程内容归助手**；runtime 据此 materialize | `commitment_id` | O |
@@ -126,7 +126,7 @@
 承诺**归助手自己定义**（用户 2026-09-17 裁决）：提醒不是"发完就完"——用户会追问、会改时间、会取消，
 这些都得在对话里接得上；**日程内容也是助手自己的事情**（`due_at`/`cron` 是它的事实数据）。
 **机制归 runtime**：接受标准 **crontab + 事件定义**、materialize 到其 bash 环境的调度工具、到点落事件
-（`sys.schedule.fired`）；crontab 是**派生物**（权威在任务数据）、**只叫醒 runtime 不写事实**
+（`sys.schedule.fired`）；crontab 是**派生物**（权威在工作数据）、**只叫醒 runtime 不写事实**
 ——两条纪律见 [scheduling.md](scheduling.md) §4。谓词式时间（空闲/超时）用 `sys.clock`。
 
 ### 4.9 质量观测（P7）
@@ -166,9 +166,9 @@ voice.user.barge_in
 voice.reply.condensed
 voice.session.ended
 voice.style.set
-sys.memory.size / sys.idle / sys.workspace.changed        （冷路径三个触发）
+sys.memory.size / sys.idle / sys.userspace.changed        （冷路径三个触发）
 sys.clock                                                   （时钟观测，定时场景共用）
-voice.memory.consolidated / voice.workspace.card.updated  （冷路径两个产物）
+voice.memory.consolidated / voice.userspace.card.updated  （冷路径两个产物）
 sys.voice.latency                                          （可观测性）
 ```
 
@@ -188,13 +188,13 @@ sys.voice.latency                                          （可观测性）
 - 缺口（已登记）：**runtime 调度机制**（接受标准 **crontab + 事件定义**、materialize 到 bash 环境的调度工具、
   到点落 `sys.schedule.fired`；外加 `sys.clock` 供谓词式时间；见 [scheduling.md](scheduling.md)，
   与 monitoring 同题，一次实现多处复用）、`sys.idle`（空闲观测）、
-  `sys.workspace.changed`（工作空间变更观测）、流式观测通道（分片+引用）、session-runner（谁发这些观测）、
+  `sys.userspace.changed`（用户空间变更观测）、流式观测通道（分片+引用）、session-runner（谁发这些观测）、
   出站投递（`session.configured` 怎么送达 runner；提醒怎么送达用户）、
   **媒体 artifact 通用化**（对话记录的字节存储，见 [conversation-record.md](conversation-record.md) §6，仅存储策略）。
 
 ## 8. 未决
 
-- **U10** `sys.workspace.changed` 的来源：外部事件源 / 会话边界抽查 / 空闲重扫（成本与新鲜度权衡）。
+- **U10** `sys.userspace.changed` 的来源：外部事件源 / 会话边界抽查 / 空闲重扫（成本与新鲜度权衡）。
 - ~~U11 `voice.adapter.error` 归 harness 还是 runtime~~ → **已裁决：harness（`voice.*`）**；runtime 侧设施错误仍走 `sys.*`。
 - ~~U12 承诺/提醒是否交给独立 monitoring harness~~ → **已裁决：助手自己定义**（用户要能追问/改期/取消），
   只把**唤醒**委托给 runtime 的通用定时观测。

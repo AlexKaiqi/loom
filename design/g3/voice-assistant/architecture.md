@@ -1,16 +1,16 @@
 # 语音助手：架构与语音能力抽象
 
 状态：UNVERIFIED 设计稿。接口签名为**候选契约**，进组件合同时逐项裁决并经独立用例。
-按用户 2026-09-17 裁决，语音**只属于助手 harness**：下面的"会话层/任务层"是**同一个 harness 内部**的
-两层，不是 runtime 的两套设施；实例形态见 [assistant-task.md](assistant-task.md)。
-相关：[README.md](README.md)、[assistant-task.md](assistant-task.md)、[duplex.md](duplex.md)、
+按用户 2026-09-17 裁决，语音**只属于助手 harness**：下面的"会话层/工作层"是**同一个 harness 内部**的
+两层，不是 runtime 的两套设施；实例形态见 [assistant-work.md](assistant-work.md)。
+相关：[README.md](README.md)、[assistant-work.md](assistant-work.md)、[duplex.md](duplex.md)、
 [style-profiles.md](style-profiles.md)、[providers.md](providers.md)。
 
 ## 1. 助手 harness 内的两层
 
 ```
 ┌───────────────────────────────────────────────────────────────────┐
-│ 助手 harness · 任务层（事件驱动、持久、策略；runtime 按 manifest 调用）│
+│ 助手 harness · 工作层（事件驱动、持久、策略；runtime 按 manifest 调用）│
 │   词表 voice.* ｜ 受理 ｜ 触发 ｜ 投影/呈现 ｜ 逻辑/守卫             │
 │   持：会话事实、风格预设引用、记忆、工具与安全策略、口语化渲染策略     │
 │   不持：音频缓冲、连接、解码器、TTS 会话（都在会话层）              │
@@ -22,7 +22,7 @@
 │ 助手 harness · 会话层 `harness/ext/voice/`（长驻实时，复用开源编排）│
 │   runner.py：transport(WebRTC/WS) · Opus · 抖动缓冲 · VAD · 轮次检测│
 │   · 流式 ASR · 流式 LLM · 流式 TTS · 打断/回退 · 重连              │
-│   由 runtime 按通用机制起停（session-runner）；不写任务状态，只发事件│
+│   由 runtime 按通用机制起停（session-runner）；不写工作状态，只发事件│
 └───────────────▲───────────────────────────────────────────────────┘
                 │  统一端口（本稿定义的抽象）
 ┌───────────────┴───────────────────────────────────────────────────┐
@@ -35,15 +35,15 @@
 
 **为什么 harness 内还要分两层**：runtime 的单位是有界 Round + 单写者提交 + 等待期零驻留
 （v5:90、landing §6）。实时语音是连续音频流、亚秒级时序、随时打断——放进 Round 提交模型就要求
-每个会话常驻一个进程。所以**实时在会话层（长驻、harness 自有），语义在任务层（按轮次）**；
+每个会话常驻一个进程。所以**实时在会话层（长驻、harness 自有），语义在工作层（按轮次）**；
 两层都在助手 harness 内，runtime 只提供"起停 harness 声明的长驻会话组件"这一通用机制
-（[assistant-task.md](assistant-task.md) §5）。会话层不直接改任务状态，只发事件经受理落面
+（[assistant-work.md](assistant-work.md) §5）。会话层不直接改工作状态，只发事件经受理落面
 （landing §4.4 E1/E2）。
 
 ## 2. 语音能力端口（可替换模型的关键）
 
 端口是**本系统自己的窄接口**，不是某个开源框架的类型。编排框架（见 [duplex.md](duplex.md) §4）
-是被适配的对象；换框架不改任务面，换模型不改编排。全部为异步、流式、可取消。
+是被适配的对象；换框架不改工作面，换模型不改编排。全部为异步、流式、可取消。
 
 ```python
 # 候选契约（Protocol 为结构声明，运行期实现由适配器提供）
@@ -108,7 +108,7 @@ class TurnDetector(Protocol):
     def reset(self) -> None: ...
 
 class ConversationModel(Protocol):
-    """OpenAI 兼容流式补全（含 function calling），与 lore_task.provider 同族但必须支持流式。"""
+    """OpenAI 兼容流式补全（含 function calling），与 lore_work.provider 同族但必须支持流式。"""
     async def stream(self, messages, *, tools=None, style: "StyleParams", **kw) -> AsyncIterator[dict]: ...
 ```
 
@@ -134,7 +134,7 @@ class ConversationModel(Protocol):
 }
 ```
 
-绑定落在 `task.json` 的引用里（`voice_refs`），与 `model_refs` 同族：**绑定 = 能力 id + 固定版本 +
+绑定落在 `work.json` 的引用里（`voice_refs`），与 `model_refs` 同族：**绑定 = 能力 id + 固定版本 +
 能力描述 digest**。换模型 = 换绑定 = 新版本，走修订记录，一轮进行中不静默替换（v5:204、v5:349）。
 
 ### 2.2 换装纪律（可替换不是"接口存在"就算数）
@@ -151,40 +151,40 @@ class ConversationModel(Protocol):
 
 ## 3. "谁生成要说的文本"：三案对比
 
-语音的延迟预算把这个问题顶到台前。任务 runtime 的 Round 是"投影 → 模型 → 工具 → 提交"，
+语音的延迟预算把这个问题顶到台前。工作 runtime 的 Round 是"投影 → 模型 → 工具 → 提交"，
 **提交点在轮末**；token 级流式产出若强行走事实流，会把原子提交模型捅穿（landing §6）。
 
 | 案 | 谁生成回复文本 | 优点 | 代价 / 反例 |
 |---|---|---|---|
-| **R1 会话层生成** | 会话层 LLM 流式生成 | 首音频最快；工具调用由编排框架原生处理 | 任务面只当配置器，持久策略与回复内容脱节；回答"重点与否"靠 prompt 自觉 |
-| **R2 任务面生成** | 任务 Round 生成完整回复后交会话层合成 | 事件权威最干净；策略在任务面 | 首音频要等整段生成；推理模型下不可接受（见 providers.md 实测） |
-| **R3 混合（推荐）** | 会话层流式生成，**在一个任务下发的"策略包"约束下**；任务面在每轮后持久化并演进策略包 | 低延迟 + 策略在任务面 + 回复内容成为持久事实 | 需要"策略包"版本与生效边界；本轮产生的新上下文下一轮才生效 |
+| **R1 会话层生成** | 会话层 LLM 流式生成 | 首音频最快；工具调用由编排框架原生处理 | 工作面只当配置器，持久策略与回复内容脱节；回答"重点与否"靠 prompt 自觉 |
+| **R2 工作面生成** | 工作 Round 生成完整回复后交会话层合成 | 事件权威最干净；策略在工作面 | 首音频要等整段生成；推理模型下不可接受（见 providers.md 实测） |
+| **R3 混合（推荐）** | 会话层流式生成，**在一个工作下发的"策略包"约束下**；工作面在每轮后持久化并演进策略包 | 低延迟 + 策略在工作面 + 回复内容成为持久事实 | 需要"策略包"版本与生效边界；本轮产生的新上下文下一轮才生效 |
 
 **R3 的边界规则（候选）**：
 
-- 会话开始（`voice.session.started`）触发任务轮 → 产出 **`voice.session.configured`**：
+- 会话开始（`voice.session.started`）触发工作轮 → 产出 **`voice.session.configured`**：
   策略包引用（system prompt、风格预设 revision、工具 schema、记忆摘要、允许的行动集合）。
 - 用户轮结束（`voice.user.turn.final`）→ 会话层在策略包约束下流式生成并播放；
   结束后落 **`voice.turn.completed`**（transcript、reply 文本引用、工具调用集、时延、是否被打断）。
-- `voice.turn.completed` 触发任务轮 → 更新记忆/摘要，产出**新的策略包 revision**。
+- `voice.turn.completed` 触发工作轮 → 更新记忆/摘要，产出**新的策略包 revision**。
   **本轮不换策略**；新一轮生效（对齐 v5:204 "不在一次已开始的推进中静默换用新策略"）。
-- 打断（`voice.user.barge_in`）是事实，不是取消任务推进；被打断的回复保留其引用与截断位置。
+- 打断（`voice.user.barge_in`）是事实，不是取消工作推进；被打断的回复保留其引用与截断位置。
 - 风格/身份等策略变更走 `voice.style.set{..., base_rev}` 条件受理，陈旧基线拒绝。
 
-> **未决（需测量/裁决）**：R3 的"策略包一轮滞后"是否可接受，取决于任务轮时延与用户感知；
+> **未决（需测量/裁决）**：R3 的"策略包一轮滞后"是否可接受，取决于工作轮时延与用户感知；
 > 若不可接受，退化到 R1 并把策略包的生成放在会话开始 + 空闲期（不逐轮）。见
 > [validation-plan.md](validation-plan.md) VO07/VO10。
 
-## 4. 与 Loom runtime / 任务目录的接缝
+## 4. 与 Loom runtime / 工作目录的接缝
 
 | 关注点 | 归属 | 规则 |
 |---|---|---|
 | 音频分片（ASR partial、TTS chunk） | 会话层 + 观测域 | **不逐片进事实流**（流水爆炸）；按会话聚合，分片原件落 `session/` 或 artifact（软引用） |
-| 轮次语义（transcript、reply 文本、时延、打断） | 任务层 | 经 Fact Admission 成为 `voice.*` 事实；幂等键 = `session_id + turn_id` |
-| 策略包（prompt/风格/工具） | 任务层 `surface/content/` | 版本化产物，由事件引用 revision |
+| 轮次语义（transcript、reply 文本、时延、打断） | 工作层 | 经 Fact Admission 成为 `voice.*` 事实；幂等键 = `session_id + turn_id` |
+| 策略包（prompt/风格/工具） | 工作层 `surface/content/` | 版本化产物，由事件引用 revision |
 | 音频 artifact | F/artifact（摘要+引用） | 泛化 backend-seam §5a 的图像 artifact：落盘 → sha256 → 引用；不在事实里塞大字节 |
-| 凭据 | 进程内存 + 仓库外 env | 只在适配器进程内读 `env:ARC_PLAN_API_KEY`；不落任务目录/证据/日志（glossary:100-102） |
-| 会话进程 | harness 自有（T2，目录外） | 会话活则 runner 在，`voice.session.ended` 即释放；由 runtime 按通用机制起停；**任务不常驻专属进程**（v5:90） |
+| 凭据 | 进程内存 + 仓库外 env | 只在适配器进程内读 `env:ARC_PLAN_API_KEY`；不落工作目录/证据/日志（glossary:100-102） |
+| 会话进程 | harness 自有（T2，目录外） | 会话活则 runner 在，`voice.session.ended` 即释放；由 runtime 按通用机制起停；**工作不常驻专属进程**（v5:90） |
 | 执行存活 | 机制在 runtime、策略在 harness | **默认到点发 `sys.tool.check`（不自动杀）**，harness 决定继续/取消/降级；runtime 保留硬上限与资源安全网（回收即 `abandoned/unknown`，不冒充未执行）；harness 声明分级默认与上限（[execution-timeouts.md](execution-timeouts.md)） |
 | 业务时钟 | 机制在 runtime、策略在 harness | 日程用标准 crontab + 事件定义、谓词式时间用 `sys.clock`（[scheduling.md](scheduling.md)） |
 
@@ -193,7 +193,7 @@ class ConversationModel(Protocol):
 助手只用现有 P1–P8 通用原语即可表达；但暴露**五个**通用原语缺口（只登记，不新增领域目录）：
 
 1. **harness 声明的长驻会话组件**（session-runner）：runtime 按事件起停/监督/释放一个 harness 自有组件，
-   不理解音频。这是本设计唯一实际需要的框架新增机制（[assistant-task.md](assistant-task.md) §5）；
+   不理解音频。这是本设计唯一实际需要的框架新增机制（[assistant-work.md](assistant-work.md) §5）；
    在它落地前，runner 可由外部启动，harness 仍处理轮次级事件（降级路径存在）。
 2. **出站投递/通知**：`voice.session.configured`（策略包）如何送达会话层/外部 runner
    （与 ask-user 的"对外通知/投递原语"同题）；若选 R2 方案，还需回复文本的投递。
@@ -202,10 +202,10 @@ class ConversationModel(Protocol):
 4. **二进制 artifact 通用化**：把图像 artifact 通道泛化为任意媒体 artifact（音频/视频）。
 5. **runtime 调度机制**：接受标准 **crontab + 事件定义**（复用 bash 环境里的成熟调度工具，
    **不自定义语法、不重新实现**），到点落 `sys.schedule.fired`；另有 `sys.clock` 供谓词式时间。
-   两条纪律：权威在任务数据（crontab 是派生物）、cron 只叫醒 runtime 不写事实
+   两条纪律：权威在工作数据（crontab 是派生物）、cron 只叫醒 runtime 不写事实
    （[scheduling.md](scheduling.md)）；monitoring、plan 截止、ask-user 超时共用。
 
-（完整五件套与本任务的映射见 [../harness-catalog/voice-assistant.md](../harness-catalog/voice-assistant.md)。）
+（完整五件套与本工作的映射见 [../harness-catalog/voice-assistant.md](../harness-catalog/voice-assistant.md)。）
 
 ## 6. 开放问题
 

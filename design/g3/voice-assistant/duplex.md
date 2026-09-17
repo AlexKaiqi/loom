@@ -14,7 +14,7 @@
 全双工 = **边听边说 + 可打断 + 语义端点判定**。这三件事都有成熟开源实现，本设计只做"接缝与抽象"，
 不自研音频算法。
 
-## 2. 会话状态机（会话层持有，任务面只收事件）
+## 2. 会话状态机（会话层持有，工作面只收事件）
 
 ```
         ┌──────────────────────────── reconnect ────────────────────────────┐
@@ -53,7 +53,7 @@
 | 可选：语义 VAD | 用模型判断是否在思考 | LiveKit semantic VAD 一类 |
 
 端点判定的**参数不是常量**：语言、语速、场景（免提/近讲）、是否允许抢话——这些归**风格预设**
-（[style-profiles.md](style-profiles.md)）与会话层配置，不改任务策略。
+（[style-profiles.md](style-profiles.md)）与会话层配置，不改工作策略。
 
 ## 4. 实时编排后端：接缝与选型
 
@@ -72,11 +72,11 @@ class SessionConfig(TypedDict):
     asr: AsrConfig
     tts: TtsConfig
     turn: dict               # VAD/turn 检测配置（来自风格预设）
-    policy_bundle_ref: str   # 任务面下发的策略包（system prompt/工具/风格）
+    policy_bundle_ref: str   # 工作面下发的策略包（system prompt/工具/风格）
 ```
 
 - **换编排后端 = 换 `RealtimeOrchestrator` 适配器**；换模型 = 换端口适配器。两者正交。
-- 任务面只认 `voice.*` 事件与策略包，不 import 任何编排框架类型。
+- 工作面只认 `voice.*` 事件与策略包，不 import 任何编排框架类型。
 
 ### 4.2 候选框架（调研已于 2026-09-17 完成，详见 [research-notes.md](research-notes.md) §2）
 
@@ -101,11 +101,11 @@ class SessionConfig(TypedDict):
 ## 5. 会话层生命周期与零驻留
 
 - 会话层是**助手 harness 自有的长驻组件**（`harness/ext/voice/runner.py`），由 runtime 按
-  `extensions[kind=session-runner]` 声明起停（[assistant-task.md](assistant-task.md) §5）；
-  它不写任务状态，只发事件。
-- 会话活则 runner 在，`voice.session.ended` 即释放；**不是**"每个等待任务常驻一个 Agent"
-  （v5:90 的反面）。共享媒体服务（如 WebRTC SFU、模型网关）可常驻，但不属本 task。
-- 崩溃语义：runner 崩溃不回滚任务事实；未确认的轮次标为 `INCOMPLETE`/重连，不重放已播音
+  `extensions[kind=session-runner]` 声明起停（[assistant-work.md](assistant-work.md) §5）；
+  它不写工作状态，只发事件。
+- 会话活则 runner 在，`voice.session.ended` 即释放；**不是**"每个等待工作常驻一个 Agent"
+  （v5:90 的反面）。共享媒体服务（如 WebRTC SFU、模型网关）可常驻，但不属本 work。
+- 崩溃语义：runner 崩溃不回滚工作事实；未确认的轮次标为 `INCOMPLETE`/重连，不重放已播音
   （重放会把已确认的已播音当"未发生"，违反 v5:332/336）。
 - 音频原件默认不常驻：按策略落 artifact（sha256）或只留文本与摘要；保留期单独裁决（Q-V5）。
 

@@ -14,7 +14,7 @@ ACTION_PROTOCOL = base.action_protocol([
 ])
 
 
-def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None, workspaces=None, revision=None):
+def build(*, work, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None, userspaces=None, revision=None):
     config = base.load_config(config_path=CONFIG)
     inventory = []
     for path in sorted(Path(content_dir).rglob("*")):

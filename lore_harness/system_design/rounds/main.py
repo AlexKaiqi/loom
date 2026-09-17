@@ -21,7 +21,7 @@ def _state(facts):
             stale[payload.get("unit_id")] = seq
         elif kind == "design.freeze.violation":
             violations[payload.get("unit_id")] = seq
-        elif kind == "task.completed":
+        elif kind == "work.completed":
             done = True
     return spec, accepted, frozen, amended, stale, violations, done
 
@@ -42,7 +42,7 @@ def pending_units(facts):
     return pending
 
 
-def should_start(*, task, facts, new, head, now=None):
+def should_start(*, work, facts, new, head, now=None):
     if not new:
         return False
     return bool(pending_units(facts))
@@ -55,4 +55,4 @@ def should_continue(*, state):
     otherwise a long design answer that was never written or accepted would look
     like success.
     """
-    return base.continue_when(state, ("design.unit.accepted", "task.completed"), stop_on_final=False)
+    return base.continue_when(state, ("design.unit.accepted", "work.completed"), stop_on_final=False)

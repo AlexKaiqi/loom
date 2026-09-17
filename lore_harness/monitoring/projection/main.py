@@ -12,7 +12,7 @@ ACTION_PROTOCOL = base.action_protocol([
 ])
 
 
-def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None, workspaces=None, revision=None):
+def build(*, work, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None, userspaces=None, revision=None):
     folded = base.fold(facts, latest=("monitor.condition.set",), collect=("monitor.signal", "sys.tool.result"),
                        flags=("monitor.condition.met", "monitor.condition.expired"))
     condition = folded["monitor.condition.set"]
@@ -48,7 +48,7 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
     lines += ["", ACTION_PROTOCOL]
     return {
         "system": (
-            "You are the model inside one Round of a monitoring task. Decide whether the watched condition is "
+            "You are the model inside one Round of a monitoring work. Decide whether the watched condition is "
             "met, expired, or neither — and say so as a declared fact."
         ),
         "messages": [{"role": "user", "content": "\n".join(lines)}],

@@ -76,10 +76,10 @@
         }
       },
       {
-        "kind": "task.completed",
+        "kind": "work.completed",
         "producer": "harness",
         "contract": {
-          "ref": "contracts/task-completed.json"
+          "ref": "contracts/work-completed.json"
         }
       }
     ],

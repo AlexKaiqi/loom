@@ -4,7 +4,7 @@
 ① **必须有音频记录，也要有元数据**；② 非语音输入（文本/其他语言）**同样**进这套结构；
 ③ 双工音频要能**识别端点并切成音频片段**；④ 对话记录**目录形式**组织，目录下放原始内容 + 元数据，
 并预留**语气/情绪/人物识别**等后续分析位。
-相关：[events.md](events.md)、[assistant-task.md](assistant-task.md)、[latency-and-curation.md](latency-and-curation.md)、
+相关：[events.md](events.md)、[assistant-work.md](assistant-work.md)、[latency-and-curation.md](latency-and-curation.md)、
 [architecture.md](architecture.md)、[duplex.md](duplex.md)。
 
 ## 1. 组织原则（谁可写、什么不可变）
@@ -23,7 +23,7 @@
 ## 2. 目录布局
 
 ```
-<task>/session/records/<session-id>/          # 记录区（观测域；二进制不进 git）
+<work>/session/records/<session-id>/          # 记录区（观测域；二进制不进 git）
 ├── session.json                 # 会话级元数据（见 §3.1）
 ├── timeline.jsonl               # 全局有序时间线：segment / 事件 → 引用（一行一条，append-only）
 ├── manifest.json                # 完整性清单：片段数、每个音频的 sha256/bytes/时长、record_schema_version
@@ -54,7 +54,7 @@
 ```json
 {
   "record_schema_version": 1,
-  "session_id": "…", "task_id": "…",
+  "session_id": "…", "work_id": "…",
   "started_at": "2026-09-17T10:00:00+08:00", "ended_at": "…", "duration_ms": 0,
   "transport": "webrtc|websocket|local",
   "codec_profile": {"mic": {"codec":"opus","sample_rate":48000,"channels":1},
@@ -133,7 +133,7 @@
 - **完整性**：`manifest.json` 给出片段数 + 每个音频的 sha256/bytes；缺片段**显式报告**，不静默跳过
   （对齐 landing "观测区缺失显式"）。
 - **隐私**：`retention_class` / `consent_ref` 进 `session.json`；语音是生物特征，默认保留策略与删除入口
-  必须单独裁决（[assistant-task.md](assistant-task.md) U2、[validation-plan.md](validation-plan.md) Q-V5）。
+  必须单独裁决（[assistant-work.md](assistant-work.md) U2、[validation-plan.md](validation-plan.md) Q-V5）。
 
 ## 6. 权威与物理组织：与事件模型不冲突
 

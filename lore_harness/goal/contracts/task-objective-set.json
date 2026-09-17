@@ -1,8 +1,0 @@
-{
-  "kind": "task.objective.set",
-  "producer": "external",
-  "payload": {
-    "objective": "string (required)",
-    "acceptance": "array of strings (optional): how the result will be checked externally"
-  }
-}

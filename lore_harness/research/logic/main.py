@@ -61,7 +61,7 @@ def settle(state):
     """
     content = Path(state["content_dir"])
     facts = state.get("facts", [])
-    if any(fact["kind"] == "task.completed" for fact in facts):
+    if any(fact["kind"] == "work.completed" for fact in facts):
         return []
     out = []
 
@@ -103,7 +103,7 @@ def settle(state):
 
     # A source is PENDING while its latest registration has no outcome yet; an
     # invalid source is a recorded refusal and simply does not count as evidence
-    # (the model gets no credit, and the task is not deadlocked forever).
+    # (the model gets no credit, and the work is not deadlocked forever).
     def outcome_of(ref):
         return max(verified_now.get(ref, 0), invalid_now.get(ref, 0), retracted.get(ref, 0))
 
@@ -128,7 +128,7 @@ def settle(state):
         refs = []
         for fact in findings[-3:]:
             refs.extend(fact["payload"].get("evidence_refs") or [])
-        out.append({"kind": "task.completed",
+        out.append({"kind": "work.completed",
                     "payload": {"evidence_refs": refs or sorted(
                         ref for ref, seq in verified_now.items() if seq > 0)}})
     return out

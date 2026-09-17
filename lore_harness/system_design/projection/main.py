@@ -29,7 +29,7 @@ def _state(facts):
             stale[payload.get("unit_id")] = seq
         elif kind == "design.freeze.violation":
             violations[payload.get("unit_id")] = seq
-        elif kind == "task.completed":
+        elif kind == "work.completed":
             done = True
     return spec, accepted, frozen, amended, stale, violations, done
 
@@ -49,8 +49,8 @@ def _status(unit_id, accepted, frozen, amended, stale, violations):
     return "accepted"
 
 
-def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None,
-          workspaces=None, revision=None):
+def build(*, work, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None,
+          userspaces=None, revision=None):
     spec, accepted, frozen, amended, stale, violations, done = _state(facts)
     units = (spec or {}).get("units", [])
     current = None
@@ -121,7 +121,7 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
 
     return {
         "system": (
-            "You are the model inside one Round of a top-down system design task. Refine exactly one unit, "
+            "You are the model inside one Round of a top-down system design work. Refine exactly one unit, "
             "respect frozen decisions, and declare acceptance against the committed revision you were shown."
         ),
         "messages": [{"role": "user", "content": "\n".join(lines)}],

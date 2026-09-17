@@ -1,7 +1,7 @@
 {
   "kind": "sys.tool.result",
   "producer": "runtime",
-  "note": "Runtime observation of one shell execution inside the task content directory. Canonical contract shared by all harnesses (runtime writes every listed field). outcome is authoritative; exit is a compatibility mirror (negative values = terminated by signal).",
+  "note": "Runtime observation of one shell execution inside the work content directory. Canonical contract shared by all harnesses (runtime writes every listed field). outcome is authoritative; exit is a compatibility mirror (negative values = terminated by signal).",
   "payload": {
     "call_id": "string (<round_id>:<step>)",
     "script": "string",

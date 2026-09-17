@@ -4,13 +4,13 @@
   "facts": {
     "kinds": [
       { "kind": "sys.tool.result", "producer": "runtime", "contract": { "ref": "contracts/sys-tool-result.json" } },
-      { "kind": "task.objective.set", "producer": "external", "contract": { "ref": "contracts/task-objective-set.json" } },
+      { "kind": "work.objective.set", "producer": "external", "contract": { "ref": "contracts/work-objective-set.json" } },
       { "kind": "user.message", "producer": "external", "contract": { "ref": "contracts/user-message.json" } },
-      { "kind": "task.phase.changed", "producer": "harness", "contract": { "ref": "contracts/task-phase-changed.json" } },
-      { "kind": "task.completed", "producer": "harness", "contract": { "ref": "contracts/task-completed.json" } }
+      { "kind": "work.phase.changed", "producer": "harness", "contract": { "ref": "contracts/work-phase-changed.json" } },
+      { "kind": "work.completed", "producer": "harness", "contract": { "ref": "contracts/work-completed.json" } }
     ],
     "triggers": [
-      { "id": "objective", "on": ["task.objective.set", "user.message"] }
+      { "id": "objective", "on": ["work.objective.set", "user.message"] }
     ]
   },
   "roles": {

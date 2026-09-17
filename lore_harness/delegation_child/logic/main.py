@@ -6,7 +6,7 @@ def parse(text):
     action = base.parse_action(text)
     if action.get("type") == "emit":
         payload = action.get("payload") or {}
-        if action.get("kind") == "task.reported" and not payload.get("result_ref"):
+        if action.get("kind") == "work.reported" and not payload.get("result_ref"):
             return base.final_fallback(text)
     if action.get("type") == "shell" and not isinstance(action.get("script"), str):
         return base.final_fallback(text)
@@ -16,10 +16,10 @@ def parse(text):
 def settle(state):
     """A reported result completes the child's own work."""
     facts = state.get("facts", [])
-    if any(fact["kind"] == "task.completed" for fact in facts):
+    if any(fact["kind"] == "work.completed" for fact in facts):
         return []
-    reported = [f for f in facts if f["kind"] == "task.reported"]
+    reported = [f for f in facts if f["kind"] == "work.reported"]
     if not reported:
         return []
-    return [{"kind": "task.completed",
+    return [{"kind": "work.completed",
              "payload": {"evidence_refs": (reported[-1]["payload"].get("evidence_refs") or [])}}]

@@ -6,10 +6,10 @@ terminal state (landing §4.3 boundary 1-3).
 """
 import lore_harness_base as base
 
-WAKE_KINDS = ("task.objective.set", "user.message")
+WAKE_KINDS = ("work.objective.set", "user.message")
 
 
-def should_start(*, task, facts, new, head, now=None):
+def should_start(*, work, facts, new, head, now=None):
     if not base.start_unless_completed(facts):
         return False
     return any(fact["kind"] in WAKE_KINDS for fact in new)
@@ -17,4 +17,4 @@ def should_start(*, task, facts, new, head, now=None):
 
 def should_continue(*, state):
     """Stop on an explicit final proposal, or once completion has been declared."""
-    return base.continue_when(state, ("task.completed",), since=0)
+    return base.continue_when(state, ("work.completed",), since=0)

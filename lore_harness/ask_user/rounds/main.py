@@ -25,7 +25,7 @@ def _open_ask(facts):
     return None
 
 
-def should_start(*, task, facts, new, head, now=None):
+def should_start(*, work, facts, new, head, now=None):
     if not base.start_unless_completed(facts):
         return False
     open_ask = _open_ask(facts)
@@ -34,9 +34,9 @@ def should_start(*, task, facts, new, head, now=None):
             fact["kind"] == "ask.answered" and fact["payload"].get("ask_id") == open_ask
             for fact in new
         )
-    return any(fact["kind"] in ("task.objective.set", "ask.answered") for fact in new)
+    return any(fact["kind"] in ("work.objective.set", "ask.answered") for fact in new)
 
 
 def should_continue(*, state):
     """The Round ends when it asks a question, completes, or explicitly stops."""
-    return base.continue_when(state, ("ask.requested", "task.completed"))
+    return base.continue_when(state, ("ask.requested", "work.completed"))

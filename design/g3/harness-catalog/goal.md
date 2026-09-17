@@ -10,7 +10,7 @@
 
 | 件 | 定义 |
 |---|---|
-| 词表 + 契约 | `task.objective.set{objective_ref, acceptance_refs[]}`；`task.phase.changed{goal_id, from, to, rev}`；`task.completed{goal_id, evidence_refs[]}`；`task.blocked{reason_ref}` |
+| 词表 + 契约 | `work.objective.set{objective_ref, acceptance_refs[]}`；`work.phase.changed{goal_id, from, to, rev}`；`work.completed{goal_id, evidence_refs[]}`；`work.blocked{reason_ref}` |
 | 产生者 | `objective.set` = 外部受理；`phase.changed` / `completed` / `blocked` = harness 声明 |
 | 触发与受理 | `objective.set` → 开第一轮；`completed` → `rounds` 不再开轮；`blocked` → 默认不开轮（等外部）；受理按契约校验、幂等去重 |
 | 投影 | 当前 objective + phase + **验收清单** + 证据指针（给指针不灌全文） |
@@ -22,8 +22,8 @@ P1 声明（kinds/契约）｜P2 受理｜P3 触发｜P4 投影｜P5 逻辑｜P6
 
 ## 边界与反例
 
-- `task.completed` 是 **harness 声明的事件**，不是 runtime 通用终态（v5:161,208）。
-- **"完成" ≠ 不活**：任务仍在册，直到管理动作 Archive。
+- `work.completed` 是 **harness 声明的事件**，不是 runtime 通用终态（v5:161,208）。
+- **"完成" ≠ 不活**：工作仍在册，直到管理动作 Archive。
 - **完成声明 ≠ 业务验收**：验收在 V/外部（GOAL §4）。
 - 反例：runtime 合成终态；把模型最终回答当完成；完成即自动 Archive；把 `goal_id` 编进目录名。
 

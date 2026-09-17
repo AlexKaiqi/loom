@@ -1,7 +1,7 @@
 {
   "kind": "ask.requested",
   "producer": "harness",
-  "note": "The Round ends here and the task waits as data; no process or connection stays alive.",
+  "note": "The Round ends here and the work waits as data; no process or connection stays alive.",
   "payload": {
     "ask_id": "string (required, stable)",
     "question": "string (required)",

@@ -3,16 +3,16 @@ import lore_harness_base as base
 
 
 def _facts(facts):
-    folded = base.fold(facts, latest=("task.delegated",), flags=("task.reported", "task.completed"))
-    return folded["task.delegated"], folded["task.reported"], folded["task.completed"]
+    folded = base.fold(facts, latest=("work.delegated",), flags=("work.reported", "work.completed"))
+    return folded["work.delegated"], folded["work.reported"], folded["work.completed"]
 
 
-def should_start(*, task, facts, new, head, now=None):
+def should_start(*, work, facts, new, head, now=None):
     delegated, reported, completed = _facts(facts)
     if delegated is None or reported or completed:
         return False
-    return any(fact["kind"] == "task.delegated" for fact in new)
+    return any(fact["kind"] == "work.delegated" for fact in new)
 
 
 def should_continue(*, state):
-    return base.continue_when(state, ("task.reported",))
+    return base.continue_when(state, ("work.reported",))

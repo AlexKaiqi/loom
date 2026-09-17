@@ -13,8 +13,8 @@ ACTION_PROTOCOL = base.action_protocol([
 ])
 
 
-def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None,
-          workspaces=None, revision=None):
+def build(*, work, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None,
+          userspaces=None, revision=None):
     folded = base.fold(facts, latest=("research.question.set",),
                        collect=("research.source.added", "research.finding.recorded", "sys.recall.result"),
                        flags=("research.saturation.reached",))
@@ -79,7 +79,7 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
     lines += base.rejected_final_lines(rejected_final)
     lines += ["", ACTION_PROTOCOL]
     return {
-        "system": "You are the model inside one Round of a research task. Retrieve what you need, cite real "
+        "system": "You are the model inside one Round of a research work. Retrieve what you need, cite real "
                   "evidence, and stop when the question is answered.",
         "messages": [{"role": "user", "content": "\n".join(lines)}],
     }

@@ -47,7 +47,7 @@ PyPI 最新 `1.8.1.post0`，2026-09-14；`requires_dist: livekit-agents>=1.8.1,<
    → **即使选 LiveKit，也大概率要自写/改写一个窄适配器指向 plan 端点**（本稿已实测出 plan 帧与鉴权，
    见 [providers.md](providers.md)）；或先确认插件是否接受 plan Key。
 2. **TTS prosody 缺口**：语速/音量/音调未转发，风格预设的 prosody 需要自己补。
-3. **Realtime 是另一条路线**：端到端模型自做 ASR+LLM+TTS，与本稿"任务面管策略、会话层管编排"不同；
+3. **Realtime 是另一条路线**：端到端模型自做 ASR+LLM+TTS，与本稿"工作面管策略、会话层管编排"不同；
    可作**独立备选**评估，不默认采用。
 4. **供应链**：插件为社区维护、单一维护者、许可元数据缺失（PyPI `license: None`）→ 采用前须审源码许可；
    PyPI 存在**仿冒名** `livekit-plugins-volcenginee`（多一个 `e`），不得安装；版本须钉死并 vendor 审计。

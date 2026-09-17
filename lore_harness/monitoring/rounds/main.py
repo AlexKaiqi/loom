@@ -1,7 +1,7 @@
 """Monitoring trigger gate: time- or signal-driven, never a polling loop.
 
 The runtime hands the current epoch to `should_start`; the harness decides whether
-the condition is due. Between Rounds the task is pure data (zero residency).
+the condition is due. Between Rounds the work is pure data (zero residency).
 """
 import lore_harness_base as base
 
@@ -13,7 +13,7 @@ def _monitor_state(facts):
         folded["monitor.condition.met"] or folded["monitor.condition.expired"])
 
 
-def should_start(*, task, facts, new, head, now=None):
+def should_start(*, work, facts, new, head, now=None):
     condition, signals, closed = _monitor_state(facts)
     if condition is None or closed:
         return False

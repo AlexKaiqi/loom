@@ -11,18 +11,18 @@ import lore_harness_base as base
 
 ACTION_PROTOCOL = base.action_protocol([
     base.SHELL_EXAMPLE,
-    '{"action":{"type":"emit","kind":"task.completed","payload":{"evidence_refs":["<relative path>"]}}}',
+    '{"action":{"type":"emit","kind":"work.completed","payload":{"evidence_refs":["<relative path>"]}}}',
     base.FINAL_EXAMPLE + " without completing",
 ])
 
 
-def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None, workspaces=None, revision=None):
-    folded = base.fold(facts, latest=("task.objective.set", "task.phase.changed"), flags=("task.completed",))
-    objective_payload = folded["task.objective.set"] or {}
+def build(*, work, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None, userspaces=None, revision=None):
+    folded = base.fold(facts, latest=("work.objective.set", "work.phase.changed"), flags=("work.completed",))
+    objective_payload = folded["work.objective.set"] or {}
     objective = objective_payload.get("objective")
     acceptance = objective_payload.get("acceptance", [])
-    phase = (folded["task.phase.changed"] or {}).get("to", "open")
-    completed = folded["task.completed"]
+    phase = (folded["work.phase.changed"] or {}).get("to", "open")
+    completed = folded["work.completed"]
 
     lines = [
         "# Goal",
@@ -44,17 +44,17 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         "# Rules",
         "1. Run at most one verification command for the acceptance conditions, and only if it has not run yet.",
         "2. If the acceptance conditions are already satisfied by the current content, your next action MUST be "
-        "emit task.completed with evidence_refs naming the files that prove it.",
+        "emit work.completed with evidence_refs naming the files that prove it.",
         "3. Never run a shell script that already appears in the list above.",
-        "4. When remaining steps reach 0 you must decide: emit task.completed or final with a reason.",
+        "4. When remaining steps reach 0 you must decide: emit work.completed or final with a reason.",
         "",
         ACTION_PROTOCOL,
     ]
 
     return {
         "system": (
-            "You are the model inside one Round of a goal-mode task. Work inside the content directory with "
-            "ordinary shell commands. Declare state changes only with declared kinds. task.completed is a claim "
+            "You are the model inside one Round of a goal-mode work. Work inside the content directory with "
+            "ordinary shell commands. Declare state changes only with declared kinds. work.completed is a claim "
             "backed by evidence_refs, not a runtime terminal state."
         ),
         "messages": [{"role": "user", "content": "\n".join(lines)}],

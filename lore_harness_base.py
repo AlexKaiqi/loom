@@ -9,7 +9,7 @@ semantics - which kinds mean what, which rules apply - stay in each harness.
 
 Composition ruling (2026-09-17): harness reuse happens at authoring time via
 this shared library plus reference-merge; there is no runtime composition
-mechanism. Stdlib only; this module must never import lore_task.
+mechanism. Stdlib only; this module must never import lore_work.
 """
 import hashlib
 import json
@@ -109,7 +109,7 @@ def continue_when(state, kinds, *, stop_on_final=True, since=None) -> bool:
     return not facts_since(state.get("facts", []), kinds, watermark)
 
 
-def start_unless_completed(facts, kind="task.completed") -> bool:
+def start_unless_completed(facts, kind="work.completed") -> bool:
     """Shared should_start guard: never start a new Round after completion was
     declared (completion is a claim, not a runtime terminal state)."""
     return not any(f["kind"] == kind for f in facts)
