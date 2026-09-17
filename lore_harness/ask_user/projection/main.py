@@ -1,42 +1,34 @@
 """Projection for ask-user: objective, open question, answer if any."""
 import json
 
-ACTION_PROTOCOL = (
-    'Reply with exactly one JSON object and no prose. One of:\n'
-    '{"action":{"type":"emit","kind":"ask.requested","payload":{"ask_id":"q1","question":"...","options":["..."]}}}\n'
-    '{"action":{"type":"shell","script":"<sh script>"}}   run inside the content directory\n'
-    '{"action":{"type":"emit","kind":"task.completed","payload":{"evidence_refs":["<file>"]}}}\n'
-    '{"action":{"type":"final","text":"<reason>"}}'
-)
+import lore_harness_base as base
+
+ACTION_PROTOCOL = base.action_protocol([
+    '{"action":{"type":"emit","kind":"ask.requested","payload":{"ask_id":"q1","question":"...","options":["..."]}}}',
+    '{"action":{"type":"shell","script":"<sh script>"}}   run inside the content directory',
+    '{"action":{"type":"emit","kind":"task.completed","payload":{"evidence_refs":["<file>"]}}}',
+    base.FINAL_EXAMPLE,
+])
 
 
 def _state(facts):
-    objective, acceptance = None, []
-    asked, answered = [], {}
-    completed = False
-    for fact in facts:
-        kind = fact["kind"]
-        if kind == "task.objective.set":
-            objective = fact["payload"].get("objective")
-            acceptance = fact["payload"].get("acceptance", [])
-        elif kind == "ask.requested":
-            asked.append(fact["payload"])
-        elif kind == "ask.answered":
-            answered[fact["payload"].get("ask_id")] = fact["payload"].get("answer")
-        elif kind == "task.completed":
-            completed = True
+    folded = base.fold(facts, latest=("task.objective.set",), collect=("ask.requested", "ask.answered"),
+                       flags=("task.completed",))
+    objective_payload = folded["task.objective.set"] or {}
+    asked = folded["ask.requested"]
+    answered = {a.get("ask_id"): a.get("answer") for a in folded["ask.answered"]}
     open_ask = None
     for ask in reversed(asked):
         if ask.get("ask_id") not in answered:
             open_ask = ask
             break
-    return objective, acceptance, asked, answered, open_ask, completed
+    return (objective_payload.get("objective"), objective_payload.get("acceptance", []),
+            asked, answered, open_ask, folded["task.completed"])
 
 
 def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None, workspaces=None, revision=None):
-    objective, acceptance, asked, answered, open_ask, completed = _state(facts)
-    files = sorted(str(p.relative_to(content_dir)) for p in content_dir.rglob("*") if p.is_file())
-    scripts = [f["payload"].get("script", "") for f in facts if f["kind"] == "sys.tool.result"]
+    objective, acceptance, _asked, answered, open_ask, completed = _state(facts)
+    scripts = [f["payload"].get("script", "") for f in base.facts_since(facts, "sys.tool.result", 0)]
 
     lines = [
         "# Goal",
@@ -50,12 +42,12 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         "# Answers received",
         json.dumps(answered, ensure_ascii=False),
         "",
-        "# Budget",
-        "step %d of %d   remaining steps: %d" % (step + 1, max_steps, max_steps - step - 1),
-        "",
+    ]
+    lines += base.budget_lines(step, max_steps)
+    lines += [
         "# Content directory",
         str(content_dir),
-        "files: %s" % (", ".join(files) if files else "(empty)"),
+        "files: %s" % (", ".join(base.content_files(content_dir)) or "(empty)"),
         "",
         "# Shell scripts already run in this Round (never repeat one)",
     ]
@@ -69,8 +61,7 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         "3. Once acceptance is satisfied, emit task.completed with evidence_refs.",
         "4. Never repeat a shell script listed above.",
     ]
-    if rejected_final:
-        lines += ["", "# Rejected final", rejected_final[:200]]
+    lines += base.rejected_final_lines(rejected_final)
     lines += ["", ACTION_PROTOCOL]
 
     return {

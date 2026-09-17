@@ -1,15 +1,15 @@
 """Projection for system design: bounded to the current unit plus frozen interfaces."""
 import json
-import os
 from pathlib import Path
 
-ACTION_PROTOCOL = (
-    'Reply with exactly one JSON object and no prose. One of:\n'
-    '{"action":{"type":"shell","script":"<sh script writing units/<id>.md>"}}\n'
+import lore_harness_base as base
+
+ACTION_PROTOCOL = base.action_protocol([
+    '{"action":{"type":"shell","script":"<sh script writing units/<id>.md>"}}',
     '{"action":{"type":"emit","kind":"design.unit.accepted","base_rev":"<committed revision shown above>",'
-    '"payload":{"unit_id":"<id>"}}}\n'
-    '{"action":{"type":"final","text":"<reason>"}}'
-)
+    '"payload":{"unit_id":"<id>"}}}',
+    base.FINAL_EXAMPLE,
+])
 
 
 def _state(facts):
@@ -58,8 +58,8 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         if _status(unit.get("id"), accepted, frozen, amended, stale, violations) != "frozen":
             current = unit
             break
-    files = sorted(str(p.relative_to(content_dir)) for p in Path(content_dir).rglob("*") if p.is_file())
-    rejected = [f["payload"] for f in facts if f["kind"] == "sys.declaration.rejected"]
+    files = base.content_files(content_dir)
+    rejected = [f["payload"] for f in base.facts_since(facts, "sys.declaration.rejected", 0)]
 
     lines = [
         "# Design objective",
@@ -89,10 +89,10 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         json.dumps([r for r in rejected[-2:]], ensure_ascii=False),
         "",
         "# Freeze violations (fix these: missing file, or bytes changed without an amendment)",
-        json.dumps([f["payload"] for f in facts if f["kind"] == "design.freeze.violation"][-3:], ensure_ascii=False),
+        json.dumps([f["payload"] for f in base.facts_since(facts, "design.freeze.violation", 0)][-3:], ensure_ascii=False),
         "",
         "# Actions refused in this Round (do not repeat them)",
-        json.dumps([f["payload"] for f in facts if f["kind"] == "sys.action.rejected"][-2:], ensure_ascii=False),
+        json.dumps([f["payload"] for f in base.facts_since(facts, "sys.action.rejected", 0)][-2:], ensure_ascii=False),
         "",
         "# Content index",
         "Shell cwd IS this directory (no prefix needed): %s" % content_dir,
@@ -100,13 +100,11 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         "",
         "# Shell scripts already run in this Round (do NOT run any of these again)",
     ]
-    scripts = [f["payload"].get("script", "") for f in facts if f["kind"] == "sys.tool.result"]
+    scripts = [f["payload"].get("script", "") for f in base.facts_since(facts, "sys.tool.result", 0)]
     lines += ["%d. %s" % (i, s.replace("\n", " ")[:160]) for i, s in enumerate(scripts[-4:], 1)] or ["(none yet)"]
+    lines += [""]
+    lines += base.budget_lines(step, max_steps)
     lines += [
-        "",
-        "# Budget",
-        "step %d of %d   remaining steps: %d" % (step + 1, max_steps, max_steps - step - 1),
-        "",
         "# Rules",
         "0. Your reply must be exactly ONE JSON object. The design text belongs in the file you write "
         "with shell, never in the reply; a reply with no action does not end the Round.",
@@ -118,8 +116,7 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         "4. Accept the unit with the exact committed revision above as base_rev; a stale base is refused.",
         "5. Accept exactly one unit per Round, then stop.",
     ]
-    if rejected_final:
-        lines += ["", "# Rejected final", rejected_final[:200]]
+    lines += base.rejected_final_lines(rejected_final)
     lines += ["", ACTION_PROTOCOL]
 
     return {

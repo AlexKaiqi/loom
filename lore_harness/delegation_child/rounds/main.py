@@ -1,16 +1,10 @@
 """Child trigger gate: start on an admitted delegation, stop once reported."""
+import lore_harness_base as base
 
 
 def _facts(facts):
-    delegated, reported, completed = None, False, False
-    for fact in facts:
-        if fact["kind"] == "task.delegated":
-            delegated = fact["payload"]
-        elif fact["kind"] == "task.reported":
-            reported = True
-        elif fact["kind"] == "task.completed":
-            completed = True
-    return delegated, reported, completed
+    folded = base.fold(facts, latest=("task.delegated",), flags=("task.reported", "task.completed"))
+    return folded["task.delegated"], folded["task.reported"], folded["task.completed"]
 
 
 def should_start(*, task, facts, new, head, now=None):
@@ -21,10 +15,4 @@ def should_start(*, task, facts, new, head, now=None):
 
 
 def should_continue(*, state):
-    if state.get("final") is not None:
-        return False
-    started_at = state.get("started_at_seq", 0)
-    return not any(
-        fact["kind"] == "task.reported" and fact["seq"] > started_at
-        for fact in state.get("facts", [])
-    )
+    return base.continue_when(state, ("task.reported",))

@@ -1,17 +1,12 @@
 """Coding trigger gate: start on a fresh objective, stop at completion."""
+import lore_harness_base as base
 
 
 def should_start(*, task, facts, new, head, now=None):
-    if any(fact["kind"] == "task.completed" for fact in facts):
+    if not base.start_unless_completed(facts):
         return False
     return any(fact["kind"] == "task.objective.set" for fact in new)
 
 
 def should_continue(*, state):
-    if state.get("final") is not None:
-        return False
-    started_at = state.get("started_at_seq", 0)
-    return not any(
-        fact["kind"] == "task.completed" and fact["seq"] > started_at
-        for fact in state.get("facts", [])
-    )
+    return base.continue_when(state, ("task.completed",))

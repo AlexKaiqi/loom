@@ -1,4 +1,7 @@
 """System-design trigger gate: one pending unit at a time, then stop at completion."""
+import lore_harness_base as base
+
+
 
 
 def _state(facts):
@@ -52,8 +55,4 @@ def should_continue(*, state):
     otherwise a long design answer that was never written or accepted would look
     like success.
     """
-    started_at = state.get("started_at_seq", 0)
-    return not any(
-        fact["kind"] in ("design.unit.accepted", "task.completed") and fact["seq"] > started_at
-        for fact in state.get("facts", [])
-    )
+    return base.continue_when(state, ("design.unit.accepted", "task.completed"), stop_on_final=False)

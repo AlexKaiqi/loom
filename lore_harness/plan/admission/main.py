@@ -1,7 +1,6 @@
 """Admission rule for plan mode."""
+import lore_harness_base as base
 
 ACCEPTED = ("plan.created", "plan.revised")
 
-
-def accept(*, kind, payload):
-    return kind in ACCEPTED
+accept = base.make_accept(*ACCEPTED)

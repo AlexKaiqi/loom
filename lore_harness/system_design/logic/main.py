@@ -3,16 +3,13 @@
 Nothing here trusts the model's word about bytes: `design.unit.frozen` and
 `design.freeze.violation` are computed from the files on disk.
 """
-import hashlib
-import json
 from pathlib import Path
+
+import lore_harness_base as base
 
 
 def _digest(path):
-    try:
-        return "sha256:" + hashlib.sha256(Path(path).read_bytes()).hexdigest()
-    except OSError:
-        return None
+    return base.file_digest(path)
 
 
 def _state(facts):
@@ -38,28 +35,14 @@ def _state(facts):
 
 
 def parse(text):
-    raw = (text or "").strip()
-    if not raw:
-        return {"type": "none"}
-    candidate = raw
-    if candidate.startswith("```"):
-        candidate = candidate.strip("`")
-        if candidate.startswith("json"):
-            candidate = candidate[4:]
-    try:
-        value = json.loads(candidate)
-    except json.JSONDecodeError:
-        return {"type": "final", "text": raw}
-    action = value.get("action", value) if isinstance(value, dict) else None
-    if not isinstance(action, dict) or "type" not in action:
-        return {"type": "final", "text": raw}
-    if action["type"] == "emit":
+    action = base.parse_action(text)
+    if action.get("type") == "emit":
         payload = action.get("payload") or {}
         if action.get("kind") == "design.unit.accepted":
             if not payload.get("unit_id") or not isinstance(action.get("base_rev"), str):
-                return {"type": "final", "text": raw}
-    if action["type"] == "shell" and not isinstance(action.get("script"), str):
-        return {"type": "final", "text": raw}
+                return base.final_fallback(text)
+    if action.get("type") == "shell" and not isinstance(action.get("script"), str):
+        return base.final_fallback(text)
     return action
 
 
@@ -87,10 +70,9 @@ def guard(*, state, action):
     marker = "units/%s.md" % current
     if marker not in script:
         return None
-    started_at = state.get("started_at_seq", 0)
     already = any(
-        fact["kind"] == "sys.tool.result" and fact["seq"] > started_at and marker in (fact["payload"].get("script") or "")
-        for fact in facts
+        marker in (fact["payload"].get("script") or "")
+        for fact in base.facts_since(facts, "sys.tool.result", state.get("started_at_seq", 0))
     )
     if already:
         return ("%s was already written in this Round; do not rewrite it — emit "

@@ -4,6 +4,7 @@ Zero-residency waiting: between Rounds there is no process and no connection —
 only facts. A Round only opens on a fresh objective, or on an answer that closes
 the currently open question.
 """
+import lore_harness_base as base
 
 
 def _asks(facts):
@@ -25,7 +26,7 @@ def _open_ask(facts):
 
 
 def should_start(*, task, facts, new, head, now=None):
-    if any(fact["kind"] == "task.completed" for fact in facts):
+    if not base.start_unless_completed(facts):
         return False
     open_ask = _open_ask(facts)
     if open_ask is not None:
@@ -38,10 +39,4 @@ def should_start(*, task, facts, new, head, now=None):
 
 def should_continue(*, state):
     """The Round ends when it asks a question, completes, or explicitly stops."""
-    if state.get("final") is not None:
-        return False
-    started_at = state.get("started_at_seq", 0)
-    return not any(
-        fact["kind"] in ("ask.requested", "task.completed") and fact["seq"] > started_at
-        for fact in state.get("facts", [])
-    )
+    return base.continue_when(state, ("ask.requested", "task.completed"))

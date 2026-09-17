@@ -1,7 +1,6 @@
 """Admission rule for monitoring mode."""
+import lore_harness_base as base
 
 ACCEPTED = ("monitor.condition.set", "monitor.signal")
 
-
-def accept(*, kind, payload):
-    return kind in ACCEPTED
+accept = base.make_accept(*ACCEPTED)

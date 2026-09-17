@@ -1,47 +1,28 @@
 """Research action parsing and derived saturation/completion."""
-import hashlib
-import json
-import os
 from pathlib import Path
 
-CONFIG = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
+import lore_harness_base as base
+
+CONFIG = Path(__file__).resolve().parents[1] / "config.json"
 
 
 def _config():
-    try:
-        with open(CONFIG, encoding="utf-8") as fh:
-            return json.load(fh)
-    except OSError:
-        return {}
+    return base.load_config(config_path=CONFIG)
 
 
 def parse(text):
-    raw = (text or "").strip()
-    if not raw:
-        return {"type": "none"}
-    candidate = raw
-    if candidate.startswith("```"):
-        candidate = candidate.strip("`")
-        if candidate.startswith("json"):
-            candidate = candidate[4:]
-    try:
-        value = json.loads(candidate)
-    except json.JSONDecodeError:
-        return {"type": "final", "text": raw}
-    action = value.get("action", value) if isinstance(value, dict) else None
-    if not isinstance(action, dict) or "type" not in action:
-        return {"type": "final", "text": raw}
-    if action["type"] == "recall":
+    action = base.parse_action(text)
+    if action.get("type") == "recall":
         if not isinstance(action.get("query"), str) or not action["query"].strip():
-            return {"type": "final", "text": raw}
-    if action["type"] == "shell" and not isinstance(action.get("script"), str):
-        return {"type": "final", "text": raw}
-    if action["type"] == "emit":
+            return base.final_fallback(text)
+    if action.get("type") == "shell" and not isinstance(action.get("script"), str):
+        return base.final_fallback(text)
+    if action.get("type") == "emit":
         payload = action.get("payload") or {}
         if action.get("kind") == "research.source.added" and not payload.get("source_ref"):
-            return {"type": "final", "text": raw}
+            return base.final_fallback(text)
         if action.get("kind") == "research.finding.recorded" and not payload.get("finding_ref"):
-            return {"type": "final", "text": raw}
+            return base.final_fallback(text)
     return action
 
 
@@ -56,7 +37,7 @@ def guard(*, state, action):
         return None
     facts = state.get("facts", [])
     started_at = state.get("started_at_seq", 0)
-    reads = [f for f in facts if f["kind"] == "sys.tool.result" and f["seq"] > started_at]
+    reads = base.facts_since(facts, "sys.tool.result", started_at)
     progressed = any(
         f["kind"] in ("research.source.added", "research.finding.recorded") and f["seq"] > started_at
         for f in facts
@@ -68,10 +49,7 @@ def guard(*, state, action):
 
 
 def _digest(path):
-    try:
-        return "sha256:" + hashlib.sha256(Path(path).read_bytes()).hexdigest()
-    except OSError:
-        return None
+    return base.file_digest(path)
 
 
 def settle(state):

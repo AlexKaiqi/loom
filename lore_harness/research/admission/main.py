@@ -1,7 +1,6 @@
 """Admission rule for research mode."""
+import lore_harness_base as base
 
 ACCEPTED = ("research.question.set",)
 
-
-def accept(*, kind, payload):
-    return kind in ACCEPTED
+accept = base.make_accept(*ACCEPTED)

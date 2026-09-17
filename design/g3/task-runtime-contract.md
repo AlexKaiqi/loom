@@ -52,6 +52,12 @@
 
 解析规则：声明优先、默认路径兜底（兜底条目不盖章，由 `task.json.harness.digest` 整树覆盖）、缺席=关闭；`sys.*` 只能由 runtime 声明。**digest 严格校验（2026-09-17，落地 R2）**：登记时 `create_task` 对每个声明 ref（角色条目、kind 契约、trigger `when`、view resolver）计算并写入 digest（盖章幂等）；加载时缺失或不匹配即响亮拒绝。
 
+**harness 共享基座（2026-09-17）**：`lore_harness_base.py`（仓库根）是框架随版本提供的标准库——
+动作协议与解析前缀、事实折叠、轮门骨架、受理工厂、投影脚手架、file_digest/load_config 的唯一定义源；
+harness 模块与 runtime 默认投影/解析共同使用它。它不进 harness digest（整树 digest 覆盖的是 harness
+目录内文件），对它的依赖等价于对角色钩子签名所绑定的 runtime 版本的既有依赖。编写期复用路径见
+[harness-catalog/README.md](harness-catalog/README.md) 末节。
+
 ## M1 已知缺口（未验证或未实现）
 
 - **工具域只有 content/**：Workspace 域、双 Shell、沙箱（X）未接。

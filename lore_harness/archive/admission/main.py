@@ -1,7 +1,6 @@
 """Admission rule for archive mode."""
+import lore_harness_base as base
 
 ACCEPTED = ("archive.requested",)
 
-
-def accept(*, kind, payload):
-    return kind in ACCEPTED
+accept = base.make_accept(*ACCEPTED)

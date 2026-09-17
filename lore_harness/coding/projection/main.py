@@ -5,41 +5,34 @@ Content directory = notes and reports (Surface). Workspace = the code under test
 the runtime routes `target`, it does not sandbox (isolation is X's job, not wired).
 """
 import json
+from pathlib import Path
 
-ACTION_PROTOCOL = (
-    'Reply with exactly one JSON object and no prose. One of:\n'
-    '{"action":{"type":"shell","target":"workspace","script":"<sh script>"}}   run in the code workspace\n'
-    '{"action":{"type":"shell","script":"<sh script>"}}                        run in the content directory\n'
-    '{"action":{"type":"emit","kind":"code.change.declared","payload":{"summary":"...","files":["a.py"]}}}\n'
-    '{"action":{"type":"emit","kind":"code.test.declared","payload":{"command":"...","outcome":"pass|fail","evidence_refs":["..."]}}}\n'
-    '{"action":{"type":"emit","kind":"task.completed","payload":{"evidence_refs":["report.md"]}}}\n'
-    '{"action":{"type":"final","text":"<reason>"}}'
-)
+import lore_harness_base as base
+
+ACTION_PROTOCOL = base.action_protocol([
+    '{"action":{"type":"shell","target":"workspace","script":"<sh script>"}}   run in the code workspace',
+    '{"action":{"type":"shell","script":"<sh script>"}}                        run in the content directory',
+    '{"action":{"type":"emit","kind":"code.change.declared","payload":{"summary":"...","files":["a.py"]}}}',
+    '{"action":{"type":"emit","kind":"code.test.declared","payload":{"command":"...","outcome":"pass|fail","evidence_refs":["..."]}}}',
+    '{"action":{"type":"emit","kind":"task.completed","payload":{"evidence_refs":["report.md"]}}}',
+    base.FINAL_EXAMPLE,
+])
 
 
 def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None, workspaces=None, revision=None):
-    objective, acceptance, completed = None, [], False
-    changes, tests, tools = [], [], []
-    for fact in facts:
-        kind = fact["kind"]
-        if kind == "task.objective.set":
-            objective = fact["payload"].get("objective")
-            acceptance = fact["payload"].get("acceptance", [])
-        elif kind == "code.change.declared":
-            changes.append(fact["payload"])
-        elif kind == "code.test.declared":
-            tests.append(fact["payload"])
-        elif kind == "sys.tool.result":
-            tools.append(fact["payload"])
-        elif kind == "task.completed":
-            completed = True
-    files = sorted(str(p.relative_to(content_dir)) for p in content_dir.rglob("*") if p.is_file())
+    folded = base.fold(facts, latest=("task.objective.set",),
+                       collect=("code.change.declared", "code.test.declared", "sys.tool.result"),
+                       flags=("task.completed",))
+    objective_payload = folded["task.objective.set"] or {}
+    objective = objective_payload.get("objective")
+    acceptance = objective_payload.get("acceptance", [])
+    changes, tests, tools = folded["code.change.declared"], folded["code.test.declared"], folded["sys.tool.result"]
+    files = base.content_files(content_dir)
     workspace_lines = []
     for workspace in (workspaces or []):
         root = workspace.get("path")
         listing = []
         try:
-            from pathlib import Path
             listing = sorted(str(p.relative_to(root)) for p in Path(root).rglob("*") if p.is_file())[:30]
         except OSError:
             listing = ["(unreadable)"]
@@ -49,7 +42,7 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         "# Objective",
         "objective: %s" % (objective or "(none)"),
         "acceptance: %s" % json.dumps(acceptance, ensure_ascii=False),
-        "completed: %s" % completed,
+        "completed: %s" % folded["task.completed"],
         "",
         "# Authorized execution targets",
         "- content (notes/reports): %s" % content_dir,
@@ -61,14 +54,13 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         "# Test outcomes declared so far",
         json.dumps(tests[-3:], ensure_ascii=False),
         "",
-        "# Budget",
-        "step %d of %d   remaining steps: %d" % (step + 1, max_steps, max_steps - step - 1),
-        "",
-        "# Recent tool results",
     ]
+    lines += base.budget_lines(step, max_steps)
+    lines += ["# Recent tool results"]
     for tool in tools[-4:]:
-        lines.append("- target=%s exit=%s  %s" % (tool.get("target"), tool.get("exit"),
-                                                  (tool.get("stdout") or "").replace("\n", "\\n")[:200]))
+        lines.append("- target=%s outcome=%s exit=%s  %s" % (tool.get("target"), tool.get("outcome"),
+                                                             tool.get("exit"),
+                                                             (tool.get("stdout") or "").replace("\n", "\\n")[:200]))
     lines += [
         "",
         "# Rules",
@@ -78,8 +70,7 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         "4. Only emit task.completed after a real passing test and with evidence_refs.",
         "5. Never repeat a shell script listed in the recent tool results.",
     ]
-    if rejected_final:
-        lines += ["", "# Rejected final", rejected_final[:200]]
+    lines += base.rejected_final_lines(rejected_final)
     lines += ["", ACTION_PROTOCOL]
 
     return {

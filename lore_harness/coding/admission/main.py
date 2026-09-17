@@ -1,7 +1,6 @@
 """Admission rule for coding mode."""
+import lore_harness_base as base
 
 ACCEPTED = ("task.objective.set",)
 
-
-def accept(*, kind, payload):
-    return kind in ACCEPTED
+accept = base.make_accept(*ACCEPTED)

@@ -4,30 +4,16 @@ The interaction format (single JSON object) is this harness's choice, not a
 runtime protocol. `parse` must be shape-strict; malformed output is treated as a
 final text rather than guessed into an action.
 """
-import json
+import lore_harness_base as base
 
 
 def parse(text):
-    raw = (text or "").strip()
-    if not raw:
-        return {"type": "none"}
-    candidate = raw
-    if candidate.startswith("```"):
-        candidate = candidate.strip("`")
-        if candidate.startswith("json"):
-            candidate = candidate[4:]
-    try:
-        value = json.loads(candidate)
-    except json.JSONDecodeError:
-        return {"type": "final", "text": raw}
-    action = value.get("action", value) if isinstance(value, dict) else None
-    if not isinstance(action, dict) or "type" not in action:
-        return {"type": "final", "text": raw}
-    if action["type"] == "emit":
+    action = base.parse_action(text)
+    if action.get("type") == "emit":
         if "kind" not in action or not isinstance(action.get("payload", {}), dict):
-            return {"type": "final", "text": raw}
-    if action["type"] == "shell" and not isinstance(action.get("script"), str):
-        return {"type": "final", "text": raw}
+            return base.final_fallback(text)
+    if action.get("type") == "shell" and not isinstance(action.get("script"), str):
+        return base.final_fallback(text)
     return action
 
 

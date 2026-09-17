@@ -1,35 +1,28 @@
 """Bounded projection for goal mode (v2 after the ark-goal-001 no-progress counterexample).
 
 Shows objective, acceptance, phase, the scripts already run in this Round, the
-last tool result with its exit code, the remaining step budget and the action
+last tool result with its outcome, the remaining step budget and the action
 protocol. The step budget and the no-repeat rule are the harness's progress
 policy, not runtime semantics.
 """
 import json
 
-ACTION_PROTOCOL = (
-    'Reply with exactly one JSON object and no prose. One of:\n'
-    '{"action":{"type":"shell","script":"<sh script>"}}   run a command inside the content directory\n'
-    '{"action":{"type":"emit","kind":"task.completed","payload":{"evidence_refs":["<relative path>"]}}}\n'
-    '{"action":{"type":"final","text":"<short reason>"}}   end this round without completing'
-)
+import lore_harness_base as base
+
+ACTION_PROTOCOL = base.action_protocol([
+    base.SHELL_EXAMPLE,
+    '{"action":{"type":"emit","kind":"task.completed","payload":{"evidence_refs":["<relative path>"]}}}',
+    base.FINAL_EXAMPLE + " without completing",
+])
 
 
 def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None, workspaces=None, revision=None):
-    objective, acceptance, completed, phase = None, [], False, "open"
-    scripts, last_result = [], None
-    for fact in facts:
-        if fact["kind"] == "task.objective.set":
-            objective = fact["payload"].get("objective")
-            acceptance = fact["payload"].get("acceptance", [])
-        elif fact["kind"] == "task.phase.changed":
-            phase = fact["payload"].get("to", phase)
-        elif fact["kind"] == "task.completed":
-            completed = True
-        elif fact["kind"] == "sys.tool.result":
-            scripts.append(fact["payload"].get("script", ""))
-            last_result = fact["payload"]
-    files = sorted(str(p.relative_to(content_dir)) for p in content_dir.rglob("*") if p.is_file())
+    folded = base.fold(facts, latest=("task.objective.set", "task.phase.changed"), flags=("task.completed",))
+    objective_payload = folded["task.objective.set"] or {}
+    objective = objective_payload.get("objective")
+    acceptance = objective_payload.get("acceptance", [])
+    phase = (folded["task.phase.changed"] or {}).get("to", "open")
+    completed = folded["task.completed"]
 
     lines = [
         "# Goal",
@@ -37,27 +30,15 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         "acceptance: %s" % json.dumps(acceptance, ensure_ascii=False),
         "phase: %s   completed: %s" % (phase, completed),
         "",
-        "# Budget",
-        "step %d of %d   remaining steps: %d" % (step + 1, max_steps, max_steps - step - 1),
-        "",
+    ]
+    lines += base.budget_lines(step, max_steps)
+    lines += [
         "# Content directory (your only working area)",
         str(content_dir),
-        "files: %s" % (", ".join(files) if files else "(empty)"),
+        "files: %s" % (", ".join(base.content_files(content_dir)) or "(empty)"),
         "",
-        "# Shell scripts already run in this Round (do NOT run any of these again)",
     ]
-    if scripts:
-        for index, script in enumerate(scripts, 1):
-            lines.append("%d. exit=%s  %s" % (index, (last_result or {}).get("exit", "?"), script.replace("\n", " ")[:200]))
-    else:
-        lines.append("(none yet)")
-    if last_result is not None:
-        lines += [
-            "",
-            "# Last tool result (exit=%s)" % last_result.get("exit"),
-            "stdout: %s" % (last_result.get("stdout") or "").replace("\n", "\\n")[:600],
-            "stderr: %s" % (last_result.get("stderr") or "").replace("\n", "\\n")[:300],
-        ]
+    lines += base.tool_history_lines(facts)
     lines += [
         "",
         "# Rules",

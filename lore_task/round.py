@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import lore_harness_base
 import os
 import select
 import signal
@@ -29,13 +30,11 @@ TOOL_CHECK_CAP = 60.0        # s: backoff ceiling
 TOOL_HARD_CAP = 600.0        # s: runtime resource safety net per call
 TERMINATE_GRACE = 5.0        # s: SIGTERM → SIGKILL grace for the process group
 
-ACTION_PROTOCOL = (
-    'Reply with exactly one JSON object, no prose: '
-    '{"action":{"type":"shell","script":"...","budget_ms":30000}} to run a shell command inside the task content directory '
-    '(budget_ms is optional: the harness/model policy budget in milliseconds; exceeding the runtime hard cap is refused), '
-    '{"action":{"type":"emit","kind":"<declared kind>","payload":{...}}} to declare a state change, or '
-    '{"action":{"type":"final","text":"..."}} to end this round.'
-)
+ACTION_PROTOCOL = lore_harness_base.action_protocol([
+    lore_harness_base.SHELL_EXAMPLE,
+    lore_harness_base.EMIT_EXAMPLE,
+    lore_harness_base.FINAL_EXAMPLE,
+])
 
 
 def _now() -> int:
@@ -196,7 +195,7 @@ def _default_projection(task, all_facts, new, head, content_dir) -> dict:
     body.append("\n# New facts since last round")
     for fact in new[-20:] or all_facts[-20:]:
         body.append("- [%s] %s %s" % (fact["seq"], fact["kind"], json.dumps(fact["payload"], ensure_ascii=False)[:400]))
-    files = sorted(str(p.relative_to(content_dir)) for p in content_dir.rglob("*") if p.is_file())
+    files = lore_harness_base.content_files(content_dir)
     body.append("\n# content/ files: " + (", ".join(files) if files else "(empty)"))
     body.append("\n" + ACTION_PROTOCOL)
     return {
@@ -207,22 +206,8 @@ def _default_projection(task, all_facts, new, head, content_dir) -> dict:
 
 
 def _default_parse(text: str) -> dict:
-    text = (text or "").strip()
-    if not text:
-        return {"type": "none"}
-    raw = text
-    if raw.startswith("```"):
-        raw = raw.strip("`")
-        if raw.startswith("json"):
-            raw = raw[4:]
-    try:
-        value = json.loads(raw)
-    except json.JSONDecodeError:
-        return {"type": "final", "text": text}
-    action = value.get("action", value) if isinstance(value, dict) else None
-    if not isinstance(action, dict) or "type" not in action:
-        return {"type": "final", "text": text}
-    return action
+    # The runtime default is the shared harness-base parse (single definition).
+    return lore_harness_base.parse_action(text)
 
 
 def _assert_harness_readonly(base, task) -> None:

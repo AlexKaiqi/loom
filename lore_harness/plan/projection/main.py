@@ -1,22 +1,19 @@
 """Bounded projection for plan mode: current stage + immediately next stage only."""
 import json
 
-ACTION_PROTOCOL = (
-    'Reply with exactly one JSON object and no prose. One of:\n'
-    '{"action":{"type":"shell","script":"<sh script>"}}   run inside the content directory\n'
-    '{"action":{"type":"emit","kind":"plan.stage.completed","payload":{"stage_id":"<id>","evidence_refs":["<file>"]}}}\n'
-    '{"action":{"type":"final","text":"<reason>"}}   end this Round without completing the stage'
-)
+import lore_harness_base as base
+
+ACTION_PROTOCOL = base.action_protocol([
+    '{"action":{"type":"shell","script":"<sh script>"}}   run inside the content directory',
+    '{"action":{"type":"emit","kind":"plan.stage.completed","payload":{"stage_id":"<id>","evidence_refs":["<file>"]}}}',
+    base.FINAL_EXAMPLE + " without completing the stage",
+])
 
 
 def _plan(facts):
-    spec, completed = None, []
-    for fact in facts:
-        if fact["kind"] in ("plan.created", "plan.revised"):
-            spec = fact["payload"]
-        elif fact["kind"] == "plan.stage.completed":
-            completed.append(fact["payload"].get("stage_id"))
-    return spec, completed
+    folded = base.fold(facts, latest=("plan.created", "plan.revised"), collect=("plan.stage.completed",))
+    spec = folded["plan.created"] or folded["plan.revised"]
+    return spec, [p.get("stage_id") for p in folded["plan.stage.completed"]]
 
 
 def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None, workspaces=None, revision=None):
@@ -25,9 +22,8 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
     remaining = [s for s in stages if s.get("id") not in completed]
     current = remaining[0] if remaining else None
     following = remaining[1] if len(remaining) > 1 else None
-    scripts = [f["payload"].get("script", "") for f in facts if f["kind"] == "sys.tool.result"]
+    scripts = [f["payload"].get("script", "") for f in base.facts_since(facts, "sys.tool.result", 0)]
     last_tool = next((f["payload"] for f in reversed(facts) if f["kind"] == "sys.tool.result"), None)
-    files = sorted(str(p.relative_to(content_dir)) for p in content_dir.rglob("*") if p.is_file())
 
     lines = [
         "# Plan",
@@ -40,18 +36,18 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         "# Next stage (context only, do not start it)",
         json.dumps(following, ensure_ascii=False) if following else "(none)",
         "",
-        "# Budget",
-        "step %d of %d   remaining steps: %d" % (step + 1, max_steps, max_steps - step - 1),
-        "",
+    ]
+    lines += base.budget_lines(step, max_steps)
+    lines += [
         "# Content directory",
         str(content_dir),
-        "files: %s" % (", ".join(files) if files else "(empty)"),
+        "files: %s" % (", ".join(base.content_files(content_dir)) or "(empty)"),
         "",
         "# Shell scripts already run in this Round (never repeat one)",
     ]
     lines += ["%d. %s" % (i, s.replace("\n", " ")[:160]) for i, s in enumerate(scripts[-6:], 1)] or ["(none yet)"]
     if last_tool is not None:
-        lines += ["", "# Last tool result (exit=%s)" % last_tool.get("exit"),
+        lines += ["", "# Last tool result (outcome=%s exit=%s)" % (last_tool.get("outcome"), last_tool.get("exit")),
                   "stdout: %s" % (last_tool.get("stdout") or "").replace("\n", "\\n")[:500]]
     lines += [
         "",

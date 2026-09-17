@@ -3,18 +3,14 @@
 The runtime hands the current epoch to `should_start`; the harness decides whether
 the condition is due. Between Rounds the task is pure data (zero residency).
 """
+import lore_harness_base as base
 
 
 def _monitor_state(facts):
-    condition, signals, closed = None, [], False
-    for fact in facts:
-        if fact["kind"] == "monitor.condition.set":
-            condition = fact["payload"]
-        elif fact["kind"] == "monitor.signal":
-            signals.append(fact["payload"])
-        elif fact["kind"] in ("monitor.condition.met", "monitor.condition.expired"):
-            closed = True
-    return condition, signals, closed
+    folded = base.fold(facts, latest=("monitor.condition.set",), collect=("monitor.signal",),
+                       flags=("monitor.condition.met", "monitor.condition.expired"))
+    return folded["monitor.condition.set"], folded["monitor.signal"], (
+        folded["monitor.condition.met"] or folded["monitor.condition.expired"])
 
 
 def should_start(*, task, facts, new, head, now=None):
@@ -31,10 +27,4 @@ def should_start(*, task, facts, new, head, now=None):
 
 
 def should_continue(*, state):
-    if state.get("final") is not None:
-        return False
-    started_at = state.get("started_at_seq", 0)
-    return not any(
-        fact["kind"] in ("monitor.condition.met", "monitor.condition.expired") and fact["seq"] > started_at
-        for fact in state.get("facts", [])
-    )
+    return base.continue_when(state, ("monitor.condition.met", "monitor.condition.expired"))

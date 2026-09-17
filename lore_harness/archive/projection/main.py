@@ -1,30 +1,27 @@
 """Bounded projection for archive mode: file inventory + usage, fold protocol."""
 import json
-import os
 
-CONFIG = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
+import lore_harness_base as base
+from pathlib import Path
 
-ACTION_PROTOCOL = (
-    'Reply with exactly one JSON object and no prose. One of:\n'
-    '{"action":{"type":"shell","script":"mkdir -p archive && mv <old files> archive/"}}   lossless fold\n'
+CONFIG = Path(__file__).resolve().parents[1] / "config.json"
+
+ACTION_PROTOCOL = base.action_protocol([
+    '{"action":{"type":"shell","script":"mkdir -p archive && mv <old files> archive/"}}   lossless fold',
     '{"action":{"type":"emit","kind":"archive.performed","payload":{"scope":"...","moved":[{"from":"a","to":"archive/a"}],'
-    '"original_refs":["archive/a"],"mode":"lossless"}}}\n'
-    '{"action":{"type":"final","text":"<reason>"}}   end without folding'
-)
+    '"original_refs":["archive/a"],"mode":"lossless"}}}',
+    base.FINAL_EXAMPLE + " without folding",
+])
 
 
 def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None, workspaces=None, revision=None):
-    try:
-        with open(CONFIG, encoding="utf-8") as fh:
-            config = json.load(fh)
-    except OSError:
-        config = {}
+    config = base.load_config(config_path=CONFIG)
     inventory = []
-    for path in sorted(content_dir.rglob("*")):
+    for path in sorted(Path(content_dir).rglob("*")):
         if path.is_file():
             inventory.append((str(path.relative_to(content_dir)), path.stat().st_size))
-    usage = [f["payload"] for f in facts if f["kind"] == "sys.context.usage"][-3:]
-    performed = [f["payload"] for f in facts if f["kind"] == "archive.performed"]
+    usage = [f["payload"] for f in base.facts_since(facts, "sys.context.usage", 0)][-3:]
+    performed = [f["payload"] for f in base.facts_since(facts, "archive.performed", 0)]
 
     lines = [
         "# Context control",

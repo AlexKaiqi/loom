@@ -1,33 +1,30 @@
 """Research projection: question, source index (pointers), findings, recent recall hits."""
 import json
 
-ACTION_PROTOCOL = (
-    'Reply with exactly one JSON object and no prose. One of:\n'
-    '{"action":{"type":"recall","query":"<literal text>","limit":20}}   search the corpus (runtime observation)\n'
-    '{"action":{"type":"shell","script":"<sh script writing notes/findings in content>"}}\n'
-    '{"action":{"type":"emit","kind":"research.source.added","payload":{"source_ref":"<relative file>","note":"..."}}}\n'
-    '{"action":{"type":"emit","kind":"research.finding.recorded","payload":{"finding_ref":"<file>","evidence_refs":["<file>"]}}}\n'
-    '{"action":{"type":"emit","kind":"research.saturation.reached","payload":{"reason":"..."}}}\n'
-    '{"action":{"type":"final","text":"<reason>"}}'
-)
+import lore_harness_base as base
+
+ACTION_PROTOCOL = base.action_protocol([
+    '{"action":{"type":"recall","query":"<literal text>","limit":20}}   search the corpus (runtime observation)',
+    '{"action":{"type":"shell","script":"<sh script writing notes/findings in content>"}}',
+    '{"action":{"type":"emit","kind":"research.source.added","payload":{"source_ref":"<relative file>","note":"..."}}}',
+    '{"action":{"type":"emit","kind":"research.finding.recorded","payload":{"finding_ref":"<file>","evidence_refs":["<file>"]}}}',
+    '{"action":{"type":"emit","kind":"research.saturation.reached","payload":{"reason":"..."}}}',
+    base.FINAL_EXAMPLE,
+])
 
 
 def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_final=None,
           workspaces=None, revision=None):
-    question, sources, findings, recall, saturated = None, [], [], [], False
-    for fact in facts:
-        kind = fact["kind"]
-        if kind == "research.question.set":
-            question = fact["payload"]
-        elif kind == "research.source.added":
-            sources.append(fact["payload"])
-        elif kind == "research.finding.recorded":
-            findings.append(fact["payload"])
-        elif kind == "sys.recall.result":
-            recall.append(fact["payload"])
-        elif kind == "research.saturation.reached":
-            saturated = True
-    files = sorted(str(p.relative_to(content_dir)) for p in content_dir.rglob("*") if p.is_file())
+    folded = base.fold(facts, latest=("research.question.set",),
+                       collect=("research.source.added", "research.finding.recorded", "sys.recall.result"),
+                       flags=("research.saturation.reached",))
+    question = folded["research.question.set"]
+    sources, findings, recall = (folded["research.source.added"], folded["research.finding.recorded"],
+                                 folded["sys.recall.result"])
+    saturated = folded["research.saturation.reached"]
+    verified = base.facts_since(facts, "research.source.verified", 0)
+    invalid = base.facts_since(facts, "research.source.invalid", 0)
+    rejected = base.facts_since(facts, "sys.action.rejected", 0)
 
     lines = [
         "# Research question",
@@ -42,11 +39,10 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         "",
         "# Evidence progress (saturation is derived by the harness from DISTINCT verified sources)",
         "distinct verified sources: %d / %d required" % (
-            len({f["payload"].get("source_ref") for f in facts if f["kind"] == "research.source.verified"}),
+            len({f["payload"].get("source_ref") for f in verified}),
             2),
         "findings recorded: %d / %d required" % (len(findings), 1),
-        "verified source paths: %s" % sorted(
-            {f["payload"].get("source_ref") for f in facts if f["kind"] == "research.source.verified"}),
+        "verified source paths: %s" % sorted({f["payload"].get("source_ref") for f in verified}),
         "",
         "# Recent recall results (runtime observation, not re-run on recovery)",
         json.dumps([{"query": r.get("query"), "hits": len(r.get("matches") or []),
@@ -55,18 +51,18 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         "",
         "# Corpus files (source_ref MUST be one of these relative paths; the harness derives the digest)",
         "Shell cwd IS this directory (use RELATIVE paths; never `cd` to an absolute path): %s" % content_dir,
-        "files: %s" % (", ".join(files) if files else "(empty)"),
+        "files: %s" % (", ".join(base.content_files(content_dir)) or "(empty)"),
         "",
         "# Actions refused in this Round (do not repeat them)",
-        json.dumps([f["payload"] for f in facts if f["kind"] == "sys.action.rejected"][-2:], ensure_ascii=False),
+        json.dumps([f["payload"] for f in rejected][-2:], ensure_ascii=False),
         "",
         "# Sources that did NOT verify (recorded, and they never count as evidence)",
         json.dumps([{"ref": f["payload"].get("source_ref"), "reason": f["payload"].get("reason")}
-                    for f in facts if f["kind"] == "research.source.invalid"][-3:], ensure_ascii=False),
+                    for f in invalid][-3:], ensure_ascii=False),
         "",
-        "# Budget",
-        "step %d of %d   remaining steps: %d" % (step + 1, max_steps, max_steps - step - 1),
-        "",
+    ]
+    lines += base.budget_lines(step, max_steps)
+    lines += [
         "# Rules",
         "0. Your reply must be exactly ONE JSON object. The answer belongs in a recorded finding, never in the reply.",
         "1. Use the `recall` action to locate material, then read what you need with `cat <relative file>`. "
@@ -80,8 +76,7 @@ def build(*, task, facts, new, head, content_dir, step=0, max_steps=1, rejected_
         "6. If a source you registered cannot be verified (missing file), retract it with research.source.retracted; "
         "you cannot complete while an unretracted invalid source remains.",
     ]
-    if rejected_final:
-        lines += ["", "# Rejected final", rejected_final[:200]]
+    lines += base.rejected_final_lines(rejected_final)
     lines += ["", ACTION_PROTOCOL]
     return {
         "system": "You are the model inside one Round of a research task. Retrieve what you need, cite real "

@@ -36,3 +36,21 @@
 ## 待写（宁缺毋滥，一次一个）
 
 computer-use（浏览器/桌面）、review / critic（独立评审）、reflection / memory（记忆整理）、A/B shadow（多策略对比）、data-pipeline（批处理）、support-ticket（工单）、multimodal-input（图像输入）、verification-harness（验收执行）、retrieval-index（索引维护）。
+
+## 派生一个新 harness 的编写期复用路径（2026-09-17）
+
+组合裁决的落地方式（无 runtime 组合机制，全部在编写期完成）：
+
+1. **共享基座**：`lore_harness_base.py`（仓库根，框架随版本提供的标准库，stdlib-only、不进
+   harness digest、不 import runtime）。已收敛的公共件：单 JSON 动作协议与解析前缀
+   （`action_protocol` / `parse_action` / `final_fallback`）、事实折叠（`fold` / `facts_since`）、
+   轮门骨架（`continue_when` / `start_unless_completed`）、受理工厂（`make_accept`）、
+   投影脚手架（`content_files` / `budget_lines` / `tool_history_lines` / `rejected_final_lines`）、
+   证据与配置（`file_digest` / `load_config`）。十个示例 harness 已全部基于它（净 -328 行，
+   parse 前缀 11 份 → 1 份，协议文本 11 份 → 1 份）。
+2. **域语义留在 harness**：哪些 kind 意味什么、按 payload 字段建索引的域状态
+   （如 system-design 的 unit_id 索引）、规则文本、拒绝条件——这些是"这个 harness 是谁"，
+   不下沉。
+3. **参考合并（参考既有 harness 派生）**：复制最接近的示例作起点 → 删掉不适用的域段 →
+   manifest 五件套（词表+契约+产生者+触发+投影/逻辑）→ digest 由登记时盖章补齐。
+4. **跨任务组合**：只用事件受理（`wants`+`grants`+host 权威 + `relay`），见 delegation 示例。

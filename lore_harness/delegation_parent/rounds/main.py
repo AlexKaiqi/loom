@@ -1,18 +1,12 @@
 """Parent trigger gate: delegate once, then wait as data for the child's report."""
+import lore_harness_base as base
 
 
 def _facts(facts):
-    objective, delegated, reported, completed = None, None, None, False
-    for fact in facts:
-        if fact["kind"] == "task.objective.set":
-            objective = fact["payload"]
-        elif fact["kind"] == "task.delegated":
-            delegated = fact["payload"]
-        elif fact["kind"] == "task.reported":
-            reported = fact["payload"]
-        elif fact["kind"] == "task.completed":
-            completed = True
-    return objective, delegated, reported, completed
+    folded = base.fold(facts, latest=("task.objective.set", "task.delegated", "task.reported"),
+                       flags=("task.completed",))
+    return (folded["task.objective.set"], folded["task.delegated"], folded["task.reported"],
+            folded["task.completed"])
 
 
 def should_start(*, task, facts, new, head, now=None):
@@ -30,8 +24,4 @@ def should_continue(*, state):
     A bare `final` (e.g. "I cannot confirm the report") does not end the Round,
     so the model must either delegate or acknowledge the admitted report.
     """
-    started_at = state.get("started_at_seq", 0)
-    return not any(
-        fact["kind"] in ("task.delegated", "task.completed") and fact["seq"] > started_at
-        for fact in state.get("facts", [])
-    )
+    return base.continue_when(state, ("task.delegated", "task.completed"), stop_on_final=False)
