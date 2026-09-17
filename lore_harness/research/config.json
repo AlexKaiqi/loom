@@ -1,0 +1,6 @@
+{
+  "saturation_min_sources": 2,
+  "saturation_min_findings": 1,
+  "exclude_source_prefixes": ["findings/"],
+  "note": "Harness policy: saturation is derived from verified corpus evidence. The model's own outputs (findings/) never count as sources."
+}

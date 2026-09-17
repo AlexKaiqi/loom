@@ -1,0 +1,5 @@
+{
+  "kind": "research.saturation.reached",
+  "producer": "harness",
+  "payload": {"reason":"string (required)"}
+}

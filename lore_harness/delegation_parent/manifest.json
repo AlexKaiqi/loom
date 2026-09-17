@@ -1,0 +1,88 @@
+{
+  "schema": "lore-harness/v1",
+  "entry": {
+    "ref": "logic/main.py"
+  },
+  "facts": {
+    "kinds": [
+      {
+        "kind": "sys.tool.result",
+        "producer": "runtime",
+        "contract": {
+          "ref": "contracts/sys-tool-result.json"
+        }
+      },
+      {
+        "kind": "task.objective.set",
+        "producer": "external",
+        "contract": {
+          "ref": "contracts/task-objective-set.json"
+        }
+      },
+      {
+        "kind": "task.delegated",
+        "producer": "harness",
+        "contract": {
+          "ref": "contracts/task-delegated.json"
+        }
+      },
+      {
+        "kind": "task.reported",
+        "producer": "external",
+        "contract": {
+          "ref": "contracts/task-reported.json"
+        },
+        "requires_relation": true
+      },
+      {
+        "kind": "task.completed",
+        "producer": "harness",
+        "contract": {
+          "ref": "contracts/task-completed.json"
+        }
+      }
+    ],
+    "triggers": [
+      {
+        "id": "objective",
+        "on": [
+          "task.objective.set"
+        ]
+      },
+      {
+        "id": "report",
+        "on": [
+          "task.reported"
+        ]
+      }
+    ]
+  },
+  "roles": {
+    "rounds": [
+      {
+        "id": "parent",
+        "ref": "rounds/main.py"
+      }
+    ],
+    "projection": [
+      {
+        "id": "parent",
+        "ref": "projection/main.py"
+      }
+    ],
+    "logic": [
+      {
+        "id": "parent",
+        "ref": "logic/main.py"
+      }
+    ],
+    "admission": [
+      {
+        "id": "default",
+        "ref": "admission/main.py"
+      }
+    ]
+  },
+  "views": [],
+  "extensions": []
+}

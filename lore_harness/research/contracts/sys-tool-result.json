@@ -1,0 +1,5 @@
+{
+  "kind": "sys.tool.result",
+  "producer": "runtime",
+  "payload": {"script":"string","target":"content","cwd":"string","exit":"integer","stdout_digest":"sha256","stdout":"string","stderr":"string"}
+}

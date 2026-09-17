@@ -1,0 +1,6 @@
+{
+  "kind": "research.source.retracted",
+  "producer": "harness",
+  "note": "The model withdraws a source it cannot verify; an invalid source keeps blocking completion until retracted or re-registered correctly.",
+  "payload": { "source_ref": "string (required)", "reason": "string (required)" }
+}

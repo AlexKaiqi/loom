@@ -1,0 +1,9 @@
+{
+  "kind": "task.completed",
+  "producer": "harness",
+  "note": "A declaration, not a runtime terminal state and not business acceptance.",
+  "payload": {
+    "goal_id": "string (optional, stable identity)",
+    "evidence_refs": "array of strings (required): content paths or digests supporting the claim"
+  }
+}

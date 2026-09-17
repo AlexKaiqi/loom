@@ -1,0 +1,6 @@
+{
+  "kind": "design.unit.stale",
+  "producer": "harness",
+  "note": "Derived: a frozen unit whose dependency was amended after it was frozen.",
+  "payload": { "unit_id": "string (required)", "because": "string (required, dependency unit id)" }
+}

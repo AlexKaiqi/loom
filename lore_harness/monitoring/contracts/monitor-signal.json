@@ -1,0 +1,5 @@
+{
+  "kind": "monitor.signal",
+  "producer": "external",
+  "payload": { "monitor_id": "string (required)", "detail": "string (optional)" }
+}

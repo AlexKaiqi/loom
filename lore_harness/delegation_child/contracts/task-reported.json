@@ -1,0 +1,1 @@
+{"kind":"task.reported","producer":"external","note":"Delivered from the child task; authorized by wants+grants on both sides.","payload":{"from":"string","result_ref":"string (required)","evidence_refs":"array of strings"}}

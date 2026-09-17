@@ -1,0 +1,12 @@
+{
+  "kind": "sys.tool.result",
+  "producer": "runtime",
+  "note": "Runtime observation of one shell execution inside the task content directory.",
+  "payload": {
+    "script": "string",
+    "exit": "integer",
+    "stdout_digest": "sha256 of the full stdout bytes",
+    "stdout": "string (inline, bounded)",
+    "stderr": "string (inline, bounded)"
+  }
+}

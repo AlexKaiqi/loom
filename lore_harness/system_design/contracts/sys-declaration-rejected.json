@@ -1,0 +1,6 @@
+{
+  "kind": "sys.declaration.rejected",
+  "producer": "runtime",
+  "note": "Runtime refusal of a conditional declaration whose base_rev is not the committed revision.",
+  "payload": { "kind": "string", "base_rev": "string", "committed_rev": "string", "reason": "string" }
+}

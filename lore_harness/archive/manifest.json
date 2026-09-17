@@ -1,0 +1,26 @@
+{
+  "schema": "lore-harness/v1",
+  "entry": { "ref": "logic/main.py" },
+  "facts": {
+    "kinds": [
+      { "kind": "sys.tool.result", "producer": "runtime", "contract": { "ref": "contracts/sys-tool-result.json" } },
+      { "kind": "sys.context.usage", "producer": "runtime", "contract": { "ref": "contracts/sys-context-usage.json" } },
+      { "kind": "archive.requested", "producer": "external", "contract": { "ref": "contracts/archive-requested.json" } },
+      { "kind": "archive.performed", "producer": "harness", "contract": { "ref": "contracts/archive-performed.json" } }
+    ],
+    "triggers": [
+      { "id": "requested", "on": ["archive.requested"] },
+      { "id": "threshold", "on": ["sys.context.usage"] }
+    ]
+  },
+  "roles": {
+    "rounds": [ { "id": "archive", "ref": "rounds/main.py" } ],
+    "projection": [ { "id": "archive", "ref": "projection/main.py" } ],
+    "logic": [ { "id": "archive", "ref": "logic/main.py" } ],
+    "admission": [ { "id": "default", "ref": "admission/main.py" } ]
+  },
+  "views": [],
+  "extensions": [
+    { "id": "archive-config", "kind": "config", "ref": "config.json" }
+  ]
+}

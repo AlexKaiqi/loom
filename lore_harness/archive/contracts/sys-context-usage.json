@@ -1,0 +1,11 @@
+{
+  "kind": "sys.context.usage",
+  "producer": "runtime",
+  "note": "Canonical runtime observation, emitted only when the harness declares it.",
+  "payload": {
+    "step": "integer",
+    "projection_bytes": "integer",
+    "facts": "integer",
+    "content_files": "integer"
+  }
+}

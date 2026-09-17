@@ -1,0 +1,75 @@
+{
+  "schema": "lore-harness/v1",
+  "entry": {
+    "ref": "logic/main.py"
+  },
+  "facts": {
+    "kinds": [
+      {
+        "kind": "sys.tool.result",
+        "producer": "runtime",
+        "contract": {
+          "ref": "contracts/sys-tool-result.json"
+        }
+      },
+      {
+        "kind": "task.delegated",
+        "producer": "external",
+        "contract": {
+          "ref": "contracts/task-delegated.json"
+        },
+        "requires_relation": true
+      },
+      {
+        "kind": "task.reported",
+        "producer": "harness",
+        "contract": {
+          "ref": "contracts/task-reported.json"
+        }
+      },
+      {
+        "kind": "task.completed",
+        "producer": "harness",
+        "contract": {
+          "ref": "contracts/task-completed.json"
+        }
+      }
+    ],
+    "triggers": [
+      {
+        "id": "delegation",
+        "on": [
+          "task.delegated"
+        ]
+      }
+    ]
+  },
+  "roles": {
+    "rounds": [
+      {
+        "id": "child",
+        "ref": "rounds/main.py"
+      }
+    ],
+    "projection": [
+      {
+        "id": "child",
+        "ref": "projection/main.py"
+      }
+    ],
+    "logic": [
+      {
+        "id": "child",
+        "ref": "logic/main.py"
+      }
+    ],
+    "admission": [
+      {
+        "id": "default",
+        "ref": "admission/main.py"
+      }
+    ]
+  },
+  "views": [],
+  "extensions": []
+}

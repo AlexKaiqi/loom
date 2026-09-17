@@ -1,0 +1,5 @@
+{
+  "kind": "task.completed",
+  "producer": "harness",
+  "payload": { "evidence_refs": "array of strings (required)" }
+}

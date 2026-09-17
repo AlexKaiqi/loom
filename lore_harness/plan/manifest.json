@@ -1,0 +1,26 @@
+{
+  "schema": "lore-harness/v1",
+  "entry": { "ref": "logic/main.py" },
+  "facts": {
+    "kinds": [
+      { "kind": "sys.tool.result", "producer": "runtime", "contract": { "ref": "contracts/sys-tool-result.json" } },
+      { "kind": "plan.created", "producer": "external", "contract": { "ref": "contracts/plan-created.json" } },
+      { "kind": "plan.revised", "producer": "external", "contract": { "ref": "contracts/plan-revised.json" } },
+      { "kind": "plan.stage.started", "producer": "harness", "contract": { "ref": "contracts/plan-stage-started.json" } },
+      { "kind": "plan.stage.completed", "producer": "harness", "contract": { "ref": "contracts/plan-stage-completed.json" } },
+      { "kind": "plan.completed", "producer": "harness", "contract": { "ref": "contracts/plan-completed.json" } }
+    ],
+    "triggers": [
+      { "id": "plan", "on": ["plan.created", "plan.revised"] },
+      { "id": "stage", "on": ["plan.stage.completed"] }
+    ]
+  },
+  "roles": {
+    "rounds": [ { "id": "plan", "ref": "rounds/main.py" } ],
+    "projection": [ { "id": "plan", "ref": "projection/main.py" } ],
+    "logic": [ { "id": "plan", "ref": "logic/main.py" } ],
+    "admission": [ { "id": "default", "ref": "admission/main.py" } ]
+  },
+  "views": [],
+  "extensions": []
+}

@@ -1,0 +1,147 @@
+{
+  "schema": "lore-harness/v1",
+  "entry": {
+    "ref": "logic/main.py"
+  },
+  "facts": {
+    "kinds": [
+      {
+        "kind": "sys.tool.result",
+        "producer": "runtime",
+        "contract": {
+          "ref": "contracts/sys-tool-result.json"
+        }
+      },
+      {
+        "kind": "sys.action.rejected",
+        "producer": "runtime",
+        "contract": {
+          "ref": "contracts/sys-action-rejected.json"
+        }
+      },
+      {
+        "kind": "sys.recall.result",
+        "producer": "runtime",
+        "contract": {
+          "ref": "contracts/sys-recall-result.json"
+        }
+      },
+      {
+        "kind": "research.question.set",
+        "producer": "external",
+        "contract": {
+          "ref": "contracts/research-question-set.json"
+        }
+      },
+      {
+        "kind": "research.source.added",
+        "producer": "harness",
+        "contract": {
+          "ref": "contracts/research-source-added.json"
+        }
+      },
+      {
+        "kind": "research.finding.recorded",
+        "producer": "harness",
+        "contract": {
+          "ref": "contracts/research-finding-recorded.json"
+        }
+      },
+      {
+        "kind": "research.saturation.reached",
+        "producer": "harness",
+        "contract": {
+          "ref": "contracts/research-saturation-reached.json"
+        }
+      },
+      {
+        "kind": "task.completed",
+        "producer": "harness",
+        "contract": {
+          "ref": "contracts/task-completed.json"
+        }
+      },
+      {
+        "kind": "research.source.invalid",
+        "producer": "harness",
+        "contract": {
+          "ref": "contracts/research-source-invalid.json"
+        }
+      },
+      {
+        "kind": "research.source.verified",
+        "producer": "harness",
+        "contract": {
+          "ref": "contracts/research-source-verified.json"
+        }
+      },
+      {
+        "kind": "research.source.retracted",
+        "producer": "harness",
+        "contract": {
+          "ref": "contracts/research-source-retracted.json"
+        }
+      }
+    ],
+    "triggers": [
+      {
+        "id": "question",
+        "on": [
+          "research.question.set"
+        ]
+      },
+      {
+        "id": "material",
+        "on": [
+          "research.source.added"
+        ]
+      },
+      {
+        "id": "finding",
+        "on": [
+          "research.finding.recorded"
+        ]
+      },
+      {
+        "id": "invalid",
+        "on": [
+          "research.source.invalid"
+        ]
+      }
+    ]
+  },
+  "roles": {
+    "rounds": [
+      {
+        "id": "research",
+        "ref": "rounds/main.py"
+      }
+    ],
+    "projection": [
+      {
+        "id": "research",
+        "ref": "projection/main.py"
+      }
+    ],
+    "logic": [
+      {
+        "id": "research",
+        "ref": "logic/main.py"
+      }
+    ],
+    "admission": [
+      {
+        "id": "default",
+        "ref": "admission/main.py"
+      }
+    ]
+  },
+  "views": [],
+  "extensions": [
+    {
+      "id": "research-config",
+      "kind": "config",
+      "ref": "config.json"
+    }
+  ]
+}

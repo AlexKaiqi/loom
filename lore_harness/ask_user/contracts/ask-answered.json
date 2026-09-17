@@ -1,0 +1,9 @@
+{
+  "kind": "ask.answered",
+  "producer": "external",
+  "payload": {
+    "ask_id": "string (required, must match an open ask.requested)",
+    "answer": "string (required)",
+    "by": "string (optional)"
+  }
+}

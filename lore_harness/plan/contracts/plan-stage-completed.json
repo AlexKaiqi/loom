@@ -1,0 +1,8 @@
+{
+  "kind": "plan.stage.completed",
+  "producer": "harness",
+  "payload": {
+    "stage_id": "string (required)",
+    "evidence_refs": "array of strings (required): files proving the deliverable"
+  }
+}

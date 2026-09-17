@@ -1,0 +1,5 @@
+{
+  "kind": "code.change.declared",
+  "producer": "harness",
+  "payload": { "summary": "string (required)", "files": "array of strings (required)" }
+}

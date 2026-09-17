@@ -1,0 +1,6 @@
+{
+  "kind": "research.source.verified",
+  "producer": "harness",
+  "note": "Derived by the harness from the real file bytes; the model never declares a digest.",
+  "payload": { "source_ref": "string (required)", "digest": "sha256 (required)" }
+}

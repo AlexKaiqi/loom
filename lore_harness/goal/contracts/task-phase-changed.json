@@ -1,0 +1,10 @@
+{
+  "kind": "task.phase.changed",
+  "producer": "harness",
+  "payload": {
+    "goal_id": "string (optional)",
+    "from": "string (required)",
+    "to": "string (required)",
+    "rev": "integer (required)"
+  }
+}

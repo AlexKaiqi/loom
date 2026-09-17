@@ -1,0 +1,6 @@
+{
+  "kind": "plan.completed",
+  "producer": "harness",
+  "note": "Derived declaration by the harness once every stage is completed; not a runtime terminal state.",
+  "payload": { "plan_id": "string (required)", "stages": "array of completed stage ids" }
+}

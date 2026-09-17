@@ -1,0 +1,10 @@
+{
+  "kind": "code.test.declared",
+  "producer": "harness",
+  "note": "Declares the outcome of one real test run; evidence_refs point at the tool result fact or files.",
+  "payload": {
+    "command": "string (required)",
+    "outcome": "pass | fail (required)",
+    "evidence_refs": "array of strings (required)"
+  }
+}

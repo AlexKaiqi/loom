@@ -1,0 +1,13 @@
+{
+  "kind": "sys.tool.result",
+  "producer": "runtime",
+  "payload": {
+    "script": "string",
+    "target": "content | workspace | workspace:<id>",
+    "cwd": "string (resolved working directory)",
+    "exit": "integer",
+    "stdout_digest": "sha256 of the full stdout bytes",
+    "stdout": "string (inline, bounded)",
+    "stderr": "string (inline, bounded)"
+  }
+}

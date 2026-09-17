@@ -1,0 +1,5 @@
+{
+  "kind": "sys.recall.result",
+  "producer": "runtime",
+  "payload": {"query":"string","matches":"array of {file,line,snippet}","scanned_files":"integer","truncated":"boolean"}
+}

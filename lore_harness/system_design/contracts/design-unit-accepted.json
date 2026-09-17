@@ -1,0 +1,9 @@
+{
+  "kind": "design.unit.accepted",
+  "producer": "harness",
+  "note": "Model declaration; the runtime refuses it when base_rev is not the committed revision.",
+  "payload": {
+    "unit_id": "string (required)",
+    "base_rev": "string (required): the committed revision shown in the projection"
+  }
+}

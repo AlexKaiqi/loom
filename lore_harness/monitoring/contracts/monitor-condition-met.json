@@ -1,0 +1,5 @@
+{
+  "kind": "monitor.condition.met",
+  "producer": "harness",
+  "payload": { "monitor_id": "string (required)", "evidence_refs": "array of strings (required)" }
+}

@@ -1,0 +1,12 @@
+{
+  "kind": "archive.performed",
+  "producer": "harness",
+  "note": "Records a lossless fold: original bytes stay reachable; only the visible set shrinks.",
+  "payload": {
+    "scope": "string (required)",
+    "moved": "array of {from, to} (required)",
+    "original_refs": "array of strings (required): archived paths still holding the original bytes",
+    "mode": "lossless | lossy (required)",
+    "fold_digest": "sha256 (required when mode=lossy)"
+  }
+}

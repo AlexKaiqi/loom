@@ -1,0 +1,11 @@
+{
+  "kind": "sys.tool.result",
+  "producer": "runtime",
+  "payload": {
+    "script": "string",
+    "exit": "integer",
+    "stdout_digest": "sha256 of the full stdout bytes",
+    "stdout": "string (inline, bounded)",
+    "stderr": "string (inline, bounded)"
+  }
+}

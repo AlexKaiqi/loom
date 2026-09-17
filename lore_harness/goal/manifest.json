@@ -1,0 +1,24 @@
+{
+  "schema": "lore-harness/v1",
+  "entry": { "ref": "logic/main.py" },
+  "facts": {
+    "kinds": [
+      { "kind": "sys.tool.result", "producer": "runtime", "contract": { "ref": "contracts/sys-tool-result.json" } },
+      { "kind": "task.objective.set", "producer": "external", "contract": { "ref": "contracts/task-objective-set.json" } },
+      { "kind": "user.message", "producer": "external", "contract": { "ref": "contracts/user-message.json" } },
+      { "kind": "task.phase.changed", "producer": "harness", "contract": { "ref": "contracts/task-phase-changed.json" } },
+      { "kind": "task.completed", "producer": "harness", "contract": { "ref": "contracts/task-completed.json" } }
+    ],
+    "triggers": [
+      { "id": "objective", "on": ["task.objective.set", "user.message"] }
+    ]
+  },
+  "roles": {
+    "rounds": [ { "id": "goal", "ref": "rounds/main.py" } ],
+    "projection": [ { "id": "goal", "ref": "projection/main.py" } ],
+    "logic": [ { "id": "goal", "ref": "logic/main.py" } ],
+    "admission": [ { "id": "default", "ref": "admission/main.py" } ]
+  },
+  "views": [],
+  "extensions": []
+}

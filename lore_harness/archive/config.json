@@ -1,0 +1,6 @@
+{
+  "threshold_bytes": 4000,
+  "keep_recent_files": 2,
+  "mode": "lossless",
+  "note": "Domain tuning values (landing §4.6 五件套 ②: thresholds are harness configuration, not runtime semantics)."
+}

@@ -1,0 +1,6 @@
+{
+  "kind": "sys.action.rejected",
+  "producer": "runtime",
+  "note": "Runtime refusal of an action the harness's logic.guard rejected before execution (no side effect happened).",
+  "payload": { "action": "string", "reason": "string" }
+}

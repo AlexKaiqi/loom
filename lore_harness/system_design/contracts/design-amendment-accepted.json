@@ -1,0 +1,6 @@
+{
+  "kind": "design.amendment.accepted",
+  "producer": "external",
+  "note": "Only an accepted amendment unfreezes a unit; the model cannot unfreeze itself.",
+  "payload": { "unit_id": "string (required)", "reason": "string (optional)" }
+}

@@ -1,0 +1,37 @@
+# 待落地想法与工作项登记（backlog）
+
+地位：跨阶段的**想法/事项登记簿**，不是验收证据、不是门禁、不声称任何能力通过。
+用途：用户想法与散落的"下一步"有唯一落点；每条给出与既有决定/合同的关系、下一步动作与需要的证据门槛。
+不重复既有登记：未知项见 [unknowns.md](unknowns.md)（Q01–Q15）；X 组件未决项见 [g3/x/pending-items-2026-09-16.md](g3/x/pending-items-2026-09-16.md)；已验证/失败/未运行范围见 [../docs/validation-status.md](../docs/validation-status.md)；阶段门槛见 [../GOAL.md](../GOAL.md)。
+状态词：`IDEA`（只有想法）｜`PENDING`（已登记待做，前提满足）｜`ADJUDICATE`（需用户/独立复核裁决）｜`DOING`｜`DONE`（附证据引用）｜`REJECTED`（附理由）。**DONE 必须指到证据，不能只写完成。**
+
+| ID | 想法 / 事项 | 来源 | 状态 | 下一步 | 依赖 / 证据门槛 |
+|---|---|---|---|---|---|
+| B01 | **沙箱服务化 + 本地地址验证**：X 执行后端以本地服务形态提供，调用经本地地址（loopback）而非 in-process/unix socket；用同一套契约用例跨 transport 复跑，证明接缝没有绑定 Docker/本机文件系统 | 用户 2026-09-16 | IDEA | 出接缝扩展记录（在 [g3/x/backend-seam.md](g3/x/backend-seam.md) 上续写）：endpoint 类型抽象、wire = §2 方法集、profile 归属；解 `engine.py` 的 `unix://` 硬校验；本地服务启动/监管与预算会计；用例跨 transport 等价 + 非 loopback 拒绝 | 同一批 X 用例在两种 transport 下产出**同一组合同事实**（stopped proof、checkpoint manifest、幂等/UNKNOWN 语义）；请求只收授权引用不收宿主路径；模型/任务不可达服务 |
+| B02 | 任务目录 D1：目录 = 任务侧 T0 落盘层 + 每任务设施根，host 共享机制留目录外 | [g3/task-directory-landing.md](g3/task-directory-landing.md) §12 U1 | ADJUDICATE | 用户裁决后收敛 v2 件 | 裁决记录；后续实现与用例 |
+| B03 | 三分区与 glossary T0 修订（T0 = 接续区 ∪ 观测原件；接续集 = 接续区） | 同上 U2 | ADJUDICATE | 裁决后改 glossary 并注明沿革 | 独立复核；不动墓碑词 |
+| B04 | content revision 机制：F `capture`（versions.git + archive/manifest）为主，worktree git 为 conventions 选项 | 同上 U3 | ADJUDICATE | 裁决后写入 v2 件 §12.1 | 与 F 合同/已有 oracle 一致 |
+| B05 | R 控制库归属：任务侧运行账本随目录 / host 侧登记·授权·跨任务关系索引留 host（拆分） | 同上 U4 | ADJUDICATE | 裁决后拟 R 合同修订 | 拆分不得削弱授权边界；需 R 用例 |
+| B06 | 可移植性措辞与外部 Workspace 迁移责任 | 同上 U5 | ADJUDICATE | 写进 v2 件 | 与 v5:38 / G1:25 对齐 |
+| B07 | 事件导出时机：默认每 Round；每 Step 为 conventions 选项；导出接口形态（复用 runtime 读端 vs E 窄接口） | 同上 U6 | ADJUDICATE | 裁决后定接口 | 需 E/runtime 侧用例 |
+| B08 | M06 ARCHIVE 对齐 + 自有批次重跑（运行包络已对齐，M06 未同步） | g3/x/pending-items 2026-09-16 | PENDING | 对齐后重跑 M06 套件 | 自有批次证据；不许以旧批次顶替 |
+| B09 | M02 原始证据未随环境迁移：重建 M02 证据或正式标注历史证据失效 | 同上（验收发现） | PENDING | 二选一并落 [../docs/validation-status.md](../docs/validation-status.md) | 原始证据可复核，或明确降级 |
+| B10 | 工具链：virtiofs 陈旧缓存导致新旧混合文件，编辑后容器侧核验惯例未机制化 | 同上（未决 6） | PENDING | 固化为协议（sleep+grep/ast 核验）并留反例 | 反例可复现；协议可机械执行 |
+| B11 | 任务目录的拓展机制：`harness/tools/`、`harness/budget/` 是否入选标准点；manifest 事件声明 schema 已定语义（§4.5），剩余正式字段与 runtime 解析实现 | 用户 2026-09-16；[g3/task-directory-landing.md](g3/task-directory-landing.md) §4.1、§4.5 | PENDING | 进组件合同；配 VD13/VD14/VE06 用例 | 新增拓展点不改 runtime；未知条目保真；声明但 digest 不符须拒 |
+| B12 | **示例能力与示例 harness 充分性**：goal / plan / task 委派 / archive（上下文控制）都必须只用通用原语 P1–P8 与"五件套"（词表+产生者+触发+投影+逻辑）表达；若必须新增框架目录，则补通用原语而非领域目录。**V-A 已裁决（2026-09-16，用户）：状态权威在事件（§4.4）** | 用户 2026-09-16；[g3/task-directory-landing.md](g3/task-directory-landing.md) §4.3–4.6 | PENDING | 定保留前缀命名空间申请机制；配 VE01–VE08 用例 | 无通用终态（v5:161,208）；完成声明≠业务验收；归档只缩视图不删依据（v5:252）；委派不继承授权 |
+| B13 | **harness 示例集（一能力一文件）**：[g3/harness-catalog/](g3/harness-catalog/) 已写 goal / plan / archive / ask-user / coding / research / delegation / monitoring；用"能否只用通用原语定义"检验框架。**宁缺毋滥：缺口只登记，不提前加目录/字段** | 用户 2026-09-16 提议 | PENDING | 按需续写待写清单中的一个；缺口回补走独立评审 | 每文件只用一个通用原语缺口回补；不得把领域概念写进框架 |
+| B14 | **示例集暴露的通用原语缺口（宁缺毋滥，先登记不设计）**：① 规范观测目录 `sys.*`（archive）② 对外通知/投递（ask-user）③ 模型辅助召回契约（research）④ 跨任务授权查询语义（delegation）⑤ 定时/时钟观测与等待责任（monitoring）⑥ **条件受理（base_rev 比较交换）**⑦ **冻结与修订**⑧ **依赖/失效传播**（后三项来自 system-design，plan/delegation 也会用到）⑨ **harness 声明的长驻会话组件（session-runner）**⑩ **流式观测通道（分片+引用）**⑪ **媒体 artifact 通用化**⑫ **工作空间变更观测**（⑨–⑫ 来自 voice-assistant）⑬ **工具存活检查与明确结果**（默认到点发 `sys.tool.check` 而非硬杀；harness 决策、runtime 资源安全网；`ok/failed/timeout/unknown` 四分类与 `abandoned`；[g3/voice-assistant/execution-timeouts.md](g3/voice-assistant/execution-timeouts.md)） | [g3/harness-catalog/](g3/harness-catalog/) 各文件"框架缺口"节 | IDEA | 等更多示例出现再判断是否收敛为原语；每个缺口先要一条反例 | 只补通用原语，不加领域目录；补前先有失败/受限证据 |
+| B15 | **任务目录 runtime M1 已落地**（用户 2026-09-16 授权"先 runtime 再 harness"）：`lore_task/`（基础树/manifest 声明解析/facts/head/ledger/触发器水位/Round→投影→模型→工具→提交，harness 只读硬校验）+ `lore_harness/goal/`；真实验证 ark `glm-5.3-flash` 三次运行，独立校验器 003 全绿；两个反例（无进展循环、重复完成）已修复并留证 | [validation/task_runtime/FINDINGS-2026-09-16.md](../validation/task_runtime/FINDINGS-2026-09-16.md) | DOING | 继续：runtime 加固（崩溃/幂等/多轮）→ 其余 harness（plan/archive/ask-user/coding/research/delegation/monitoring/system-design）→ 独立复跑 | 证据在 `validation/task_runtime/evidence/`（gitignore）；未经独立验收，不声称组件通过 |
+| B16 | **助手 task 设计**（用户 2026-09-17，含三项裁决）：**一个助手 = 一个长期 task**（会话是 task 内 `session` 区间，`session.ended` ≠ task 完成）；**语音只属于助手 harness**（端口/适配器/会话编排在 `harness/ext/voice/`，不新增框架设施）；**落在任务目录**（[g3/voice-assistant/assistant-task.md](g3/voice-assistant/assistant-task.md) 给出目录解剖与会话事件流）。含风格预设与"回答重点"口语化渲染、全双工（barge-in/轮次检测，复用开源编排）、Ark `glm-5.3-flash` / 豆包 ASR/TTS 2.0 适配规范（含实测协议观测）。设计资产：[design/g3/voice-assistant/](g3/voice-assistant/README.md)、[latency-and-curation.md](g3/voice-assistant/latency-and-curation.md)（及时响应 vs 知识维护：两个策略实例、延迟预算、工作空间认知、维护时机）、[events.md](g3/voice-assistant/events.md)（词表：产生者/触发/幂等键/最小闭环）、[conversation-record.md](g3/voice-assistant/conversation-record.md)（对话记录：目录化原始音频+元数据、端点切片、分析扩展位）、[scheduling.md](g3/voice-assistant/scheduling.md)（日程归助手、机制归 runtime；**复用标准 crontab + 事件定义**，不自定义/不重实现；两条纪律：权威在任务数据、cron 只叫醒不写事实；`adapter.error` 归 harness）、[execution-timeouts.md](g3/voice-assistant/execution-timeouts.md)（执行存活：**默认到点发 `sys.tool.check`、不自动杀**；怎么办归 harness；runtime 保留硬上限与资源安全网，回收即 `abandoned/unknown`；不做逐次提醒；in-band `timeout` 只是纵深）、[harness-catalog/voice-assistant.md](g3/harness-catalog/voice-assistant.md) | 用户 2026-09-17；[g3/voice-assistant/providers.md](g3/voice-assistant/providers.md) 实测 | PENDING | ① 框架定版（调研已完成：主选 LiveKit Agents 1.8.2 / 备选 Pipecat 1.10.0；须裁决 plan 鉴权差距与许可）② session-runner 通用机制的口径确认 ③ 对话记录落地（事件权威 `voice.segment.sealed` + 目录物化；定 `record_schema_version` 与 `retention_class`）④ **runtime 调度机制**（标准 crontab + 事件定义 → `sys.schedule.fired`；默认 runtime 内建循环 + 成熟解析库，宿主调度器仅作"不常驻"备选；迟到补齐；+ `sys.clock` 谓词式时间；多 harness 共用）⑤ **执行存活检查**（`sys.tool.started/check/finished/abandoned`；默认发 check 不自动杀；结果四分类 `ok/failed/timeout/unknown`；资源上限回收即 unknown；[execution-timeouts.md](g3/voice-assistant/execution-timeouts.md)）⑥ 端口契约 + `fake` 适配器 + 一致性套件 ⑦ doubao/ark 适配器 ⑧ 双工组合与打断 ⑨ 冷/热两循环与工作空间认知 ⑩ 独立验收（VO01–VO42） | 需先补通用原语：session-runner、runtime 调度、工具存活检查与明确结果、空闲观测、对外投递、流式观测通道、媒体 artifact 通用化、工作空间变更观测；换模型须有共用判据而非"两个都能跑"；密钥不落库；框架许可与供应链须审计 |
+
+| B17 | **验收后遗留（不改进已验收版本，保持"被验=交付"）**：孤立代理项（lone surrogate）payload 让轮以 `UnicodeEncodeError` traceback 中止（可 `recover`，非弄砖）；应改为写入前的类型化拒绝（"payload 不是合法 UTF-8"） | 验收 A 收尾（[RECORD](../validation/task_runtime/acceptance/RECORD-2026-09-16.md) 边界 7） | PENDING | 在 `facts.append_fact`/`ledger.append_jsonl` 编码前捕获并抛 `ValueError` | 改后须重走一轮独立复验才能计入通过 |
+| B18 | **并发/单写者租约**：并发 `recover` 无串行化（8 次冒烟中 1 次出现两个 abort 行，无事实丢失）；契约本就列明的缺口 | 验收 A R4 | IDEA | 先定义租约语义（持有者、崩溃回收），再实现 + 预注册用例 | 不得以冒烟代替证明；需真实并发用例 |
+| B19 | **工具执行"30s 硬杀"→"check 先行"（设计-实现差异，待实施）**：现状 `lore_task/round.py` 固定 `tool_timeout=30s` 直接终止、超时塌缩为 `exit 124`、无存活观测、不保证整进程组终止；设计目标为默认发 `sys.tool.check`（不自动杀）+ 结果四分类 `ok/failed/timeout/unknown` + 资源安全网 `sys.tool.abandoned` | 用户 2026-09-17 裁决；[amendment-task-tool-liveness-2026-09-17.md](g3/amendment-task-tool-liveness-2026-09-17.md)；[execution-timeouts.md](g3/voice-assistant/execution-timeouts.md) | PENDING | ① 预登记 VO37–VO42 落为可执行判据 ② 实现 check/四分类/进程组终止/安全网 ③ 独立复跑既有 `validation/task_runtime/` 套件 + 新用例 | 未实施前不得声称行为已改；保留 `exit 126`/`exit 0` 语义；核对既有证据不迁移（旧行为绑定旧版本） |
+
+## 想法池（无编号草稿）
+
+新想法先记一行，够清楚再给 ID 与门槛。
+
+| 想法 | 提出 | 备注 |
+|---|---|---|
+| （待补） | | |
