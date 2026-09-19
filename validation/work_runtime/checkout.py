@@ -20,3 +20,13 @@ def skip_unless(*needed: str) -> bool:
         return False
     print("SKIP this checkout's lore_harness lacks %s" % missing)
     return True
+
+
+def skip_unless_pin() -> bool:
+    """Pin is a projection accessory; it does not add a fact kind."""
+    path = HARNESS / "projection" / "main.py"
+    text = path.read_text(encoding="utf-8") if path.is_file() else ""
+    if "Pinned (from facts every Round" in text:
+        return False
+    print("SKIP this checkout does not pin objective/acceptance")
+    return True

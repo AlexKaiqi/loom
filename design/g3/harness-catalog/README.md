@@ -41,7 +41,7 @@ computer-use（浏览器/桌面）、review / critic（独立评审）、reflect
 
 不要做「写 Harness 的 Harness」，不要做 Runtime 组合或代码生成器。生成物会变成第二份真相。
 
-1. 从 `h/kernel` 开一条子分支（名字体现依赖栈，见 [harness-variants](../../docs/harness-variants.md)）。
+1. 从 `h/kernel/root` 开一条子分支（名字体现依赖栈，叶节点以 `/root` 收尾，见 [harness-variants](../../docs/harness-variants.md)）。
 2. 只改 `lore_harness/` 里缺省做不到的 kind / 投影 / 轮门。公共解析用 `lore_harness_base.py`（不是契约，不进 digest）。
 3. 用 worktree 同时挂上要对比的组合；同一 Host 可跑多个 Work、各绑一棵树。
 

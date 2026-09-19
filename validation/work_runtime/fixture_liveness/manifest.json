@@ -1,5 +1,5 @@
 {
-  "schema": "lore-harness/v1",
+  "schema": "loom.harness/v1",
   "entry": { "ref": "logic/main.py" },
   "facts": {
     "kinds": [

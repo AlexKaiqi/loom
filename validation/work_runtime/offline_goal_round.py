@@ -41,13 +41,15 @@ def main() -> int:
     check("admission_accepted", len(admitted) == 1 and admitted[0]["decision"] == "accepted", json.dumps(admitted))
     facts = facts_mod.read_facts(base)
     kinds = [f["kind"] for f in facts]
-    check("fact_kinds", kinds == ["work.objective.set", "sys.tool.result", "work.completed"], str(kinds))
+    core = [kind for kind in kinds if kind != "sys.context.usage"]
+    check("fact_kinds", core == ["work.objective.set", "sys.tool.result", "work.completed"], str(kinds))
     report = base / "surface" / "content" / "report.md"
     check("content_written_bytes_exact", report.is_file() and report.read_bytes() == b"sum=10\n",
           repr(report.read_bytes()[:20]) if report.is_file() else "missing")
     head = layout.read_json(base / "surface" / "head")
     check("head_commit",
-          head["facts_end"]["seq"] == 3 and head["round_id"] == result.get("round_id") and head["ledger_seq"] == 1,
+          head["facts_end"]["seq"] == facts[-1]["seq"] and head["round_id"] == result.get("round_id")
+          and head["ledger_seq"] == 1,
           json.dumps(head))
     records = ledger.round_records(base)
     check("round_record", len(records) == 1 and records[0]["trigger_seq"] == 1, json.dumps(records))

@@ -114,7 +114,7 @@ def load(base, *, verify: bool = True) -> Manifest:
     if not path.is_file():
         raise ManifestError("missing harness/manifest.json")
     data = read_json(path)
-    if data.get("schema") != "lore-harness/v1":
+    if data.get("schema") not in ("loom.harness/v1", "lore-harness/v1"):
         raise ManifestError(f"unsupported harness schema: {data.get('schema')!r}")
 
     for role, entries in (data.get("roles") or {}).items():

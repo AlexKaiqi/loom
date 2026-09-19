@@ -114,6 +114,25 @@ def catalog() -> dict:
     }
 
 
+def _branch_matches(branch: str | None, name: str) -> bool:
+    """Match a worktree branch to a user-supplied stack name.
+
+    Git forbids a ref that is a prefix of another, so stack nodes are named
+    `h/kernel/pin/root`. Callers may pass that full name, the stem without
+    `/root`, or a unique suffix such as `pin` or `kernel/pin`.
+    """
+    if not branch:
+        return False
+    if branch == name:
+        return True
+    stem = branch[:-5] if branch.endswith("/root") else branch
+    if stem == name:
+        return True
+    if stem.endswith("/" + name) or branch.endswith("/" + name):
+        return True
+    return False
+
+
 def resolve_harness(name_or_path: str) -> Path:
     raw = Path(name_or_path).expanduser()
     if raw.is_dir() and (raw / "manifest.json").is_file():
@@ -121,11 +140,7 @@ def resolve_harness(name_or_path: str) -> Path:
     if name_or_path in ("kernel", "lore_harness", "."):
         return this_harness()
     for row in list_worktrees():
-        if row.get("branch") == name_or_path:
-            return Path(row["harness"])
-        # allow the structured suffix: pin, kernel/pin
-        branch = row.get("branch") or ""
-        if branch == name_or_path or branch.endswith("/" + name_or_path):
+        if _branch_matches(row.get("branch"), name_or_path):
             return Path(row["harness"])
     if "/" in name_or_path or name_or_path in (".", "..") or name_or_path.startswith("~"):
         raise FileNotFoundError("harness template without manifest.json: %s" % name_or_path)
