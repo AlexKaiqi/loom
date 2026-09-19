@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.12
-"""Offline case: pin reconstructs objective and acceptance at the front of projection.
+"""Offline case: projection reconstructs objective and acceptance from Surface facts.
 
-No network, no credentials. Assertions read the session request bytes.
+No extra write: those fields already live on work.objective.set.
 """
 import json
 import sys
@@ -10,8 +10,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from checkout import skip_unless_pin
 
 from lore_work import layout
 from lore_work import provider
@@ -25,9 +23,7 @@ RESPONSES = [
 
 
 def main() -> int:
-    if skip_unless_pin():
-        return 0
-    root = Path(tempfile.mkdtemp(prefix="lore-pin-"))
+    root = Path(tempfile.mkdtemp(prefix="lore-objective-"))
     base = layout.create_work(root, "p-1", ROOT / "lore_harness")
     round_mod.admit(base, "obj-1", "work.objective.set",
                     {"objective": "write sum=10 report", "acceptance": ACCEPTANCE})
@@ -43,7 +39,6 @@ def main() -> int:
     first = json.loads(session.read_text(encoding="utf-8").split("\n", 1)[0]) if session.is_file() else {}
     messages = (first.get("request") or [])
     user = next((m.get("content") or "" for m in messages if m.get("role") == "user"), "")
-    check("pinned_heading_first", user.lstrip().startswith("# Pinned"), user[:200])
     check("acceptance_in_projection", json.dumps(ACCEPTANCE, ensure_ascii=False) in user, user[:400])
     check("objective_in_projection", "write sum=10 report" in user)
 

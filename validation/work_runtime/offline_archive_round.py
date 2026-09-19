@@ -1,9 +1,10 @@
 #!/usr/bin/env python3.12
-"""Offline case: archive mode folds older content losslessly and records it.
+"""Offline case: archive bounds the projection listing; Surface files stay put.
 
-No network, no credentials. Assertions read on-disk artifacts.
+No network, no credentials. Assertions read on-disk artifacts and session bytes.
 """
 import json
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -18,16 +19,9 @@ from lore_work import layout, ledger
 from lore_work import provider
 from lore_work import round as round_mod
 
-MOVED = [
-    {"from": "old-1.md", "to": "archive/old-1.md"},
-    {"from": "old-2.md", "to": "archive/old-2.md"},
-]
-RESPONSE = [
-    json.dumps({"action": {"type": "shell", "script": "mkdir -p archive && mv old-1.md old-2.md archive/"}}),
-    json.dumps({"action": {"type": "emit", "kind": "archive.performed",
-                           "payload": {"scope": "content", "moved": MOVED,
-                                       "original_refs": ["archive/old-1.md", "archive/old-2.md"],
-                                       "mode": "lossless"}}}),
+RESPONSES = [
+    json.dumps({"action": {"type": "emit", "kind": "work.completed",
+                           "payload": {"evidence_refs": ["recent-2.md"]}}}),
 ]
 
 
@@ -39,11 +33,16 @@ def main() -> int:
     content = base / "surface" / "content"
     originals = {"old-1.md": "first note\n", "old-2.md": "second note\n",
                  "recent-1.md": "recent one\n", "recent-2.md": "recent two\n"}
+    mtime = 1_700_000_000
     for name, text in originals.items():
-        (content / name).write_text(text)
-    round_mod.admit(base, "arc-1", "archive.requested", {"reason": "context pressure"})
+        path = content / name
+        path.write_text(text)
+        os.utime(path, (mtime, mtime))
+        mtime += 60
+    round_mod.admit(base, "obj-1", "work.objective.set",
+                    {"objective": "leave the notes in place", "acceptance": ["files remain"]})
 
-    result = round_mod.run_round(base, provider.FauxProvider(RESPONSE), max_steps=4)
+    result = round_mod.run_round(base, provider.FauxProvider(RESPONSES), max_steps=4)
     checks = []
 
     def check(name, ok, detail=""):
@@ -54,19 +53,29 @@ def main() -> int:
     kinds = [f["kind"] for f in facts]
     check("usage_observed", "sys.context.usage" in kinds, str(kinds))
     check("performed_once", kinds.count("archive.performed") == 1, str(kinds))
-    check("stopped_after_performed", result.get("steps") == 2, json.dumps(result.get("steps")))
 
-    check("archive_dir_exists", (content / "archive").is_dir())
-    check("lossless_bytes",
-          (content / "archive" / "old-1.md").read_text() == originals["old-1.md"]
-          and (content / "archive" / "old-2.md").read_text() == originals["old-2.md"])
-    check("recent_kept", (content / "recent-1.md").is_file() and (content / "recent-2.md").is_file())
-    check("nothing_deleted", not (content / "old-1.md").exists() and not (content / "old-2.md").exists())
+    for name, text in originals.items():
+        path = content / name
+        check("surface_kept_%s" % name, path.is_file() and path.read_text() == text,
+              "missing" if not path.is_file() else path.read_text())
+    check("no_archive_dir", not (content / "archive").exists())
 
     performed = [f for f in facts if f["kind"] == "archive.performed"][0]["payload"]
-    check("moved_recorded", performed.get("moved") == MOVED and performed.get("mode") == "lossless",
-          json.dumps(performed))
-    check("original_refs", performed.get("original_refs") == ["archive/old-1.md", "archive/old-2.md"])
+    check("mode_lossless", performed.get("mode") == "lossless", json.dumps(performed))
+    omitted = performed.get("omitted") or []
+    shown = performed.get("shown") or []
+    check("omitted_some", len(omitted) >= 1, json.dumps(performed))
+    check("shown_bounded", len(shown) <= 2, json.dumps(performed))
+    check("omitted_still_on_surface", all((content / name).is_file() for name in omitted), json.dumps(omitted))
+    check("original_refs_are_surface_paths",
+          set(performed.get("original_refs") or []) == set(omitted), json.dumps(performed))
+
+    session = base / "session" / "rounds" / (result.get("round_id", "") + ".jsonl")
+    first = json.loads(session.read_text(encoding="utf-8").split("\n", 1)[0]) if session.is_file() else {}
+    user = next((m.get("content") or "" for m in (first.get("request") or []) if m.get("role") == "user"), "")
+    check("projection_mentions_omitted", "omitted" in user.lower() or "still on Surface" in user, user[:400])
+    for name in shown:
+        check("shown_listed_%s" % name, name in user, user[:300])
 
     head = layout.read_json(base / "surface" / "head")
     check("head_matches_last_fact", head["facts_end"]["seq"] == facts[-1]["seq"])
@@ -75,12 +84,12 @@ def main() -> int:
           layout.tree_digest(base / "harness") == layout.read_json(base / "work.json")["harness"]["digest"])
 
     again = round_mod.run_round(base, provider.FauxProvider([]), max_steps=1)
-    check("no_immediate_rearchive", again.get("status") == "no_trigger", json.dumps(again))
+    check("no_second_trigger", again.get("status") == "no_trigger", json.dumps(again))
 
     ok = all(item[1] for item in checks)
     for name, passed, detail in checks:
         print(("PASS " if passed else "FAIL ") + name + ("" if passed else "  :: " + detail))
-    print(json.dumps({"work_root": str(root), "kinds": kinds}, ensure_ascii=False))
+    print(json.dumps({"work_root": str(root), "kinds": kinds, "performed": performed}, ensure_ascii=False))
     return 0 if ok else 1
 
 

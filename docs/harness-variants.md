@@ -4,49 +4,33 @@
 
 ## 分支名 = 依赖栈
 
-斜线表示「在上一层上再叠一层」，与 rebase 父分支同一条路径。Git 不允许一条分支名是另一条的前缀，所以**每个栈节点都以 `/root` 收尾**。
+斜线表示「在上一层上再叠一层」。Git 不允许一条分支名是另一条的前缀，所以**每个栈节点都以 `/root` 收尾**。
 
-从最简 kernel 出发。Archive（上下文折叠）是必须层，紧挨 kernel。Pin（钉住目标）和 plan（按阶段推进）是叠在 archive 上的可选配件，稀疏组合，不从 kernel 分叉。
+从最简 kernel 出发。Archive 是必须层：只缩小 **Projection**（少列文件），不改 Surface 上的文件。Plan 叠在 archive 上。Goal 的 objective/acceptance 已是 Surface 上的 Fact，投影每轮读出来即可，没有单独的 pin 枝。
 
 ```
 main
 h/kernel/root
 h/kernel/archive/root
-h/kernel/archive/pin/root
 h/kernel/archive/plan/root
-h/kernel/archive/pin/plan/root
 ```
 
-父分支 = 少一层配件。`--harness` 可以写完整分支名，也可以写去掉 `/root` 的栈路径（如 `kernel/archive/plan`）。
-
 ## worktree
-
-主工作副本停在 `main`。每个要同时访问的组合一个 worktree（路径可读）：
 
 ```sh
 git worktree add ../loom-h-kernel h/kernel/root
 git worktree add ../loom-h-kernel-archive h/kernel/archive/root
-git worktree add ../loom-h-kernel-archive-pin h/kernel/archive/pin/root
 git worktree add ../loom-h-kernel-archive-plan h/kernel/archive/plan/root
-git worktree add ../loom-h-kernel-archive-pin-plan h/kernel/archive/pin/plan/root
 ```
 
-登记时把 `--harness` 指到该 worktree 的 `lore_harness/`，或把 `loom harnesses` 已列出的分支名交给 `--harness`。同一 Host 上两个 Work 可以各绑一棵树。
+`--harness` 可以是该 worktree 的 `lore_harness/`，或 `loom harnesses` 列出的分支名。
 
 ## 底座更新
-
-`main` 前进后按栈 rebase，从短到长：
 
 ```sh
 git rebase main h/kernel/root
 git rebase h/kernel/root h/kernel/archive/root
-git rebase h/kernel/archive/root h/kernel/archive/pin/root
 git rebase h/kernel/archive/root h/kernel/archive/plan/root
-git rebase h/kernel/archive/pin/root h/kernel/archive/pin/plan/root
 ```
 
-Rebase 后是新 digest。新 Work 用新绑定；已登记 Work 仍是登记时的字节。复现一次对比钉 **commit SHA**，不钉分支名。
-
-## 本树是什么
-
-当前 checkout 的 `lore_harness/` **就是** kernel：objective → shell → `work.completed` 声明。archive / pin / plan 在对应分支上改这同一棵树，不在 `main` 上并排目录。原先那九个并排示例目录不是这套组合模型。
+身份是拷进 Work 时的 tree digest，不是分支名。

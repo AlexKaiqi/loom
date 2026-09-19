@@ -1,5 +1,5 @@
 #!/usr/bin/env python3.12
-"""Independent checker for an archive work directory (reads only on-disk artifacts).
+"""Independent checker: archive bounds projection, Surface files stay reachable.
 
 Usage: python3.12 verify_archive_work.py <work-dir>
 """
@@ -44,13 +44,12 @@ def main() -> int:
     if performed:
         payload = performed[0]
         check("mode_lossless", payload.get("mode") == "lossless", json.dumps(payload)[:200])
-        moved = payload.get("moved") or []
-        check("moved_listed", len(moved) >= 1, json.dumps(moved))
-        check("originals_reachable", all((content / m["to"]).is_file() for m in moved), json.dumps(moved))
-        check("original_refs_recorded",
-              set(payload.get("original_refs") or []) == {m["to"] for m in moved}, json.dumps(payload)[:200])
-    survivors = [str(p.relative_to(content)) for p in content.rglob("*") if p.is_file() and "archive/" not in str(p.relative_to(content))]
-    check("recent_files_kept", len(survivors) >= 1, str(survivors))
+        omitted = payload.get("omitted") or []
+        check("omitted_listed", len(omitted) >= 1, json.dumps(omitted))
+        check("originals_still_on_surface", all((content / name).is_file() for name in omitted), json.dumps(omitted))
+        check("original_refs_are_omitted",
+              set(payload.get("original_refs") or []) == set(omitted), json.dumps(payload)[:200])
+        check("not_a_surface_move", not payload.get("moved"), json.dumps(payload)[:200])
 
     head = json.loads((base / "surface" / "head").read_text())
     check("head_matches_last_fact",

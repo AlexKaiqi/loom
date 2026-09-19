@@ -1,7 +1,6 @@
-"""Kernel projection: working directory, recent tools, action protocol.
+"""Kernel projection: reconstruct work from Surface facts, list content, recent tools.
 
-Objective text is listed when present. Pinning it against later working-set
-trimming is a combination branch (`h/kernel/pin`), not this kernel.
+Objective and acceptance come from facts, not from rewriting Surface.
 """
 import json
 
@@ -21,6 +20,7 @@ def build(*, work, facts, new, head, content_dir, step=0, max_steps=1, rejected_
     lines = [
         "# Work",
         "objective: %s" % (objective.get("objective") or "(none)"),
+        "acceptance: %s" % json.dumps(objective.get("acceptance") or [], ensure_ascii=False),
         "completed: %s" % folded["work.completed"],
         "",
     ]
