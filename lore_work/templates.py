@@ -118,8 +118,8 @@ def _branch_matches(branch: str | None, name: str) -> bool:
     """Match a worktree branch to a user-supplied stack name.
 
     Git forbids a ref that is a prefix of another, so stack nodes are named
-    `h/kernel/pin/root`. Callers may pass that full name, the stem without
-    `/root`, or a unique suffix such as `pin` or `kernel/pin`.
+    `h/kernel/archive/pin/root`. Callers may pass that full name, the stem without
+    `/root`, or a unique suffix such as `archive` or `kernel/archive`.
     """
     if not branch:
         return False
