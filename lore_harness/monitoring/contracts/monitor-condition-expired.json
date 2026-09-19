@@ -1,5 +1,0 @@
-{
-  "kind": "monitor.condition.expired",
-  "producer": "harness",
-  "payload": { "monitor_id": "string (required)", "reason": "string (required)" }
-}

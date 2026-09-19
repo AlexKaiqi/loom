@@ -1,7 +1,0 @@
-{
-  "kind": "user.message",
-  "producer": "external",
-  "payload": {
-    "text": "string (required)"
-  }
-}

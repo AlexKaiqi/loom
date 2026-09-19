@@ -1,0 +1,31 @@
+{
+  "schema": "loom.harness/v1",
+  "facts": {
+    "kinds": [
+      {
+        "kind": "sys.tool.result",
+        "producer": "runtime",
+        "contract": { "ref": "contracts/sys-tool-result.json" }
+      },
+      {
+        "kind": "work.objective.set",
+        "producer": "external",
+        "contract": { "ref": "contracts/work-objective-set.json" }
+      },
+      {
+        "kind": "work.completed",
+        "producer": "harness",
+        "contract": { "ref": "contracts/work-completed.json" }
+      }
+    ],
+    "triggers": [
+      { "id": "objective", "on": ["work.objective.set"] }
+    ]
+  },
+  "roles": {
+    "rounds": [{ "id": "kernel", "ref": "rounds/main.py" }],
+    "projection": [{ "id": "kernel", "ref": "projection/main.py" }],
+    "logic": [{ "id": "kernel", "ref": "logic/main.py" }],
+    "admission": [{ "id": "kernel", "ref": "admission/main.py" }]
+  }
+}

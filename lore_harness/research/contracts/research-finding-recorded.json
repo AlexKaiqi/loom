@@ -1,5 +1,0 @@
-{
-  "kind": "research.finding.recorded",
-  "producer": "harness",
-  "payload": {"finding_ref":"string (required)","evidence_refs":"array of strings (required)"}
-}

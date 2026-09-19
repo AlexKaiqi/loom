@@ -28,7 +28,9 @@ def main() -> int:
         checks.append((name, bool(ok), detail))
 
     # I1: unknown higher layout_version is refused
-    a = layout.create_work(root, "v-99", ROOT / "lore_harness" / "goal")
+    kernel = ROOT / "lore_harness"
+    relation = ROOT / "validation" / "work_runtime" / "fixture_relation"
+    a = layout.create_work(root, "v-99", kernel)
     round_mod.admit(a, "o1", "work.objective.set", {"objective": "x"})
     work = layout.read_json(a / "work.json")
     work["layout_version"] = 99
@@ -45,7 +47,7 @@ def main() -> int:
         check("layout_version_refused_on_ingest", "unsupported" in str(exc), str(exc))
 
     # I2: a declared but wrong role digest is refused
-    b = layout.create_work(root, "bad-digest", ROOT / "lore_harness" / "goal")
+    b = layout.create_work(root, "bad-digest", kernel)
     mpath = b / "harness" / "manifest.json"
     data = json.loads(mpath.read_text())
     data["roles"]["logic"][0]["digest"] = "sha256:" + "0" * 64
@@ -57,8 +59,8 @@ def main() -> int:
         check("declared_digest_mismatch_refused", "digest mismatch" in str(exc), str(exc))
 
     # I3: a copied work directory carries no authority
-    sender = layout.create_work(root, "snd", ROOT / "lore_harness" / "delegation_parent")
-    receiver = layout.create_work(root, "rcv", ROOT / "lore_harness" / "delegation_child")
+    sender = layout.create_work(root, "snd", relation)
+    receiver = layout.create_work(root, "rcv", relation)
     round_mod.relate(receiver, want=("snd", ["work.delegated"]))
     round_mod.relate(sender, grant=("rcv", ["work.delegated"]))
     payload = {"child": "rcv", "scope": "x", "input_refs": []}
@@ -75,7 +77,7 @@ def main() -> int:
     check("copy_refusal_recorded", any(r.get("decision") == "rejected" for r in rejected), json.dumps(rejected))
 
     # A-N5: a relation-required kind cannot be admitted directly (admission != authorization)
-    child = layout.create_work(root, "child-rel", ROOT / "lore_harness" / "delegation_child")
+    child = layout.create_work(root, "child-rel", relation)
     try:
         round_mod.admit(child, "direct-1", "work.delegated", {"child": "child-rel", "scope": "x"})
         check("relation_required_kind_refuses_direct_ingest", False, "direct ingest accepted work.delegated")
@@ -93,7 +95,7 @@ def main() -> int:
 
     # R8-adjacent: a corrupt LEDGER row must error loudly (same rule as facts)
     from lore_work import ledger as ledger_mod
-    bad = layout.create_work(root, "bad-ledger", ROOT / "lore_harness" / "goal")
+    bad = layout.create_work(root, "bad-ledger", kernel)
     (bad / "ledger" / "admission.jsonl").write_text('{"foreign_id": "x", broken\n')
     try:
         ledger_mod.read_jsonl(bad / "ledger" / "admission.jsonl")

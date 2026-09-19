@@ -1,1 +1,0 @@
-{"kind":"work.delegated","producer":"harness","payload":{"child":"string (required)","scope":"string (required)","input_refs":"array of strings"}}

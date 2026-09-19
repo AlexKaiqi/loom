@@ -26,7 +26,7 @@ RESPONSES = [
 
 def main() -> int:
     root = Path(tempfile.mkdtemp(prefix="lore-work-"))
-    base = layout.create_work(root, "t-1", ROOT / "lore_harness" / "goal")
+    base = layout.create_work(root, "t-1", ROOT / "lore_harness")
     round_mod.admit(base, "obj-1", "work.objective.set",
                      {"objective": "write sum=10 report", "acceptance": ["report.md contains sum=10"]})
     result = round_mod.run_round(base, provider.FauxProvider(RESPONSES), max_steps=5)

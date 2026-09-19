@@ -1,0 +1,8 @@
+{
+  "kind": "work.completed",
+  "producer": "harness",
+  "note": "A declaration, not a runtime terminal state and not business acceptance.",
+  "payload": {
+    "evidence_refs": "array of strings (required)"
+  }
+}

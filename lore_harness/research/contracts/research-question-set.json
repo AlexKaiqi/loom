@@ -1,5 +1,0 @@
-{
-  "kind": "research.question.set",
-  "producer": "external",
-  "payload": {"question":"string (required)","scope":"string (optional)"}
-}

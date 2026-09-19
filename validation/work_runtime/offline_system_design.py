@@ -11,6 +11,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from checkout import skip_unless
 
 from lore_work import facts as facts_mod
 from lore_work import layout, ledger
@@ -38,6 +40,8 @@ def revision(base):
 
 
 def main() -> int:
+    if skip_unless("design.objective.set"):
+        return 0
     root = Path(tempfile.mkdtemp(prefix="lore-design-"))
     checks = []
 
@@ -45,7 +49,7 @@ def main() -> int:
         checks.append((name, bool(ok), detail))
 
     # A) two units, dependency order, completion only after both are frozen
-    a = layout.create_work(root, "d-two", ROOT / "lore_harness" / "system_design")
+    a = layout.create_work(root, "d-two", ROOT / "lore_harness")
     round_mod.admit(a, "obj-a", "design.objective.set", TWO_UNITS)
     r1 = round_mod.run_round(a, provider.FauxProvider([write_unit("u1", "interface v1"), accepted("u1", revision(a))]),
                              max_steps=4)
@@ -64,7 +68,7 @@ def main() -> int:
     check("A_stops_after_completion", stopped.get("status") == "no_trigger", json.dumps(stopped))
 
     # B) a stale base revision is refused by the runtime, then the correct one is accepted
-    b = layout.create_work(root, "d-stale", ROOT / "lore_harness" / "system_design")
+    b = layout.create_work(root, "d-stale", ROOT / "lore_harness")
     round_mod.admit(b, "obj-b", "design.objective.set",
                      {"objective": "one unit", "units": [{"id": "u1", "deliverable": "spec"}]})
     rb = round_mod.run_round(b, provider.FauxProvider([write_unit("u1", "spec"), accepted("u1", "sha256:stale"),
@@ -77,7 +81,7 @@ def main() -> int:
           kinds_b.count("design.unit.frozen") == 1 and kinds_b.count("work.completed") == 1, str(kinds_b))
 
     # C) freeze violation on a rogue byte change, then amendment -> re-freeze -> stale dependent
-    c = layout.create_work(root, "d-amend", ROOT / "lore_harness" / "system_design")
+    c = layout.create_work(root, "d-amend", ROOT / "lore_harness")
     round_mod.admit(c, "obj-c", "design.objective.set", TWO_UNITS)
     round_mod.run_round(c, provider.FauxProvider([write_unit("u1", "interface v1"), accepted("u1", revision(c))]),
                         max_steps=4)

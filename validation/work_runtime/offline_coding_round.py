@@ -11,6 +11,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from checkout import skip_unless
 
 from lore_work import facts as facts_mod
 from lore_work import layout, ledger
@@ -35,9 +37,11 @@ STEPS = [
 
 
 def main() -> int:
+    if skip_unless("code.change.declared"):
+        return 0
     root = Path(tempfile.mkdtemp(prefix="lore-code-"))
     userspace = Path(tempfile.mkdtemp(prefix="lore-ws-"))
-    base = layout.create_work(root, "code-1", ROOT / "lore_harness" / "coding",
+    base = layout.create_work(root, "code-1", ROOT / "lore_harness",
                               userspaces=[{"id": userspace.name, "path": str(userspace), "mode": "rw"}])
     round_mod.admit(base, "obj-1", "work.objective.set",
                      {"objective": "add(a,b) plus a passing test", "acceptance": ["test_add.py exits 0"]})

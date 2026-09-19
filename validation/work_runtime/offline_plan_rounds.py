@@ -10,6 +10,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from checkout import skip_unless
 
 from lore_work import facts as facts_mod
 from lore_work import layout, ledger
@@ -29,8 +31,10 @@ STAGE_2 = [
 
 
 def main() -> int:
+    if skip_unless("plan.created"):
+        return 0
     root = Path(tempfile.mkdtemp(prefix="lore-plan-"))
-    base = layout.create_work(root, "p-1", ROOT / "lore_harness" / "plan")
+    base = layout.create_work(root, "p-1", ROOT / "lore_harness")
     round_mod.admit(base, "plan-1", "plan.created", {
         "plan_id": "p1",
         "stages": [

@@ -8,6 +8,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from checkout import skip_unless
 
 from lore_work import facts as facts_mod
 from lore_work import layout, ledger
@@ -26,8 +28,10 @@ def digest(text):
 
 
 def main() -> int:
+    if skip_unless("research.question.set"):
+        return 0
     root = Path(tempfile.mkdtemp(prefix="lore-research-"))
-    base = layout.create_work(root, "r-1", ROOT / "lore_harness" / "research")
+    base = layout.create_work(root, "r-1", ROOT / "lore_harness")
     content = base / "surface" / "content"
     for name, text in CORPUS.items():
         (content / name).write_text(text)
@@ -89,7 +93,7 @@ def main() -> int:
     check("stops_after_completion", again.get("status") == "no_trigger", json.dumps(again))
 
     # second work: a fabricated source digest is caught, blocks completion, then is corrected
-    base2 = layout.create_work(root, "r-2", ROOT / "lore_harness" / "research")
+    base2 = layout.create_work(root, "r-2", ROOT / "lore_harness")
     content2 = base2 / "surface" / "content"
     (content2 / "a-notes.md").write_text(CORPUS["a-notes.md"])
     (content2 / "b-design.md").write_text(CORPUS["b-design.md"])
@@ -117,7 +121,7 @@ def main() -> int:
     check("invalid_record_kept", kinds2b.count("research.source.invalid") == 1, str(kinds2b))
 
     # third work: saturation and completion DERIVED from verified evidence
-    base3 = layout.create_work(root, "r-3", ROOT / "lore_harness" / "research")
+    base3 = layout.create_work(root, "r-3", ROOT / "lore_harness")
     content3 = base3 / "surface" / "content"
     (content3 / "a-notes.md").write_text(CORPUS["a-notes.md"])
     (content3 / "b-design.md").write_text(CORPUS["b-design.md"])

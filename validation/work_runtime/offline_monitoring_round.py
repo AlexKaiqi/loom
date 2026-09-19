@@ -8,6 +8,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from checkout import skip_unless
 
 from lore_work import facts as facts_mod
 from lore_work import layout, ledger
@@ -22,6 +24,8 @@ CHECK = [
 
 
 def main() -> int:
+    if skip_unless("monitor.condition.set"):
+        return 0
     root = Path(tempfile.mkdtemp(prefix="lore-mon-"))
     checks = []
 
@@ -29,7 +33,7 @@ def main() -> int:
         checks.append((name, bool(ok), detail))
 
     # 1) deadline path: not due -> no trigger; after the deadline -> one Round
-    base = layout.create_work(root, "m-deadline", ROOT / "lore_harness" / "monitoring")
+    base = layout.create_work(root, "m-deadline", ROOT / "lore_harness")
     deadline = int(time.time()) + 2
     round_mod.admit(base, "cond-1", "monitor.condition.set",
                      {"monitor_id": "m1", "predicate": "content/ready.flag exists",
@@ -47,7 +51,7 @@ def main() -> int:
     check("closed_no_trigger", closed.get("status") == "no_trigger", json.dumps(closed))
 
     # 2) signal path: a far deadline, but an external signal opens the Round
-    base2 = layout.create_work(root, "m-signal", ROOT / "lore_harness" / "monitoring")
+    base2 = layout.create_work(root, "m-signal", ROOT / "lore_harness")
     round_mod.admit(base2, "cond-2", "monitor.condition.set",
                      {"monitor_id": "m2", "predicate": "external signal",
                       "deadline_epoch": int(time.time()) + 86400})

@@ -1,8 +1,0 @@
-{
-  "kind": "design.objective.set",
-  "producer": "external",
-  "payload": {
-    "objective": "string (required)",
-    "units": "array of {id, title, deliverable, depends_on: []} in dependency order (required)"
-  }
-}

@@ -1,5 +1,0 @@
-{
-  "kind": "plan.stage.started",
-  "producer": "harness",
-  "payload": { "stage_id": "string (required)" }
-}

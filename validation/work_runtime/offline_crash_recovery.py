@@ -27,7 +27,7 @@ COMPLETE = [
 
 def main() -> int:
     root = Path(tempfile.mkdtemp(prefix="lore-crash-"))
-    base = layout.create_work(root, "c-1", ROOT / "lore_harness" / "goal")
+    base = layout.create_work(root, "c-1", ROOT / "lore_harness")
     round_mod.admit(base, "obj-1", "work.objective.set", {"objective": "produce final.txt"})
     checks = []
 
@@ -97,7 +97,7 @@ def main() -> int:
           json.dumps(torn_repairs))
 
     # (3) crash between the ledger commit row and the head write -> publish, never discard
-    fresh = layout.create_work(root, "c-2", ROOT / "lore_harness" / "goal")
+    fresh = layout.create_work(root, "c-2", ROOT / "lore_harness")
     round_mod.admit(fresh, "obj-2", "work.objective.set", {"objective": "produce final.txt"})
     round_mod.run_round(fresh, provider.FauxProvider(COMPLETE), max_steps=4)
     committed_facts = facts_mod.read_facts(fresh)
@@ -120,7 +120,7 @@ def main() -> int:
           round_mod.run_round(fresh, provider.FauxProvider([]), max_steps=1).get("status") != "recovery_needed")
 
     # (4) acceptance A-N1: a complete JSON line missing ONLY its trailing newline
-    fresh2 = layout.create_work(root, "c-3", ROOT / "lore_harness" / "goal")
+    fresh2 = layout.create_work(root, "c-3", ROOT / "lore_harness")
     round_mod.admit(fresh2, "obj-3", "work.objective.set", {"objective": "x"})
     facts2 = fresh2 / "surface" / "facts.jsonl"
     facts2.write_bytes(facts2.read_bytes().rstrip(b"\n"))          # drop the final newline
@@ -135,7 +135,7 @@ def main() -> int:
     check("missing_newline_traced", len(nl_repairs) == 1, json.dumps(nl_repairs))
 
     # (5) acceptance A-N2: an interrupted Round whose uncommitted tail is TORN
-    fresh3 = layout.create_work(root, "c-4", ROOT / "lore_harness" / "goal")
+    fresh3 = layout.create_work(root, "c-4", ROOT / "lore_harness")
     round_mod.admit(fresh3, "obj-4", "work.objective.set", {"objective": "produce final.txt"})
     try:
         round_mod.run_round(fresh3, provider.FauxProvider(CRASH), max_steps=2)
@@ -157,7 +157,7 @@ def main() -> int:
     check("torn_recover_not_stuck", resumed.get("status") != "recovery_needed", json.dumps(resumed))
 
     # (6) acceptance A-N3: a fault after recover truncated but before it wrote the abort marker
-    fresh4 = layout.create_work(root, "c-5", ROOT / "lore_harness" / "goal")
+    fresh4 = layout.create_work(root, "c-5", ROOT / "lore_harness")
     round_mod.admit(fresh4, "obj-5", "work.objective.set", {"objective": "produce final.txt"})
     try:
         round_mod.run_round(fresh4, provider.FauxProvider(CRASH), max_steps=2)
@@ -177,7 +177,7 @@ def main() -> int:
     check("no_permanent_stuck_after_resume", allowed.get("status") != "recovery_needed", json.dumps(allowed))
 
     # (7) acceptance A-N7: a SECOND recover must be a no-op, not delete admitted facts
-    fresh5 = layout.create_work(root, "c-6", ROOT / "lore_harness" / "goal")
+    fresh5 = layout.create_work(root, "c-6", ROOT / "lore_harness")
     round_mod.admit(fresh5, "obj-6", "work.objective.set", {"objective": "produce final.txt"})
     try:
         round_mod.run_round(fresh5, provider.FauxProvider(CRASH), max_steps=2)
@@ -197,7 +197,7 @@ def main() -> int:
           "after_first=%s after_second=%s" % (json.dumps(after_first)[:80], json.dumps(after_second)[:80]))
 
     # (8) acceptance A-N8: a NEWLINE-TERMINATED malformed last line is also repaired
-    fresh6 = layout.create_work(root, "c-7", ROOT / "lore_harness" / "goal")
+    fresh6 = layout.create_work(root, "c-7", ROOT / "lore_harness")
     round_mod.admit(fresh6, "obj-7", "work.objective.set", {"objective": "x"})
     facts6 = fresh6 / "surface" / "facts.jsonl"
     before6 = len(facts_mod.read_facts(fresh6))
@@ -214,7 +214,7 @@ def main() -> int:
           json.dumps(repairs6)[:200])
 
     # (9) acceptance A-R1: a hand-edited `start` row without trigger_seq must refuse, not KeyError
-    fresh7 = layout.create_work(root, "c-8", ROOT / "lore_harness" / "goal")
+    fresh7 = layout.create_work(root, "c-8", ROOT / "lore_harness")
     round_mod.admit(fresh7, "obj-8", "work.objective.set", {"objective": "x"})
     (fresh7 / "ledger" / "rounds.jsonl").write_text(
         json.dumps({"phase": "start", "round_id": "r-foreign"}) + "\n")
@@ -226,7 +226,7 @@ def main() -> int:
     check("foreign_start_left_untouched", len(facts_mod.read_facts(fresh7)) == 1)
 
     # (10) acceptance A-R2: corruption in the MIDDLE of the stream errors loudly
-    fresh8 = layout.create_work(root, "c-9", ROOT / "lore_harness" / "goal")
+    fresh8 = layout.create_work(root, "c-9", ROOT / "lore_harness")
     round_mod.admit(fresh8, "obj-9", "work.objective.set", {"objective": "x"})
     facts8 = fresh8 / "surface" / "facts.jsonl"
     good = facts8.read_bytes()
@@ -246,7 +246,7 @@ def main() -> int:
     check("midstream_corruption_does_not_truncate", facts8.read_bytes().endswith(later))
 
     # (11) acceptance A-R5: retrying a publish must not duplicate the trace row
-    fresh9 = layout.create_work(root, "c-10", ROOT / "lore_harness" / "goal")
+    fresh9 = layout.create_work(root, "c-10", ROOT / "lore_harness")
     round_mod.admit(fresh9, "obj-10", "work.objective.set", {"objective": "produce final.txt"})
     round_mod.run_round(fresh9, provider.FauxProvider(COMPLETE), max_steps=4)
     for _ in range(2):
@@ -265,7 +265,7 @@ def main() -> int:
     # (12) acceptance A-R6: Unicode line separators in a LEGITIMATE payload must not
     #      be mistaken for line breaks by the reader (JSONL is "\n"-delimited only)
     for label, char in (("U+2028", "\u2028"), ("U+2029", "\u2029"), ("U+0085", "\u0085")):
-        freshA = layout.create_work(root, "c-" + label.replace("+", ""), ROOT / "lore_harness" / "goal")
+        freshA = layout.create_work(root, "c-" + label.replace("+", ""), ROOT / "lore_harness")
         objective = "before" + char + "after"
         round_mod.admit(freshA, "obj-" + label, "work.objective.set", {"objective": objective})
         parsed = facts_mod.read_facts(freshA)
@@ -277,7 +277,7 @@ def main() -> int:
         check("unicode_%s_round_ok" % label.replace("+", ""), out.get("status") == "committed", json.dumps(out))
 
     # (13) acceptance A-R7: the reported physical line number counts real lines
-    freshB = layout.create_work(root, "c-line", ROOT / "lore_harness" / "goal")
+    freshB = layout.create_work(root, "c-line", ROOT / "lore_harness")
     round_mod.admit(freshB, "obj-line", "work.objective.set", {"objective": "x"})
     factsB = freshB / "surface" / "facts.jsonl"
     factsB.write_bytes(factsB.read_bytes() + b"\n\n" + b'{"broken\n')

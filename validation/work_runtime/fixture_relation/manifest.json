@@ -1,0 +1,22 @@
+{
+  "schema": "loom.harness/v1",
+  "facts": {
+    "kinds": [
+      {
+        "kind": "sys.tool.result",
+        "producer": "runtime",
+        "contract": { "ref": "contracts/sys-tool-result.json" }
+      },
+      {
+        "kind": "work.delegated",
+        "producer": "external",
+        "contract": { "ref": "contracts/work-delegated.json" },
+        "requires_relation": true
+      }
+    ],
+    "triggers": [
+      { "id": "delegated", "on": ["work.delegated"] }
+    ]
+  },
+  "roles": {}
+}

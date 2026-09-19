@@ -2,14 +2,8 @@
 
 This module is part of the framework, versioned with the runtime, and NOT part
 of any harness digest: importing it is the same class of dependency as the role
-hook signatures themselves (a harness always runs against the runtime version it
-was registered with). It exists because the ten example harnesses duplicated the
-same scaffolding (harness inventory 2026-09-17, items 1-12); the domain
-semantics - which kinds mean what, which rules apply - stay in each harness.
-
-Composition ruling (2026-09-17): harness reuse happens at authoring time via
-this shared library plus reference-merge; there is no runtime composition
-mechanism. Stdlib only; this module must never import lore_work.
+hook signatures themselves. Combinations live on git branches of one tree, not
+as sibling directories. Stdlib only; this module must never import lore_work.
 """
 import hashlib
 import json

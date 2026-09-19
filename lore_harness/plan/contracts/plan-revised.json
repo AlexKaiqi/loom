@@ -1,9 +1,0 @@
-{
-  "kind": "plan.revised",
-  "producer": "external",
-  "payload": {
-    "plan_id": "string (required)",
-    "rev": "integer (required)",
-    "stages": "array of {id, title, deliverable} (required, replaces the remaining order)"
-  }
-}

@@ -10,6 +10,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from checkout import skip_unless
 
 from lore_work import facts as facts_mod
 from lore_work import layout, ledger
@@ -26,8 +28,10 @@ ROUND_2 = [
 
 
 def main() -> int:
+    if skip_unless("ask.requested"):
+        return 0
     root = Path(tempfile.mkdtemp(prefix="lore-ask-"))
-    base = layout.create_work(root, "q-1", ROOT / "lore_harness" / "ask_user")
+    base = layout.create_work(root, "q-1", ROOT / "lore_harness")
     round_mod.admit(base, "obj-1", "work.objective.set",
                      {"objective": "write the greeting the user chooses into answer.md",
                       "acceptance": ["answer.md contains the chosen greeting"]})

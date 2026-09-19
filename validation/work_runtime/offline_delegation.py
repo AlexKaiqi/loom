@@ -11,6 +11,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from checkout import skip_unless
 
 from lore_work import facts as facts_mod
 from lore_work import layout, ledger
@@ -23,9 +25,11 @@ def kinds_of(base):
 
 
 def main() -> int:
+    if skip_unless("work.delegated"):
+        return 0
     root = Path(tempfile.mkdtemp(prefix="lore-deleg-"))
-    parent = layout.create_work(root, "parent-1", ROOT / "lore_harness" / "delegation_parent")
-    child = layout.create_work(root, "child-1", ROOT / "lore_harness" / "delegation_child")
+    parent = layout.create_work(root, "parent-1", ROOT / "lore_harness")
+    child = layout.create_work(root, "child-1", ROOT / "lore_harness")
     checks = []
 
     def check(name, ok, detail=""):

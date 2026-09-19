@@ -1,12 +1,68 @@
 # Loom
 
-面向 Unix 系统（macOS/Linux）的可持久接续 Agent Runtime。Runtime 管理状态、事件和隔离执行；Harness 独立定义模型可见上下文与推进策略。
+面向 Unix（macOS/Linux）的可持久接续 Agent Runtime。Runtime 负责登记、受理、开轮与恢复；Harness 决定模型看见什么、何时结束一轮。
 
-**当前是开发中的源码快照，尚未完成系统验收。** M01 最简真实模型闭环已按 2026-09-14 修订预算在 Linux 容器内取得整批 6/6 真实模型通过（批次 m01-real-2026-09-14z，glm-5.3）；修订记录与反例证据见 [验证状态](docs/validation-status.md)。M02 的 15 个固定响应安全场景已通过独立证据审查。完整状态和限制见 [验证状态](docs/validation-status.md)。
+**开发中的源码快照，尚未完成系统验收。** 可安装的是 Work 目录 Runtime（命令 `loom`），不包含旧的 NATS/Docker/Pi 装配。完整状态见 [验证状态](docs/validation-status.md)。
+
+## 初次使用
+
+需要 Python 3.10+。尚未发布到 PyPI，从本仓库安装：
+
+```sh
+git clone https://github.com/AlexKaiqi/loom.git
+cd loom
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e .
+```
+
+### 1. 初始化 Host
+
+```sh
+loom init ~/loom-works
+```
+
+首次 `init` 会写入默认 works 根（`$XDG_CONFIG_HOME/loom/config.json`）。权威文件是 `~/loom-works/.loom-authority.json`，不是业务成功记录。
+
+### 2. 先离线走通（不需要模型）
+
+```sh
+loom create demo --harness kernel
+loom admit demo --kind work.objective.set \
+  --payload '{"objective":"write hello.md with one line hello"}'
+loom run demo --provider faux --faux-response \
+  '{"action":{"type":"shell","script":"printf hello > hello.md"}}' --faux-response \
+  '{"action":{"type":"emit","kind":"work.completed","payload":{"evidence_refs":["hello.md"]}}}'
+loom status demo
+loom facts demo
+```
+
+`~/loom-works/demo/surface/content/` 是这个 Work 的认知面。`loom run` 一次只开一轮；返回 `no_trigger` 表示没有新的已受理事实可开轮，不是安装失败。返回 `recovery_needed` 时先 `loom recover demo`。
+
+### 3. 配置真实模型后再跑
+
+Provider 必须是 OpenAI 兼容的 `/chat/completions`。`base_url` 写到 `/v1` 这一层，不要带 `/chat/completions`。密钥只放环境变量或 `~/.env`，不要写入 `loom config`。
+
+```sh
+cp .env.example ~/.env    # 编辑 LOOM_API_KEY=
+loom config provider.base_url https://api.openai.com/v1
+loom config provider.model gpt-4o
+export LOOM_API_KEY=...   # 若不用 ~/.env
+loom run demo
+```
+
+若接口回显的模型名与配置不一致，再设 `loom config provider.model_alias <回显名>`。
+
+### 4. 同时跑另一种组合
+
+其它策略是 git 分支上的同一棵 `lore_harness/` 树，用 worktree 挂出来。`--harness` 可以是路径或 `loom harnesses` 列出的分支名。说明见 [Harness 变体](docs/harness-variants.md)。
+
+日常命令：`loom status`、`loom facts <id>`、`loom recover <id>`。跨 Work 才需要 `relate` / `relay`。
 
 ## 从哪里看
 
-- [系统设计 v5](harness-runtime-revised-v5.md)：系统目标、边界、抽象和核心判断。
+- [规范](spec/)：系统契约（L0 身份、L1 架构）。`design/` 与现行代码都不是规范。
+- [系统设计 v5](harness-runtime-revised-v5.md)：历史来源，不能覆盖 spec。
 - [GOAL.md](GOAL.md)：完整开发与独立验收目标；发布源码不是完成目标。
 - [设计导航](docs/design.md)：性质、论证、组件契约和实现的对应关系。
 - [开发说明](docs/development.md)：Linux 依赖、装配入口和目前的复现缺口。
@@ -16,7 +72,9 @@
 
 | 目录 | 职责 |
 | --- | --- |
-| `lore_runtime/` | 装配、共享 Runtime、推进与组件适配 |
+| `lore_work/` | Work 目录 Runtime 与 `loom` CLI |
+| `lore_harness/` | 当前 checkout 的 Harness 树（kernel；其它组合见 [变体](docs/harness-variants.md)） |
+| `lore_runtime/` | 装配、共享 Runtime、推进与组件适配（旧组合线，不是 `loom` 包） |
 | `lore_control/` | R：受理责任、持久状态、权限与租约；使用 Python SQLite |
 | `lore_events/` | E：NATS JetStream 事件流、读取位置与通知 |
 | `lore_files/` | F：Git 文件版本、捕获、发布与恢复边界 |
@@ -28,25 +86,17 @@
 | `validation/`、`simulations/` | 组件和组合验证程序、顶层模拟 |
 | `research/` | 固定版本的开源调研与机制实验源码 |
 
-仓库名为 Loom；现有 Python 包保留 `lore_*`，以便对应已验证的代码版本。
+仓库名为 Loom；Python 实现包暂保留 `lore_*`。可安装入口是 `loom-runtime`（命令 `loom`）。
 
-## 可直接运行的源码检查
+## 源码检查（旧组合线）
 
-在 Unix（macOS/Linux）系统中执行：
-
-需要 Python 3.10+ 及可用的 `venv`/pip；Debian 或 Ubuntu 通常需先安装系统包 `python3-venv`。
+完整 `lore_runtime` 装配仍依赖 Node/Pi/NATS/Docker，见 [开发说明](docs/development.md)。下面两项不调用模型或 Docker，不能代替运行时验收：
 
 ```sh
-git clone https://github.com/AlexKaiqi/loom.git
-cd loom
-python3 -m venv .venv
-. .venv/bin/activate
 python -m pip install -r requirements.txt
 python scripts/check_source.py
 python -m unittest simulations.test_observer
 ```
-
-这两项检查不调用模型或 Docker，不能代替运行时验收。完整 Runtime 装配仍依赖需要在新宿主重新生成的 Node/Pi 依赖树与物理身份 manifest；现有 M01 入口也引用了未随源码发布的本地准备产物，详见[开发说明](docs/development.md)。目前没有可直接照抄的生产部署命令。
 
 ## 开发约束
 

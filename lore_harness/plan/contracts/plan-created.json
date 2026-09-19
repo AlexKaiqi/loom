@@ -1,8 +1,0 @@
-{
-  "kind": "plan.created",
-  "producer": "external",
-  "payload": {
-    "plan_id": "string (required)",
-    "stages": "array of {id, title, deliverable} (required, in order)"
-  }
-}

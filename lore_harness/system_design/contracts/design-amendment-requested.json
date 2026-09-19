@@ -1,5 +1,0 @@
-{
-  "kind": "design.amendment.requested",
-  "producer": "external",
-  "payload": { "unit_id": "string (required)", "reason": "string (required)", "impact": "array of strings (optional)" }
-}

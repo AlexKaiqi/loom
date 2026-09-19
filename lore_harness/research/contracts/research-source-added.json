@@ -1,5 +1,0 @@
-{
-  "kind": "research.source.added",
-  "producer": "harness",
-  "payload": { "source_ref": "string (required, relative file)", "note": "string (optional)" }
-}

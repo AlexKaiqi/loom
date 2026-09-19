@@ -1,6 +1,0 @@
-{
-  "kind": "research.source.invalid",
-  "producer": "harness",
-  "note": "Derived: a registered source whose claimed digest does not match the real file bytes (or whose file is missing).",
-  "payload": { "source_ref": "string (required)", "claimed": "sha256 or null", "actual": "sha256 or null", "reason": "string" }
-}
