@@ -57,10 +57,11 @@ def main() -> int:
     r2 = round_mod.run_round(base, provider.FauxProvider(STAGE_2), max_steps=4)
     facts_2 = facts_mod.read_facts(base)
     kinds_2 = [f["kind"] for f in facts_2]
+    core = [kind for kind in kinds_2 if kind != "sys.context.usage"]
     check("round2_committed", r2.get("status") == "committed", json.dumps(r2))
     check("two_stages_completed", kinds_2.count("plan.stage.completed") == 2, str(kinds_2))
     check("plan_completed_derived", kinds_2.count("plan.completed") == 1, str(kinds_2))
-    check("derived_last", kinds_2[-1] == "plan.completed", str(kinds_2))
+    check("derived_last", core[-1] == "plan.completed", str(kinds_2))
     check("two_round_records", ledger.round_count(base) == 2, str(ledger.round_count(base)))
     check("stage_files", (base / "surface" / "content" / "stage-1.md").is_file()
           and (base / "surface" / "content" / "stage-2.md").is_file())
