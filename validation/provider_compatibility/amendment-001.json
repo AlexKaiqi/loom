@@ -1,9 +1,0 @@
-{
-  "amendment": "provider-compatibility-001-amendment-001",
-  "date": "2026-09-14",
-  "reason": "Probe A (minimal, max_completion_tokens=16) returned finish_reason=length on all three candidates. The returned usage shows completion_tokens=16 consumed as reasoning_tokens, i.e. the 16-token budget was exhausted by reasoning before any text, not a wire incompatibility. All binding wire criteria passed on all three candidates: object=chat.completion, usage total=prompt+completion, tool_calls probe returned finish_reason=tool_calls with a shell call and {target, script} arguments, and max_completion_tokens was accepted.",
-  "revised_rule": "Probe A pass means: with the production budget (max_completion_tokens=2048) the response finishes with finish_reason=stop. Probe B criteria unchanged. The 16-token probe result is retained as reasoning-behavior evidence, not a failure.",
-  "selection_observation": "deepseek-v4-flash echoes model id 'deepseek-v4-flash-ga-260731' instead of the requested id; the strict response check requires body.model == requested model, so a dated alias id would freeze a changing alias into the baseline. glm-5.3 and kimi-k3 echo exactly. glm-5.3 had the lowest observed latency sum (3.14 s vs 3.92 s vs 7.61 s) and the lowest reasoning overhead on the tool-call probe (37 tokens vs 50).",
-  "selected_model": "glm-5.3",
-  "verification": "probe-002 reruns minimal (2048 budget) and toolcall for glm-5.3 only; both must pass the original binding criteria."
-}

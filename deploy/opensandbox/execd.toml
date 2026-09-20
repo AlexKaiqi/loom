@@ -1,0 +1,3 @@
+# Upstream execd deny list + no networking for Loom code profile.
+[seccomp]
+deny = ["mount", "umount2", "chroot", "pivot_root", "ptrace", "process_vm_readv", "process_vm_writev", "kcmp", "init_module", "finit_module", "delete_module", "bpf", "seccomp", "personality", "add_key", "request_key", "keyctl", "iopl", "ioperm", "reboot", "syslog", "swapon", "swapoff", "setns", "unshare", "name_to_handle_at", "open_by_handle_at", "userfaultfd", "kexec_load", "kexec_file_load", "acct", "socket", "socketpair", "connect"]

@@ -1,0 +1,8 @@
+{
+  "go_sdk": "github.com/alibaba/OpenSandbox/sdks/sandbox/go@v1.0.6-0.20260919075840-ff4d1bc269cf",
+  "server": "opensandbox-server==0.2.3",
+  "source_review": "ff4d1bc269cf6a9be03592649bed19633bf45222",
+  "execd": "opensandbox/execd@sha256:6cf7dba2f21f0b536e100563d841ac58a9f31c2b0a081b7ac76796a24d6f47e2",
+  "code": "python@sha256:97bb82da414a3216a18949f7d4a9c2a2860296027a05e2dcdcb6a9801d019fc5",
+  "server_image": "opensandbox/server@sha256:ae8dfbb277f40a39ff01ef35e5e1c10675acfe0fa9db15259b8f323e5efab778"
+}

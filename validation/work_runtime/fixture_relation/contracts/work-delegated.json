@@ -1,9 +1,0 @@
-{
-  "kind": "work.delegated",
-  "producer": "external",
-  "payload": {
-    "child": "string (required)",
-    "scope": "string (required)",
-    "input_refs": "array of strings"
-  }
-}

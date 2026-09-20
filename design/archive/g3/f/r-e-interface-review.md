@@ -1,7 +1,0 @@
-# F对R/E的有界接口审查
-
-只核影响F/X发布的阻断点，不是总D门槛裁定。
-
-G3-RF-01原发现：R普通登记把dev/ino替换当新资源，与F合法exchange保留同resource矛盾。根Agent已在R contract末尾补prepare_install/confirm_install：先持久完整old/staged/base意图，F原身份实际布局核对后更新原resource root/revision；pending期间resolve拒绝新写，holder不释放，未知不能重交换。F contract与query_install同步，原问题在decisions保留。该文档修订消除接口矛盾，实际双设施崩溃证据仍是G4/G5工作。
-
-R release现在要求reference_checker(ref,purpose,expected_binding)核实际stop/published与holder原resource/execution/base；R不自证停写。save_result仍decide、原结果关联不可覆盖，符合F输出存储不终结调用的边界。E固定输入先完整持久发布再关联，readonly物理落实留X；输入视图与F业务文件版本权威不冲突。此有界复查未发现其他影响F/X发布的新阻断，不代表E/R完整覆盖审查。

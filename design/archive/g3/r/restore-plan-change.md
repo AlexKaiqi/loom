@@ -1,9 +1,0 @@
-# G3-RF-02：恢复计划先于文件安装
-
-来源先行登记：v5 §4.1第72—74行明确分别版本、组合范围、外部效果保留及回退本身留痕；§7.2第332—336行要求已确认状态不丢、失ACK原身份查询、文件回退与重试/重新推理/外部补偿分离。F contract「X导出与R发布衔接」把RestorePlan及回退事实明确交给R；F python-interface仅安装指定普通目录，不能保存全局恢复组合。原R只提供单次prepare_install/confirm_install，没有持久受理完整组合/查询部分进度的契约。M06仅保留旧记录不足以证明回退动作本身留痕。
-
-选择：复用accept/query及已有installation表，不新增策略执行器/通用事务/业务终态。内部kind=restore_plan在文件安装之前保存不可变原计划，不入Harness claim。prepare_install仅新增可选restore_plan_id，关联原计划的域条目；普通安装保持原接口行为。confirm_install在原单资源实际F收据校验事务中记录该条完成；query派生完整计划/逐条收据与剩余安装，部分时继续pending。全条齐仅说明指定文件安装回执已核对，不是跨域原子或业务成功。
-
-generation不会从holder字段推测：holder仅能核resource/execution/base；restore专用staged_ref还须真实F authority核原resource/domain/base/所选version/execution/generation和原X stopped_ref。停止引用单独按这些原关联向authority核验；confirm再次核实际F原安装收据、实际current/retired对象及相同generation/stopped_ref。authority夹具只检验R关联；真实X停止/F安装仍在各自组件及M06组合验证。
-
-完整结构和错误语义见contract附节。本来源/结构先于R22测试代码。本次原gate002精确保存在history/restore-plan-001，当前局部INVALIDATED；旧21单元和23进程不删减，新增R22内含真实新进程保存切点/原ID查询。补件作者不自批，根Agent独立局部D复审。

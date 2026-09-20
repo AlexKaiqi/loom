@@ -1,107 +1,72 @@
 # Loom
 
-面向 Unix（macOS/Linux）的可持久接续 Agent Runtime。Runtime 负责登记、受理、开轮与恢复；Harness 决定模型看见什么、何时结束一轮。
+Loom 是一个持久、可恢复的 Harness Runtime。Go 控制端托管 Work、事实、授权与外部效果；独立 Node worker 复用 Pi 的 provider 适配和模型—工具循环；外部 Harness 定义投影与推进策略；任务命令由远程 OpenSandbox 执行。
 
-**开发中的源码快照，尚未完成系统验收。** 可安装的是 Work 目录 Runtime（命令 `loom`），不包含旧的 NATS/Docker/Pi 装配。完整状态见 [验证状态](docs/validation-status.md)。
+产品目标、开发原则和不变量只有一份：[SPEC.md](SPEC.md)。当前组件和数据流见[架构](docs/architecture.md)，精确行为见[契约](docs/contracts)，构建与验证见[开发说明](docs/development.md)。
 
-## 初次使用
+## 安装与使用
 
-需要 Python 3.10+。尚未发布到 PyPI，从本仓库安装：
-
-```sh
-git clone https://github.com/AlexKaiqi/loom.git
-cd loom
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install -e .
-```
-
-### 1. 初始化 Host
+当前从源码安装，需要 macOS/Linux、Go 1.24+、Node.js 24、npm、Python 3.10+ 和 Git。安装器自动构建 Runtime、安装模型组件和独立 Harness Python 环境，无需手动填写组件路径或激活 venv。
 
 ```sh
-loom init ~/loom-works
+./install.sh
+export PATH="$HOME/.local/bin:$PATH"
+loom setup
 ```
 
-首次 `init` 会写入默认 works 根（`$XDG_CONFIG_HOME/loom/config.json`）。权威文件是 `~/loom-works/.loom-authority.json`，不是业务成功记录。
+`setup` 引导选择 Pi 自带目录中的模型、填写独立部署的 OpenSandbox 地址，并隐藏输入密钥。配置与私有密钥保存在 `~/.config/loom/`，不会放进 Work。需要已有模型服务凭据和可访问的 [OpenSandbox 服务](deploy/opensandbox/README.md)；安装器不部署远程执行服务。复杂认证和自定义模型见[开发说明](docs/development.md)。
 
-### 2. 先离线走通（不需要模型）
+准备一个已有的任务文件目录，然后：
 
 ```sh
-loom create demo --harness kernel
-loom admit demo --kind work.objective.set \
-  --payload '{"objective":"write hello.md with one line hello"}'
-loom run demo --provider faux --faux-response \
-  '{"action":{"type":"shell","script":"printf hello > hello.md"}}' --faux-response \
-  '{"action":{"type":"emit","kind":"work.completed","payload":{"evidence_refs":["hello.md"]}}}'
-loom status demo
-loom facts demo
+loom new ~/works/demo --userspace ~/projects/demo
+cd ~/works/demo
+loom ask "阅读项目，制定计划并完成第一步，把结果写进报告"
+loom ask "根据报告继续下一步"
+loom status
 ```
 
-`~/loom-works/demo/surface/content/` 是这个 Work 的认知面。`loom run` 一次只开一轮；返回 `no_trigger` 表示没有新的已受理事实可开轮，不是安装失败。返回 `recovery_needed` 时先 `loom recover demo`。
+`ask` 接收自然语言并展示模型答复；文件结果在 `surface/` 和授权的任务目录。失败时保留输入并显示请求 ID；重试同一条消息使用原 `--request-id`，已处理的请求不会再次调用模型或工具。已有运行中或暂停的 Round 时，新消息入队；已确认暂停点用 `loom resume`，随后用 `loom run` 处理待办。未知效果不自动重放。
 
-### 3. 配置真实模型后再跑
+重新执行 `./install.sh` 即可安装新版本，配置和既有 Work 不变；失败不替换原安装。可以用 `--prefix /path/to/installation` 自定义安装目录。
 
-Provider 必须是 OpenAI 兼容的 `/chat/completions`。`base_url` 写到 `/v1` 这一层，不要带 `/chat/completions`。密钥只放环境变量或 `~/.env`，不要写入 `loom config`。
+## 最小 Harness
 
-```sh
-cp .env.example ~/.env    # 编辑 LOOM_API_KEY=
-loom config provider.base_url https://api.openai.com/v1
-loom config provider.model gpt-4o
-export LOOM_API_KEY=...   # 若不用 ~/.env
-loom run demo
+默认 `kernel` 已包含“目标 → 模型 → 远程 Shell → 文件反馈 → 报告”的闭环，以及两项辅助策略：
+
+- **Plan**：普通 `surface/plan.md` 清单，投影当前与下一步，要求完成项引用证据。它帮助模型组织工作，不是独立验收器，也没有自动阶段门控。
+- **Archive**：上下文达到 Harness 配置的大小门槛后，将原生对话原文保存到 `surface/archive/`，后续请求保留引用与最近完整工具对话。它是可回读的无损归档，不是自动摘要；超大且不可分割的输入明确拒绝。
+
+`surface/report.md` 保存结果，`surface/notes.md` 保存笔记。归档和计划都由外部 Harness 实现，Runtime 不内置这些策略。完整边界见 [Kernel 契约](docs/contracts/kernel-harness.md)。
+
+## 目录
+
+```text
+runtime/             Go 控制端、SQLite 状态、宿主授权、Work 与 Sandbox 客户端
+services/model/      独立 Node/Pi 模型组件
+harnesses/kernel/    外部 Harness、策略配置与初始 Surface 文件
+deploy/              主机配置样例与 OpenSandbox 部署资产
+tests/               组件、协议与黑箱验收入口
+docs/                当前架构、契约和开发说明
 ```
 
-若接口回显的模型名与配置不一致，再设 `loom config provider.model_alias <回显名>`。
+每个 Work 的完整持久状态集中在自己的目录：
 
-### 4. 同时跑另一种组合
-
-其它策略是 git 分支上的同一棵 `lore_harness/` 树，用 worktree 挂出来。`--harness` 可以是路径或 `loom harnesses` 列出的分支名。说明见 [Harness 变体](docs/harness-variants.md)。
-
-日常命令：`loom status`、`loom facts <id>`、`loom recover <id>`。跨 Work 才需要 `relate` / `relay`。
-
-## 从哪里看
-
-- [规范](spec/)：系统契约（L0 身份、L1 架构）。`design/` 与现行代码都不是规范。
-- [系统设计 v5](harness-runtime-revised-v5.md)：历史来源，不能覆盖 spec。
-- [GOAL.md](GOAL.md)：完整开发与独立验收目标；发布源码不是完成目标。
-- [设计导航](docs/design.md)：性质、论证、组件契约和实现的对应关系。
-- [开发说明](docs/development.md)：Linux 依赖、装配入口和目前的复现缺口。
-- [依赖与来源](docs/dependencies.md)、[第三方声明](THIRD_PARTY.md)。
-
-## 源码结构
-
-| 目录 | 职责 |
-| --- | --- |
-| `lore_work/` | Work 目录 Runtime 与 `loom` CLI |
-| `lore_harness/` | 当前 checkout 的 Harness 树（kernel；其它组合见 [变体](docs/harness-variants.md)） |
-| `lore_runtime/` | 装配、共享 Runtime、推进与组件适配（旧组合线，不是 `loom` 包） |
-| `lore_control/` | R：受理责任、持久状态、权限与租约；使用 Python SQLite |
-| `lore_events/` | E：NATS JetStream 事件流、读取位置与通知 |
-| `lore_files/` | F：Git 文件版本、捕获、发布与恢复边界 |
-| `lore_execution/` | X：Docker 执行、挂载、资源及结果归档 |
-| `lore_session/` | S：Pi 会话、Node 边界、原始结果与接续引用 |
-| `lore_provider/` | 模型 HTTP 转发、凭据隔离与预算准入 |
-| `harnesses/` | 外部定义的最简 Harness 和 Runtime Harness |
-| `design/`、`governance/` | 设计、契约、用例、执行原则与验收规范 |
-| `validation/`、`simulations/` | 组件和组合验证程序、顶层模拟 |
-| `research/` | 固定版本的开源调研与机制实验源码 |
-
-仓库名为 Loom；Python 实现包暂保留 `lore_*`。可安装入口是 `loom-runtime`（命令 `loom`）。
-
-## 源码检查（旧组合线）
-
-完整 `lore_runtime` 装配仍依赖 Node/Pi/NATS/Docker，见 [开发说明](docs/development.md)。下面两项不调用模型或 Docker，不能代替运行时验收：
-
-```sh
-python -m pip install -r requirements.txt
-python scripts/check_source.py
-python -m unittest simulations.test_observer
+```text
+work/
+  work.toml
+  harness/
+  surface/
+    plan.md
+    report.md
+    notes.md
+    archive/         # 按需生成
+  .loom/
+    identity.json
+    state.sqlite
+    versions.git/
+    artifacts/
+    dependencies/
 ```
 
-## 开发约束
-
-先定义目标与性质，再确定抽象、契约和可拒绝错误的用例；组件独立验证后才能组合。保留失败与未运行状态，不通过删用例、放宽预算或改预期制造成功。入口为 [AGENTS.md](AGENTS.md)、[执行指南](governance/execution-guide.md)、[证据指南](governance/evidence-guide.md)和[检查表](governance/checklists.md)。
-
-本次公开包含源码、设计和验证程序。模型请求与响应、凭据、运行快照、数据库、原始大证据包、研究仓库副本和依赖二进制保留在原开发环境，没有进入公开仓库。历史研究和审查中的通过结论有其原版本与范围；公开摘要不替代原始证据。
-
-项目自身暂未指定开源许可证；第三方文件按其已有许可与声明保留。
+`surface/` 是普通、可编辑的工作面，内部布局由 Harness 决定；系统状态集中在 `.loom/`。Work 包含外部 Userspace 的可验证快照，可在另一宿主恢复。Userspace 仍是单独授权的执行目录；复制 Work 不复制授权或凭据。完整规则见 [Work 契约](docs/contracts/work.md)，跨宿主导出、导入和恢复步骤见[开发说明](docs/development.md)。

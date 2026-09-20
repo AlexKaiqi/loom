@@ -1,9 +1,0 @@
-{
-  "url": "https://github.com/nats-io/nats-server.git",
-  "commit": "3c80d8f89eac613bdbae473efb59ec76f8d4ed09",
-  "license": "Apache-2.0",
-  "license_file_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
-  "source_status": "FIXED_SOURCE_AND_RELATED_EXPERIMENT_COMPLETED_PENDING_INDEPENDENT_REVIEW",
-  "associated_repo": null,
-  "experiment": "evidence/run-001"
-}

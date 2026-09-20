@@ -1,43 +1,28 @@
-# Credentials and local configuration
+# Host secrets/state never belong in source or evidence.
+.DS_Store
 .env
 .env.*
-!.env.example
 *.key
 *.pem
 *.clixml
 .local/
-
-# Rebuildable dependencies
 .venv/
 .venvs/
 node_modules/
 __pycache__/
 *.py[cod]
-research/repos/
-research/.cache/
-research/.venvs/
-research/derived/
-
-# Private runtime state and raw evidence
-**/evidence/
-**/*-evidence/
-**/source-before/
-**/source-after/
+*.egg-info/
+build/
+dist/
+.runtime-env/
 *.sqlite
 *.sqlite3
 *.db
+# Generated evidence stays local unless deliberately selected and checked.
+**/evidence/
+**/*-evidence/
 *.tar
 *.tar.gz
 *.tgz
 *.log
-validation/profiles/*.json
-!validation/profiles/*.example.json
-
-# 2026-09-14 Linux container validation environment (rebuildable, machine-derived)
-.runtime-env/
-research/.venvs/
-research/.cache/
-validation/session-plan-evidence/
-validation/system/dependencies/
-design/g3/x-node-profile/dependencies.json
-validation/components/*/evidence/
+runtime/bin/

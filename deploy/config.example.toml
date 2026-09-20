@@ -1,0 +1,16 @@
+# loom setup generates this configuration automatically. For manual setup, copy outside the repository to ~/.config/loom/config.toml.
+# Host-only deployments. The matching service names appear in work.toml.
+# Export these credential variables only to the trusted controller.
+[models.primary]
+endpoint = "https://your-provider.example/v1"
+api_key_env = "LOOM_MODEL_API_KEY"
+# Or api_key_file = "/private/credentials/model.key" (0600); choose only one.
+worker = ["node", "/absolute/path/to/loom/services/model/worker.mjs"]
+
+# Optional secret headers map header names to environment variable names.
+# [models.primary.headers_env]
+# Authorization = "LOOM_PROVIDER_AUTHORIZATION"
+
+[sandboxes.code]
+endpoint = "http://127.0.0.1:18088"
+api_key_env = "LOOM_SANDBOX_API_KEY"

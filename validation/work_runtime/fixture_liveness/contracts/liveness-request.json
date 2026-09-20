@@ -1,8 +1,0 @@
-{
-  "kind": "liveness.request",
-  "producer": "external",
-  "note": "Wake trigger for the liveness fixture: names the executable criterion the round driver wants exercised.",
-  "payload": {
-    "case": "string (vo37-vo42 label, informational)"
-  }
-}

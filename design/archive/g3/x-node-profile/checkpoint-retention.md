@@ -1,9 +1,0 @@
-# Node Session 活动快照的确认与释放
-
-这是原2份活动checkpoint约束的先行补件，不实现产品。单纯追加不可变blobs会在多轮provider/tool后越界；第三份在未释放前必须物理拒绝并保持原两份。新增窄 release_checkpoint(request_id, original_full_ref, owner_receipt_ref)，完整条件见interface.json checkpoint_retention。
-
-活动推进时，S必须已经确认较新同Session快照，并把待释放的旧原件逐字节保存到独立登记的不可变静态存储。最终/等待交付另允许sealed_ownership_transfer：X已独立证实原namespace完全停止、S已确认完整持有同一旧原件，即可移除最后一份X活动债务，无须凭空造一个更晚的语义Session。旧原件不同inode、完整SHA/大小/来源关联、真实owner回执和全局预算均由外部权威核查；X不解析Pi语义、不凭confirmed字段认可。旧件仍是唯一确认源、尚有X恢复/读取pin、owner回执跨Session/代、静态原件缺失或硬链接别名，均不能释放。
-
-X先持久记录原释放意图，再删除自身确切原归档并确认本地字节/句柄已回收，最后返回一次性配额；中途崩溃按原ID和实际路径布局核对。移动路径或改owner文字不能清债。小型历史记录保留原完整ref、摘要、当前S原件和释放回执，旧原始字节仍可独立读取。同ID重交幂等，换ref冲突。
-
-这属于X/S资源所有权，不增加Pi状态机。接口的旧release仍要求stop；新release_checkpoint要求原checkpoint授权。XN09验证真实owner确认/错范围/缺原件/唯一源/重复与历史，XN11验证第三份拒绝、确认后回收与崩溃配额。未经这些实际证据，不宣称多轮S能在128MiB内运行。

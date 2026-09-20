@@ -1,0 +1,69 @@
+{
+  "protocol": 1,
+  "command": [
+    "python3",
+    "-I",
+    "{harness}/worker.py"
+  ],
+  "events": {
+    "work.objective.set": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "work.message": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "tools": [
+    {
+      "name": "shell",
+      "capability": "sandbox.shell",
+      "description": "Run a shell script in the selected remote domain. Surface contains the report and notes; Userspace contains the separately authorized task files. Only that domain's files are visible. Networking is disabled in the code profile.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "enum": [
+              "surface",
+              "userspace"
+            ]
+          },
+          "script": {
+            "type": "string"
+          },
+          "timeout": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 120
+          }
+        },
+        "required": [
+          "target",
+          "script"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "initial_surface": "surface"
+}

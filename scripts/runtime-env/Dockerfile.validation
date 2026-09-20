@@ -1,9 +1,0 @@
-# 2026-09-14 Linux validation environment image (derived from the pinned base).
-# Base digest stays the preregistered python@sha256:78387bc3... ; this image adds
-# only the system tools the X/F facilities require at runtime (git for F, docker
-# CLI for X). The Python venv lives under the repository mount and is not baked.
-FROM python@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea
-RUN apt-get update -qq \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends \
-       git docker.io docker-cli xz-utils \
-    && rm -rf /var/lib/apt/lists/*

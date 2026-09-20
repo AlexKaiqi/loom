@@ -1,0 +1,2 @@
+# Independent model-worker RPC driver and Python Harness fixture only.
+python-lsp-jsonrpc==1.1.2
