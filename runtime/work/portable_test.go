@@ -4,7 +4,9 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"encoding/json"
+	"errors"
 	"io"
+	"loom/runtime/filesystem"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,7 +17,7 @@ import (
 
 func TestPortableLayoutAndDefinitionBinding(t *testing.T) {
 	w := fixture(t)
-	for _, p := range []string{"work.toml", "harness", "surface", ".loom/identity.json", ".loom/state.sqlite", ".loom/versions.git", ".loom/artifacts", ".loom/dependencies"} {
+	for _, p := range []string{"work.toml", "harness", "surface", ".loom/identity.json", ".loom/state.sqlite", ".loom/versions.git", ".loom/records"} {
 		if _, err := os.Stat(filepath.Join(w.Path, p)); err != nil {
 			t.Fatal(p, err)
 		}
@@ -28,14 +30,14 @@ func TestPortableLayoutAndDefinitionBinding(t *testing.T) {
 	p := filepath.Join(w.Path, "work.toml")
 	b, _ := os.ReadFile(p)
 	os.WriteFile(p, append(b, []byte("\n# changed after creation\n")...), 0600)
-	if _, err := Open(w.Path); err == nil {
-		t.Fatal("changed declaration accepted")
+	if reopened, err := Open(w.Path); err != nil || reopened.ID != w.ID || reopened.Definition.Model.Service != w.Definition.Model.Service {
+		t.Fatal("candidate declaration changed Work identity or active definition", err)
 	}
 }
 
 func TestDefinitionRejectsHostTransportSecretsAndUnknownFields(t *testing.T) {
-	base := "[model]\nservice='test'\n[model.definition]\nid='model'\napi='openai-completions'\nprovider='test'\n"
-	for _, extra := range []string{"baseUrl='https://old-host'", "headers={Authorization='secret'}", "apiKey='secret'", "[model.definition.compat]\nsecret='value'", "[unexpected]\nvalue='x'"} {
+	base := "schema_version=2\n[harness]\npath='harness'\nargv=['unused']\n[surface]\npath='surface'\n[model]\nservice='test'\n[model.parameters]\nid='model'\napi='openai-completions'\nprovider='test'\n"
+	for _, extra := range []string{"baseUrl='https://old-host'", "headers={Authorization='secret'}", "apiKey='secret'", "[model.parameters.compat]\nsecret='value'", "[unexpected]\nvalue='x'"} {
 		if _, err := parseDefinition([]byte(base + extra)); err == nil {
 			t.Fatal("accepted forbidden declaration", extra)
 		}
@@ -63,7 +65,7 @@ func TestUserspaceSnapshotRestoresPortableExactTree(t *testing.T) {
 	if err := os.Symlink("run", filepath.Join(source, "alias")); err != nil {
 		t.Fatal(err)
 	}
-	snapshot, err := w.CaptureUserspace(source)
+	snapshot, err := w.BindResource("app", source)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,10 +88,10 @@ func TestUserspaceSnapshotRestoresPortableExactTree(t *testing.T) {
 		t.Fatal(err)
 	}
 	destination := filepath.Join(t.TempDir(), "restored")
-	if err = imported.RestoreUserspace(destination); err != nil {
+	if err = imported.RestoreResource("app", "", destination); err != nil {
 		t.Fatal(err)
 	}
-	if err = imported.VerifyUserspace(destination); err != nil {
+	if err = verifyResource(imported, "app", destination); err != nil {
 		t.Fatal(err)
 	}
 	for path, mode := range map[string]os.FileMode{"": 0750, "empty": 0711, "run": 0751, "binary": 0640} {
@@ -101,16 +103,16 @@ func TestUserspaceSnapshotRestoresPortableExactTree(t *testing.T) {
 	if link, err := os.Readlink(filepath.Join(destination, "alias")); err != nil || link != "run" {
 		t.Fatal(link, err)
 	}
-	if err = imported.RestoreUserspace(destination); err == nil {
+	if err = imported.RestoreResource("app", "", destination); err == nil {
 		t.Fatal("existing restore destination overwritten")
 	}
-	if err = imported.RestoreUserspace(filepath.Join(imported.Path, "illegal")); err == nil {
+	if err = imported.RestoreResource("app", "", filepath.Join(imported.Path, "illegal")); err == nil {
 		t.Fatal("Userspace restored inside Work")
 	}
 	if err = os.WriteFile(filepath.Join(destination, "binary"), []byte("changed"), 0640); err != nil {
 		t.Fatal(err)
 	}
-	if err = imported.VerifyUserspace(destination); err == nil {
+	if err = verifyResource(imported, "app", destination); err == nil {
 		t.Fatal("changed Userspace verified")
 	}
 }
@@ -120,25 +122,37 @@ func TestUserspaceSnapshotMissingOrCorruptCannotExport(t *testing.T) {
 		t.Run(attack, func(t *testing.T) {
 			w := fixture(t)
 			source := t.TempDir()
-			snapshot, err := w.CaptureUserspace(source)
+			snapshot, err := w.BindResource("app", source)
 			if err != nil {
 				t.Fatal(err)
 			}
-			archive := filepath.Join(w.Path, filepath.FromSlash(snapshot.Archive.Path))
+			archive := filepath.Join(w.ArtifactsDir(), snapshot.BaseRef.SHA256)
 			switch attack {
-			case "missing-reference":
-				err = os.Remove(w.dependencyPath(w.Manifest["userspace_snapshot_digest"].(string)))
-			case "changed-reference":
-				err = os.WriteFile(w.dependencyPath(w.Manifest["userspace_snapshot_digest"].(string)), []byte(`{}`), 0600)
+			case "missing-reference", "changed-reference":
+				db, e := store.OpenDB(w.DBPath)
+				if e != nil {
+					t.Fatal(e)
+				}
+				statement := "DELETE FROM resource_sources WHERE alias='app'"
+				if attack == "changed-reference" {
+					statement = "UPDATE resource_sources SET source='{}' WHERE alias='app'"
+				}
+				_, e = db.Exec(statement)
+				db.Close()
+				if e == nil {
+					t.Fatal("immutable resource reference modified")
+				}
+				return
 			case "missing-archive":
 				err = os.Remove(archive)
 			case "changed-archive":
+				os.Chmod(archive, 0600)
 				err = os.WriteFile(archive, []byte("bad"), 0600)
 			}
 			if err != nil {
 				t.Fatal(err)
 			}
-			if _, err = w.UserspaceSnapshot(); err == nil {
+			if _, err = w.ResourceSource("app"); err == nil {
 				t.Fatal("corrupt dependency validated")
 			}
 			if err = w.Export(filepath.Join(t.TempDir(), "corrupt.tar.gz")); err == nil {
@@ -252,61 +266,61 @@ func TestExportRejectsChangedFileModeWithUnchangedBytes(t *testing.T) {
 	}
 }
 
-// A crash between writing immutable objects and publishing identity must leave
-// the previous complete dependency usable. The identity rename is the commit.
+// Publishing an immutable candidate is not a copy-version commit.
 func TestUnpublishedSnapshotObjectsPreservePreviousReference(t *testing.T) {
 	w := fixture(t)
 	directory := t.TempDir()
 	file := filepath.Join(directory, "state")
-	if err := os.WriteFile(file, []byte("before"), 0600); err != nil {
-		t.Fatal(err)
-	}
-	oldSnapshot, err := w.CaptureUserspace(directory)
+	os.WriteFile(file, []byte("before"), 0600)
+	initial, err := w.BindResource("app", directory)
 	if err != nil {
 		t.Fatal(err)
 	}
-	identityPath := filepath.Join(w.Path, ".loom", "identity.json")
-	oldIdentity, err := os.ReadFile(identityPath)
+	copy, err := w.ResourceCopy("app", "default")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = os.WriteFile(file, []byte("after"), 0600); err != nil {
-		t.Fatal(err)
-	}
-	newSnapshot, err := w.CaptureUserspace(directory)
+	os.WriteFile(file, []byte("after"), 0600)
+	candidate, err := w.CaptureContent(directory)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if oldSnapshot.TreeDigest == newSnapshot.TreeDigest {
+	if initial.BaseRef == candidate {
 		t.Fatal("fixture did not change")
-	}
-	// Reconstruct exactly the durable state before the final atomic publish:
-	// old identity, both versions' fsynced immutable files.
-	if err = Save(identityPath, oldIdentity); err != nil {
-		t.Fatal(err)
 	}
 	opened, err := Open(w.Path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	observed, err := opened.UserspaceSnapshot()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if observed.TreeDigest != oldSnapshot.TreeDigest {
-		t.Fatal("unpublished version became current")
+	observed, err := opened.ResourceCopy("app", "default")
+	if err != nil || observed != copy {
+		t.Fatal("unpublished candidate became current", err)
 	}
 	destination := filepath.Join(t.TempDir(), "restored")
-	if err = opened.RestoreUserspace(destination); err != nil {
+	if err = opened.RestoreResource("app", "default", destination); err != nil {
 		t.Fatal(err)
 	}
-	content, err := os.ReadFile(filepath.Join(destination, "state"))
-	if err != nil || string(content) != "before" {
-		t.Fatal(string(content), err)
+	data, err := os.ReadFile(filepath.Join(destination, "state"))
+	if err != nil || string(data) != "before" {
+		t.Fatal(string(data), err)
 	}
 	if err = opened.Export(filepath.Join(t.TempDir(), "usable.tar.gz")); err != nil {
 		t.Fatal(err)
 	}
+}
+func verifyResource(w *Work, alias, directory string) error {
+	source, err := w.ResourceSource(alias)
+	if err != nil {
+		return err
+	}
+	digest, err := filesystem.TreeDigest(directory)
+	if err != nil {
+		return err
+	}
+	if source == nil || digest != source.BaseRef.SHA256 {
+		return errors.New("resource differs from initial version")
+	}
+	return nil
 }
 
 func TestConfirmedPausePortable(t *testing.T) {

@@ -40,6 +40,9 @@ export async function runAgent(params, request, connection) {
     {
       ...request.options, model: params.model, convertToLlm: (messages) => messages,
       toolExecution: "sequential",
+      // Pi's supported finalization hook carries a native tool failure without
+      // throwing away its structured result, output references or exit status.
+      afterToolCall: ({ result }) => typeof result?.isError === "boolean" ? { isError: result.isError } : undefined,
       shouldStopAfterTurn: async (turn) => {
         await callHost("agent.event", { type: "turn_checkpoint", turn });
         completedTurns += 1;

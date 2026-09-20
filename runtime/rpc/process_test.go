@@ -14,15 +14,15 @@ import (
 
 func fixture(t *testing.T) string {
 	t.Helper()
-	module, err := filepath.Abs("../../services/model/node_modules/vscode-jsonrpc/lib/node/main.js")
+	module, err := filepath.Abs("../../services/model/transport.mjs")
 	if err != nil {
 		t.Fatal(err)
 	}
 	body := `
-import rpc from MODULE;
-const {createMessageConnection,StreamMessageReader,StreamMessageWriter}=rpc;
-const c=createMessageConnection(new StreamMessageReader(process.stdin),new StreamMessageWriter(process.stdout));
+import {createWorkerConnection} from MODULE;
+const c=createWorkerConnection("model");
 c.onRequest('ready',()=>true);
+c.onRequest('unread',()=>{setTimeout(()=>{for(const h of process._getActiveHandles()) if(h.fd===3) h.pause();},10);return true;});
 c.onRequest('nested', async p=>({answer:await c.sendRequest('custody',p),secret:process.env.LOOM_TEST_SECRET??null}));
 c.onRequest('crash',()=>process.exit(17));
 c.onRequest('delay',()=>new Promise(()=>{}));
@@ -53,7 +53,7 @@ func TestBidirectionalCustodyAndEnvironment(t *testing.T) {
 		}
 		confirmed.Store(true)
 		return "durable", nil
-	})
+	}, "model")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,7 +73,7 @@ func TestCallbackFailureAndWorkerDeath(t *testing.T) {
 		t.Run(method, func(t *testing.T) {
 			c, err := Start(context.Background(), []string{"node", fixture(t)}, "", func(context.Context, string, json.RawMessage) (any, error) {
 				return nil, errors.New("private credential should not echo")
-			})
+			}, "model")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -108,13 +108,17 @@ func TestDecodeRejectsTrailingAndPreservesNumbers(t *testing.T) {
 }
 
 func TestDeadlineInterruptsUnreadPipe(t *testing.T) {
-	c, err := Start(context.Background(), []string{"node", "-e", "setInterval(()=>{},1000)"}, "", nil)
+	c, err := Start(context.Background(), []string{"node", fixture(t)}, "", nil, "model")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer c.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
+	if err = c.Call(context.Background(), "unread", nil, nil); err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(30 * time.Millisecond)
 	start := time.Now()
 	finished := make(chan error, 1)
 	go func() { finished <- c.Call(ctx, "large", map[string]any{"data": strings.Repeat("x", 2<<20)}, nil) }()

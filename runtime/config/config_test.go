@@ -6,14 +6,14 @@ import (
 	"strings"
 	"testing"
 
-	"loom/runtime/sandbox"
+	sandbox "loom/runtime/adapters/opensandbox"
 	"loom/runtime/work"
 )
 
 func TestNamedBindingsDoNotSupplyWorkSemantics(t *testing.T) {
 	t.Setenv("CONFIG_TEST_KEY", "host-secret")
 	c := Config{Models: map[string]ModelService{"chosen": {Endpoint: "https://example.test/v1", APIKeyEnv: "CONFIG_TEST_KEY", Worker: []string{"node", "worker.mjs"}, HeadersEnv: map[string]string{"X-Key": "CONFIG_TEST_KEY"}}, "unused": {APIKeyEnv: "MISSING_UNUSED_KEY"}}}
-	def := work.ModelDefinition{Service: "chosen", Definition: map[string]any{"id": "work-model", "api": "openai-completions", "provider": "work-provider"}}
+	def := work.ModelDefinition{Service: "chosen", Parameters: map[string]any{"id": "work-model", "api": "openai-completions", "provider": "work-provider"}}
 	got, err := c.ResolveModel(def)
 	if err != nil {
 		t.Fatal(err)
@@ -21,12 +21,50 @@ func TestNamedBindingsDoNotSupplyWorkSemantics(t *testing.T) {
 	if got.Model["id"] != "work-model" || got.Model["baseUrl"] != "https://example.test/v1" || got.APIKey != "host-secret" {
 		t.Fatal("incorrect resolution")
 	}
-	if def.Definition["headers"] != nil || def.Definition["baseUrl"] != nil {
+	if def.Parameters["headers"] != nil || def.Parameters["baseUrl"] != nil {
 		t.Fatal("host values contaminated Work")
 	}
 	def.Service = "missing"
 	if _, err = c.ResolveModel(def); err == nil {
 		t.Fatal("missing binding accepted")
+	}
+}
+
+func TestReleaseFacilityBindingDoesNotRewriteServiceConfiguration(t *testing.T) {
+	root := t.TempDir()
+	services := filepath.Join(root, "host.toml")
+	body := []byte("[models.primary]\nendpoint='https://example.test/v1'\nworker=['loom-model']\n")
+	if err := os.WriteFile(services, body, 0600); err != nil {
+		t.Fatal(err)
+	}
+	old := filepath.Join(root, "old.toml")
+	next := filepath.Join(root, "new.toml")
+	if err := os.WriteFile(old, []byte("launcher='/old/nsjail'\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(next, []byte("launcher='/new/nsjail'\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("LOOM_EXECUTION_CONFIG", old)
+	first, err := Load(services)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("LOOM_EXECUTION_CONFIG", next)
+	second, err := Load(services)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.Execution.Binary != "/old/nsjail" || second.Execution.Binary != "/new/nsjail" {
+		t.Fatal("deployment binding drifted")
+	}
+	got, err := os.ReadFile(services)
+	if err != nil || string(got) != string(body) {
+		t.Fatal("upgrade rewrote service configuration", err)
+	}
+	t.Setenv("LOOM_EXECUTION_CONFIG", filepath.Join(root, "missing"))
+	if _, err = Load(services); err == nil {
+		t.Fatal("missing deployment binding ignored")
 	}
 }
 func TestQueryUsesSavedBindingWithoutModelCredentials(t *testing.T) {
@@ -52,7 +90,7 @@ func TestQueryUsesSavedBindingWithoutModelCredentials(t *testing.T) {
 }
 func TestOldDefaultsAndSecretBearingEndpointsReject(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "host.toml")
-	if err := os.WriteFile(path, []byte("[model]\nworker=['node']\n"), 0600); err != nil {
+	if err := os.WriteFile(path, []byte("schema_version=2\n[harness]\npath='harness'\nargv=['unused']\n[surface]\npath='surface'\n[model]\nworker=['node']\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := Load(path); err == nil {
@@ -71,12 +109,12 @@ func TestPrivateKeyFileRemainsHostOnly(t *testing.T) {
 		t.Fatal(err)
 	}
 	c := Config{Models: map[string]ModelService{"chosen": {Endpoint: "https://example.test/v1", APIKeyFile: key, Worker: []string{"explicit-worker"}}}}
-	def := work.ModelDefinition{Service: "chosen", Definition: map[string]any{"id": "test", "api": "openai-completions", "provider": "test"}}
+	def := work.ModelDefinition{Service: "chosen", Parameters: map[string]any{"id": "test", "api": "openai-completions", "provider": "test"}}
 	d, err := c.ResolveModel(def)
 	if err != nil || d.APIKey != "private-test-token" {
 		t.Fatal("private credential was not resolved", err)
 	}
-	if d.Worker[0] != "explicit-worker" || len(def.Definition) != 3 || len(d.Model) != 4 {
+	if d.Worker[0] != "explicit-worker" || len(def.Parameters) != 3 || len(d.Model) != 4 {
 		t.Fatal("credential or deployment data leaked into portable model or argv")
 	}
 	if err = os.Chmod(key, 0644); err != nil {
@@ -105,5 +143,18 @@ func TestCredentialReferencesRejectAmbiguityAndUnsafeFiles(t *testing.T) {
 		if _, err := credential(reference[0], reference[1]); err == nil || strings.Contains(err.Error(), "not-an-error-message") {
 			t.Fatalf("unsafe reference accepted or disclosed: %v", reference)
 		}
+	}
+}
+
+func TestModelDescriptionDoesNotReadCredentialsBeforeDispatch(t *testing.T) {
+	t.Setenv("LOOM_UNAVAILABLE_MODEL_KEY", "")
+	c := Config{Models: map[string]ModelService{"model": {Endpoint: "https://example.test/v1", APIKeyEnv: "LOOM_UNAVAILABLE_MODEL_KEY", Worker: []string{"node", "worker.mjs"}, HeadersEnv: map[string]string{"X-Private": "LOOM_UNAVAILABLE_MODEL_KEY"}, Parameters: map[string]any{"contextWindow": 32768}}}}
+	def := work.ModelDefinition{Service: "model", Parameters: map[string]any{"id": "test", "api": "openai-completions", "provider": "fixture"}}
+	description, err := c.DescribeModel(def)
+	if err != nil || description.APIKey != "" || description.Model["headers"] != nil || description.Model["contextWindow"] != float64(32768) {
+		t.Fatal("credential-free description failed", err)
+	}
+	if _, err = c.ResolveModel(def); err == nil {
+		t.Fatal("actual dispatch resolved without required credentials")
 	}
 }

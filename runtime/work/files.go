@@ -9,10 +9,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"loom/runtime/filesystem"
 	"loom/runtime/store"
 )
 
-// Files accepts ordinary files/directories only; task trees cannot redirect I/O.
+// Files hashes link text without following it; resolving content is a separate authorized read.
 func Files(root string) (map[string]string, error) {
 	result := map[string]string{}
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, walkErr error) error {
@@ -23,7 +24,7 @@ func Files(root string) (map[string]string, error) {
 		if err != nil {
 			return err
 		}
-		if !info.Mode().IsRegular() && !info.IsDir() {
+		if !info.Mode().IsRegular() && !info.IsDir() && info.Mode()&os.ModeSymlink == 0 {
 			return errors.New("unsupported file type: " + path)
 		}
 		if info.IsDir() {
@@ -32,6 +33,18 @@ func Files(root string) (map[string]string, error) {
 		relative, err := filepath.Rel(root, path)
 		if err != nil {
 			return err
+		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			target, err := os.Readlink(path)
+			if err != nil {
+				return err
+			}
+			if filepath.IsAbs(target) || !filesystem.Inside(root, filepath.Clean(filepath.Join(filepath.Dir(path), target))) {
+				return errors.New("escaping content link: " + relative)
+			}
+			sum := sha256.Sum256([]byte("symlink:" + target))
+			result[filepath.ToSlash(relative)] = hex.EncodeToString(sum[:])
+			return nil
 		}
 		f, err := os.Open(path)
 		if err != nil {
@@ -103,6 +116,13 @@ func copyTree(source, target string) error {
 		destination := filepath.Join(target, relative)
 		if info.IsDir() {
 			return os.MkdirAll(destination, 0700)
+		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			link, err := os.Readlink(path)
+			if err != nil {
+				return err
+			}
+			return os.Symlink(link, destination)
 		}
 		if !info.Mode().IsRegular() {
 			return errors.New("unsupported file type: " + path)

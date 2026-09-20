@@ -1,49 +1,11 @@
-# Source installation contract and checks
+# Installer checks
 
-The source installer assembles the existing Go Runtime, independent Pi worker and
-Kernel Harness into one user-owned prefix. It never changes host configuration,
-authority databases, Work directories, shell profiles or service deployments.
-`./install.sh` defaults to `~/.local/share/loom` with `~/.local/bin/loom` as the
-launcher. `--prefix DIR` instead defaults to `DIR/bin/loom`; `--bin-dir DIR`
-selects another launcher directory. Installation requires Unix, Go 1.24+, Node
-24/npm, Git and Python 3.10+ with venv support. The script installs Harness dependencies
-itself. It does not download or configure a Sandbox server.
+The [HTML design book](../../docs/loom-design-book.html) is the sole specification. These are operational instructions for the installer checks.
 
-Each release contains `bin/loom-runtime`, `bin/loom-model`, `services/model/`, `harnesses/kernel/`,
-`deploy/`, and a private Python venv. Its launcher sets `LOOM_INSTALL_ROOT` to that
-release and prepares only its child process PATH, with that release's `bin` first.
-Setup records `worker = ["loom-model"]`; its executable is bound to the same
-release as the Runtime even if an upgrade changes `current` before the worker is
-started. New CLI invocations get the new worker without rewriting configuration.
-Explicit operator worker argv remains available. Runtime can use that root to
-find the bundled worker and Harness without recording their paths in Work.
-Host configuration remains explicit. Existing releases remain available to
-processes that have already started.
+Run `python3 -m unittest discover -s tests/install -v` on macOS or Linux with Python 3.11+ and a real Linux Docker engine. No host Go, Node, npm or preconfigured Harness venv is required. Building the locked images needs network access and sufficient Docker storage. Set `LOOM_INSTALL_TEST_OUTPUT` to a fresh directory to retain evidence at a chosen location.
 
-Before activation, the installer checks executable prerequisites, builds all
-components and starts each installed executable. `current` is replaced with one
-atomic symlink operation only after all checks pass. A failure must preserve the
-previous active release and launcher. Existing unrelated launcher files or links
-are rejected rather than overwritten. Concurrent installs of the same prefix are
-serialized with an operating-system file lock.
+The checks install into paths containing spaces and run the installed launcher from outside the checkout. They inspect the actual image/container binding, import the installed Pi dependency, then execute `setup → new → ask` through the installed Go Runtime, restricted Python Harness and real Pi adapter against a controlled HTTP peer. The Work's SQLite records and unchanged shared source are inspected independently.
 
-Executable criteria in `test_install.py`:
+Upgrade checks retain an already-running Node process across activation and import its model component afterwards, verify both release launchers, and compare the private service configuration bytes. Other checks inject a build failure, preserve the active release, refuse an unrelated launcher and reject an unsupported execution engine before activation. The previous host-Node-version check became a Docker-engine check because Node is now part of the locked deployment image; the failure-before-activation criterion remains.
 
-1. A real install into paths containing spaces runs from an unrelated working
-   directory and launches the installed Harness with no manually prepared venv or
-   PATH; the Pi worker resolves its locked modules from the installed release.
-2. Reinstallation activates a complete new release, retains the preceding one,
-   and does not touch synthetic host configuration.
-3. An actual build failure before activation preserves the prior symlink, CLI,
-   source configuration, and release files.
-4. An unrelated launcher file is rejected and retains its exact bytes.
-5. Invalid Node versions fail before a release can become active.
-6. After an upgrade, an already-started launcher and a new launcher each resolve
-   and start the model process from their respective releases; setup configuration
-   retains the same deployed worker command.
-
-Run `python3 -m unittest discover -s tests/install -v`. The real installation
-checks use temporary directories, leave the user's real home unchanged, and need
-normal package download access. Raw command logs are available under the test
-output directory printed by the runner; an exit code alone does not constitute
-its assertions.
+Only containers created by this test installation are removed at teardown. Releases, images, raw logs and observations are retained. A failed install or unavailable Docker engine is a failure, not a skipped acceptance case. These checks do not establish real-model effectiveness or remote Sandbox conformance.

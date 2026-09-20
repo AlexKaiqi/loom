@@ -13,11 +13,63 @@ from contextlib import closing
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import threading
 
-from support import CLIFixture, ROOT, provider, query
+from support import CLIFixture, ROOT, provider, query, ObservedHandler
 
 
 class GoAcceptance(CLIFixture):
-    def test_rpc_timeout_interrupts_a_worker_that_never_reads_stdin(self):
+    def test_input_arriving_during_model_request_is_adopted_after_its_reply(self):
+        work = self.base/'work'
+        definition = self.definition(sandbox=False,harness_argv=['python3','-I','{harness}/worker.py'])
+        definition.write_text(definition.read_text().replace('contextWindow=4096','contextWindow=65536'))
+        self.call('create',work,'--harness',ROOT/'harnesses/kernel','--definition',definition)
+        shutil.copyfile(ROOT/'templates/default/surface/main.md',work/'surface/main.md')
+        self.admit(work,'initial',{'text':'original request'})
+        fixture=self
+        class DuringRequest(ObservedHandler):
+            def openai(self,mode,number):
+                if number==1:
+                    fixture.admit(work,'concurrent',{'text':'LATE_INPUT_NEXT_ADVANCE'})
+                super().openai(mode,number)
+        with provider(work) as server:
+            server.RequestHandlerClass=DuringRequest
+            self.configure(server)
+            self.call('run',work)
+            self.assertEqual(len(query(work,'SELECT * FROM pending')),1)
+            self.assertNotIn('LATE_INPUT_NEXT_ADVANCE',json.dumps(server.calls[0]['body']))
+            self.call('run',work)
+            self.assertEqual(len(server.calls),2)
+            messages=server.calls[1]['body']['messages']
+            self.assertEqual(messages[-1]['role'],'user')
+            self.assertIn('LATE_INPUT_NEXT_ADVANCE',json.dumps(messages[-1]))
+            self.assertEqual(messages[-2]['role'],'assistant')
+            self.assertEqual(query(work,'SELECT * FROM pending'),[])
+            events=query(work,"SELECT source,kind,payload FROM events WHERE kind IN ('work.objective.set','model.message') ORDER BY seq")
+            self.assertEqual([e['kind'] for e in events],['work.objective.set','work.objective.set','model.message','model.message'])
+            self.save_provider(server)
+
+    def test_harness_can_handoff_without_starting_a_model(self):
+        policy = self.policy()
+        worker = policy / "worker.mjs"
+        worker.write_text(worker.read_text().replace('c.listen();', 'c.onRequest("policy.start",p=>c.handoff(p.handoff_basis)); c.listen();'))
+        work = self.base / "work"
+        self.call("create", work, "--harness", policy, "--definition", self.definition())
+        self.admit(work)
+        with provider(work) as server:
+            self.configure(server)
+            no_model_secret = dict(self.env)
+            no_model_secret.pop("LOOM_TEST_MODEL_KEY", None)
+            result = self.call("run", work, env=no_model_secret)
+            self.assertEqual(result["state"], "handed_off")
+            self.assertEqual(server.calls, [])
+            self.assertEqual(query(work, "SELECT * FROM effects"), [])
+            self.assertEqual(query(work, "SELECT * FROM pending"), [])
+            checkpoints = query(work, "SELECT record_ref FROM checkpoints ORDER BY rowid")
+            saved = json.loads(checkpoints[-1]["record_ref"])
+            cp = json.loads((work / ".loom/records" / saved["sha256"]).read_bytes())
+            self.assertEqual(cp["phase"], "handed_off")
+            self.assertEqual(cp["handled_input_ids"], ["F1"])
+
+    def test_rpc_timeout_interrupts_a_worker_that_stops_reading_control_fd(self):
         driver = self.driver()
         result = subprocess.run([driver, "rpc-stall", shutil.which("node")], capture_output=True, text=True, timeout=8)
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -51,8 +103,8 @@ class GoAcceptance(CLIFixture):
             self.config.write_text('[sandboxes.sandbox-main]\napi_key_env="LOOM_TEST_SANDBOX_KEY"\nendpoint=' + json.dumps(endpoint) + '\n')
             binding = {"service_id": "sandbox-main", "endpoint": endpoint, "image": image, "profile": "code", "cpu": "1", "memory": "512Mi", "lease_seconds": 600, "request_timeout_seconds": 30}
             with closing(sqlite3.connect(work / ".loom/state.sqlite")) as db, db:
-                db.execute("INSERT INTO rounds(id,owner,input_seq,state) VALUES('query-round','old-owner',1,'paused')")
-                db.execute("INSERT INTO effects(id,round_id,key,kind,request,digest,status,receipt) VALUES('query-effect','query-round','old','sandbox.shell','{}','fixture','unknown',?)", (json.dumps({"sandbox_id": "missing-sandbox", "execution_id": "missing-session/missing-run", "binding": binding}),))
+                db.execute("INSERT INTO rounds(id,owner,input_seq,state) VALUES('query-round','old-owner',1,'blocked')")
+                db.execute("INSERT INTO effects(id,round_id,key,kind,request,digest,status,receipt) VALUES('query-effect','query-round','old','tool.exec',?,'fixture','unknown',?)", (json.dumps({'environment':'sandbox'}), json.dumps({"sandbox_id": "missing-sandbox", "execution_id": "missing-session/missing-run", "binding": binding}),))
             before = query(work, "SELECT * FROM effects")
             env = dict(self.env)
             env.pop("LOOM_TEST_MODEL_KEY", None)
@@ -78,14 +130,17 @@ class GoAcceptance(CLIFixture):
         with provider(work) as server:
             self.configure(server)
             result = self.call("run", work)
-            self.assertEqual(result["state"], "completed", "Runtime must honor the single policy stop decision")
+            self.assertEqual(result["state"], "handed_off", "Runtime must honor the single policy stop decision")
             self.assertEqual(len(server.calls), 1)
             self.assertEqual(server.errors, [])
             self.save_provider(server)
 
     def test_external_python_kernel_uses_same_go_controller(self):
         work = self.base / "work"
-        self.call("create", work, "--harness", ROOT / "harnesses/kernel", "--definition", self.definition(userspace=True))
+        definition = self.definition(userspace=True,harness_argv=["python3","-I","{harness}/worker.py"])
+        definition.write_text(definition.read_text().replace('contextWindow=4096', 'contextWindow=16384'))
+        self.call("create", work, "--harness", ROOT / "harnesses/kernel", "--definition", definition)
+        shutil.copyfile(ROOT / "templates/default/surface/main.md", work / "surface/main.md")
         userspace = self.base / "userspace"
         userspace.mkdir()
         self.call("grant", work, userspace)
@@ -93,10 +148,10 @@ class GoAcceptance(CLIFixture):
         with provider(work) as server:
             self.configure(server)
             result = self.call("run", work)
-            self.assertEqual(result["state"], "completed")
+            self.assertEqual(result["state"], "handed_off")
             self.assertEqual(len(server.calls), 1)
             self.assertEqual(server.errors, [])
-            self.assertIn("report.md", server.calls[0]["body"]["messages"][0]["content"])
+            self.assertIn("surface/main.md", server.calls[0]["body"]["messages"][0]["content"])
             self.save_provider(server)
 
     def driver(self):
@@ -134,7 +189,7 @@ class GoAcceptance(CLIFixture):
                 with closing(sqlite3.connect(database)) as db, db:
                     # Component fixture only: known no-effect checkpoint, not an
                     # end-to-end claim that external execution was recovered.
-                    db.execute("UPDATE rounds SET state='paused',checkpoint=?", (json.dumps({"context": {"messages": []}, "plan": {"max_turns": 1}}),))
+                    db.execute("UPDATE rounds SET state='ready',checkpoint=?", (json.dumps({"context": {"messages": []}, "plan": {"max_turns": 1}}),))
             children = [subprocess.Popen([driver, mode, database], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) for _ in range(4)]
             outcomes = []
             for child in children:
@@ -164,7 +219,7 @@ class GoAcceptance(CLIFixture):
         with provider(work) as server:
             self.configure(server)
             result = self.call("run", work, env=env)
-            self.assertEqual(result["state"], "completed")
+            self.assertEqual(result["state"], "handed_off")
             self.assertEqual(len(server.calls), 1)
             self.assertEqual(server.errors, [])
             self.assertIn("INDEPENDENT NODE POLICY", json.dumps(server.calls))
@@ -212,7 +267,7 @@ class GoAcceptance(CLIFixture):
             self.configure(server)
             self.call("run", work, ok=False)
             self.assertEqual(len(server.calls), 1)
-            self.assertEqual(query(work, "SELECT state FROM rounds"), [{"state": "paused"}])
+            self.assertEqual(query(work, "SELECT state FROM rounds"), [{"state": "blocked"}])
             effects = query(work, "SELECT status,result FROM effects")
             self.assertEqual(len(effects), 1)
             if effects[0]["status"] == "completed":
@@ -263,7 +318,7 @@ class GoAcceptance(CLIFixture):
             self.configure(server)
             self.call("run", work, ok=False)
             before = query(work, "SELECT state,checkpoint FROM rounds")[0]
-            self.assertEqual(before["state"], "paused")
+            self.assertEqual(before["state"], "ready")
             self.assertIsNotNone(before["checkpoint"])
             self.assertEqual(len(server.calls), 1)
             self.configure(server, worker=[str(self.base / "nonexistent-worker")])
@@ -273,7 +328,7 @@ class GoAcceptance(CLIFixture):
             self.assertEqual(len(server.calls), 1)
             self.configure(server)
             resumed = self.call("resume", work)
-            self.assertEqual(resumed["state"], "completed")
+            self.assertEqual(resumed["state"], "handed_off")
             self.assertEqual(len(server.calls), 2)
             self.assertIn("first answer", json.dumps(server.calls[1]["body"]))
             self.assertEqual(server.errors, [])
@@ -297,8 +352,8 @@ class GoAcceptance(CLIFixture):
         nested.mkdir()
         self.call("grant", sender, userspace)
         self.call("grant", receiver, nested, ok=False)
-        self.admit(sender, payload={"text": "ok", "source": "system"}, ok=False)
-        self.assertEqual(query(sender, "SELECT * FROM events"), [])
+        accepted = self.admit(sender, payload={"text": "ok", "source": "system"})
+        self.assertEqual(accepted["source"], "host", "payload self-assertion must not become caller authority")
         payload = self.base / "relay.json"
         payload.write_text('{"text":"relay input"}')
         relay = ("relay", sender, receiver, "work.objective.set", "--payload", payload, "--request-id", "relay-one")
@@ -310,7 +365,7 @@ class GoAcceptance(CLIFixture):
         self.assertEqual(len(events), 1)
         self.assertNotEqual(events[0]["source"], "system")
         payload.write_text('{"text":42}')
-        self.call("relay", sender, receiver, "work.objective.set", "--payload", payload, "--request-id", "bad-schema", ok=False)
+        self.call("relay", sender, receiver, "system.succeeded", "--payload", payload, "--request-id", "fake-runtime-fact", ok=False)
         self.assertEqual(len(query(receiver, "SELECT * FROM events")), 1)
 
     def test_export_committed_wal_pending_no_authority_and_tamper_rejected(self):
@@ -327,7 +382,11 @@ class GoAcceptance(CLIFixture):
         unpacked = self.base / "unpacked"
         unpacked.mkdir()
         with tarfile.open(archive) as source:
-            source.extractall(unpacked, filter="data")
+            for member in source.getmembers():
+                self.assertFalse(Path(member.name).is_absolute())
+                self.assertNotIn("..",Path(member.name).parts)
+                self.assertTrue(member.isdir() or member.isfile())
+            source.extractall(unpacked)
         exported = unpacked / "work"
         self.assertEqual(query(exported, "SELECT source,request_id,kind,payload FROM events"), query(work, "SELECT source,request_id,kind,payload FROM events"))
         self.assertEqual(query(exported, "SELECT * FROM pending"), query(work, "SELECT * FROM pending"))

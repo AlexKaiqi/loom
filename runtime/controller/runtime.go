@@ -4,37 +4,34 @@ package controller
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"loom/runtime/authority"
-	"loom/runtime/policy"
-	"loom/runtime/sandbox"
+	sandbox "loom/runtime/contracts"
+	"loom/runtime/execution"
 	"loom/runtime/store"
 	"loom/runtime/work"
-	"path/filepath"
+	"strings"
 )
 
 type Object = map[string]any
 type Runtime struct {
+	Configure      func(*Runtime, *work.Work) error
+	ActivateModel  func(*Runtime) error
+	Execution      *execution.Config
 	Authority      *authority.Authority
 	Model          Object
 	APIKey         string
 	ModelCommand   []string
-	Sandbox        *sandbox.Client
-	ResolveSandbox func(sandbox.Binding) (*sandbox.Client, error)
+	Targets        map[string]sandbox.TaskExecutor
+	ResolveSandbox func(sandbox.Binding) (sandbox.TaskExecutor, error)
 }
 
 func (r *Runtime) Admit(ctx context.Context, w *work.Work, requestID, kind string, payload Object) (store.Event, error) {
 	if err := r.Authority.Authorize(w); err != nil {
 		return store.Event{}, err
 	}
-	p, err := policy.Open(ctx, filepath.Join(w.Path, "harness"))
-	if err != nil {
-		return store.Event{}, err
-	}
-	defer p.Close()
-	if err = p.Admit(ctx, kind, payload, "host"); err != nil {
-		return store.Event{}, err
+	if kind == "" || strings.HasPrefix(kind, "system.") {
+		return store.Event{}, errors.New("invalid application input kind")
 	}
 	return w.Events.Admit("host", requestID, kind, payload)
 }
@@ -42,14 +39,9 @@ func (r *Runtime) Relay(ctx context.Context, sender, receiver *work.Work, reques
 	if err := r.Authority.RelayAllowed(sender, receiver); err != nil {
 		return store.Event{}, err
 	}
-	p, err := policy.Open(ctx, filepath.Join(receiver.Path, "harness"))
-	if err != nil {
-		return store.Event{}, err
-	}
-	defer p.Close()
 	source := "work:" + sender.ID
-	if err = p.Admit(ctx, kind, payload, source); err != nil {
-		return store.Event{}, err
+	if kind == "" || strings.HasPrefix(kind, "system.") {
+		return store.Event{}, errors.New("invalid application event kind")
 	}
 	return receiver.Events.Admit(source, requestID, kind, payload)
 }
@@ -66,48 +58,30 @@ func (r *Runtime) Query(w *work.Work) (Object, error) {
 		return nil, err
 	}
 	effects := map[string][]store.Effect{}
+	allocations := map[string][]store.Allocation{}
 	for _, round := range rounds {
 		effects[round.ID], err = w.Control.Effects(round.ID)
 		if err != nil {
 			return nil, err
 		}
+		allocations[round.ID], err = w.Control.Allocations(round.ID)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return Object{"definition": w.Definition, "work_id": w.ID, "pending": pending, "rounds": rounds, "effects": effects}, nil
+	return Object{"definition": w.Definition, "work_id": w.ID, "pending": pending, "rounds": rounds, "effects": effects, "allocations": allocations}, nil
 }
 func (r *Runtime) QueryRemote(ctx context.Context, w *work.Work, roundID, effectID string) (Object, error) {
-	if err := r.Authority.Authorize(w); err != nil {
-		return nil, err
-	}
-	if r.ResolveSandbox == nil {
-		return nil, errors.New("sandbox is not configured")
-	}
-	effects, err := w.Control.Effects(roundID)
+	effect, executor, sid, eid, err := r.originalExecution(w, roundID, effectID)
 	if err != nil {
 		return nil, err
 	}
-	for _, e := range effects {
-		if e.ID == effectID && e.Kind == "sandbox.shell" {
-			sid, _ := e.Receipt["sandbox_id"].(string)
-			eid, _ := e.Receipt["execution_id"].(string)
-			if sid != "" && eid != "" {
-				var binding sandbox.Binding
-				data, err := json.Marshal(e.Receipt["binding"])
-				if err != nil {
-					return nil, err
-				}
-				if err = json.Unmarshal(data, &binding); err != nil {
-					return nil, errors.New("invalid saved remote service binding")
-				}
-				if binding.ServiceID == "" || binding.Endpoint == "" {
-					return nil, errors.New("remote execution has no saved service binding")
-				}
-				client, err := r.ResolveSandbox(binding)
-				if err != nil {
-					return nil, err
-				}
-				return client.Query(ctx, sid, eid, binding)
-			}
-		}
+	observation, err := executor.Query(ctx, sid, eid, executor.Binding())
+	if err != nil {
+		return nil, err
 	}
-	return nil, errors.New("no saved remote execution identity; automatic replay forbidden")
+	if err = w.Control.ObserveEffect(effect.ID, "remote_query", observation); err != nil {
+		return nil, err
+	}
+	return observation, nil
 }

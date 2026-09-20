@@ -9,12 +9,13 @@ Loom imports dependencies rather than vendoring their provider codecs, agent loo
 | Sourcegraph jsonrpc2 0.2.1 | MIT | https://github.com/sourcegraph/jsonrpc2 |
 | python-lsp-jsonrpc 1.1.2 | MIT | https://github.com/python-lsp/python-lsp-jsonrpc; external Python Harness and test observers only |
 | OpenSandbox official Go SDK / server / execd | Apache-2.0 | https://github.com/alibaba/OpenSandbox; Go sums and `deploy/opensandbox/versions.json` |
-| modernc SQLite binding | BSD-3-Clause | https://gitlab.com/cznic/sqlite; underlying SQLite public domain |
+| modernc SQLite binding 1.46.2 / SQLite 3.51.3 | BSD-3-Clause | https://gitlab.com/cznic/sqlite; underlying SQLite public domain |
 | jsonschema/v6 | Apache-2.0 | https://github.com/santhosh-tekuri/jsonschema |
 | Cobra | Apache-2.0 | https://github.com/spf13/cobra |
 | go-toml/v2 | MIT | https://github.com/pelletier/go-toml |
 | golang.org/x/term | BSD-3-Clause | https://cs.opensource.google/go/x/term; terminal secret input |
 | ujson 6.0.0 | BSD-3-Clause | https://github.com/ultrajson/ultrajson; locked Python JSON-RPC dependency |
+| NsJail 3.6 | Apache-2.0 | https://github.com/google/nsjail; exact source commit and build dependencies in `deploy/work/Dockerfile` |
 | Git CLI | GPL-2.0 | https://git-scm.com; separately installed program |
 
 Go transitive dependencies and versions are recorded in `runtime/go.mod`/`go.sum`; npm transitive dependencies are locked independently. Their distributions retain their license notices.

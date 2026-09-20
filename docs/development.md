@@ -1,99 +1,59 @@
-# Development and reconstruction
+# Development operations
 
-These commands build and check the current implementation. See [Target architecture](architecture-target.md) for the accepted design and outstanding work. Existing Kernel checks cover its automatic archive behavior; they do not validate model-controlled visibility, persistent Surface templates or arbitrary recorded-state recovery.
+The [HTML design book](loom-design-book.html) is the sole specification. This file contains reconstruction and verification commands, not an alternate architecture or acceptance standard.
 
-## Prerequisites
+## Build individual components
 
-- Unix host: macOS or Linux
-- Go 1.24 or newer
-- Node.js 24 and npm
-- Git CLI
-- Python 3.10+ for the bundled Harness and independent test drivers
-- Linux container runtime for a real OpenSandbox deployment
-
-Locked production dependencies are reconstructed from `runtime/go.mod`, `runtime/go.sum`, `services/model/package-lock.json` and `harnesses/kernel/requirements.txt`. Important direct dependencies are Pi AI/agent core 0.85.1, vscode-jsonrpc 9.0.2, sourcegraph/jsonrpc2 0.2.1, modernc SQLite 1.36.3, jsonschema/v6 6.0.2, Cobra 1.9.1, go-toml/v2 2.2.4 and the OpenSandbox Go SDK revision in `runtime/go.mod`. Server/image identities are in `deploy/opensandbox/versions.json`; license/source information is in `THIRD_PARTY.md`.
-
-## Install and everyday use
+Use Go 1.25+, Node 24, Git and Python 3.11+. The production dependency inputs are `runtime/go.mod`, `runtime/go.sum`, `services/model/package-lock.json` and `harnesses/kernel/requirements.lock`. The Go SQLite driver verifies the actual engine version and WAL/FULL settings when opening each database.
 
 ```sh
-./install.sh
-export PATH="$HOME/.local/bin:$PATH"
-loom setup
-loom new ~/works/demo --userspace ~/projects/demo
-cd ~/works/demo
-loom ask "Read the task files, make a plan and write a report."
-loom status
+npm ci --prefix services/model
+(cd runtime && go build -o bin/loom ./cmd/loom)
+python3 -m venv .venv
+.venv/bin/pip install --require-hashes -r harnesses/kernel/requirements.lock
+.venv/bin/pip install -r tests/requirements.txt
 ```
 
-The task-files directory must already exist. The Work is a separate new directory. `setup` uses Pi's native model catalog for directly supported API-key deployments, asks for the independently managed OpenSandbox endpoint, and reads secret keys with terminal echo disabled. It writes private key files and configuration under `~/.config/loom/`; it performs no provider call and does not provision Sandbox infrastructure. See [OpenSandbox deployment](../deploy/opensandbox/README.md). OAuth, cloud identity and provider-specific headers require explicit advanced host configuration.
+A native macOS build supports management and component checks. Executing Harness or Work Bash requires the configured shared Linux facility; there is no host-shell fallback. `./install.sh` builds the reference facility and routes the CLI into it. `deploy/work/Dockerfile` pins the toolchain bases and NsJail source; the final image excludes the Go build toolchain and caches.
 
-The installer builds an isolated release under `~/.local/share/loom/releases/`, with a Go binary, Node dependencies and Python venv. It publishes a `current` symlink only after the complete release passes installation checks. The launcher `~/.local/bin/loom` selects the installed components automatically; manual venv activation is unnecessary. `./install.sh --prefix "/path/with spaces/loom"` places the launcher at that prefix's `bin/loom`; `--bin-dir` overrides that location. Reinstalling preserves configuration and old releases; a failed build leaves the prior installation active. Existing Work keeps its fixed Harness and model declaration.
+The installer publishes `current` only after startup checks. Failed builds retain the previous installation. Reinstall with the same workspace roots. Old images/containers and persistent state are retained so an upgrade cannot silently terminate an in-flight owner or remove its staged result; inspect and fence old domains before retiring a deployment.
 
-`ask [PATH] TEXT` admits a durable `work.message`, prints its request ID before execution, and runs pending work when no Round is already running or paused. PATH defaults to the current directory. To retry the same input, retain its text and `--request-id ID`; a changed payload with the same ID is rejected, and a completed request is not dispatched again. A newly admitted message during an active/paused Round is reported as queued. `run`, `resume`, `status` and `events` also default to the current directory. Use `resume` only for a confirmed native continuation and `run` for new pending work. No command automatically replays an unknown effect.
+## Host configuration
 
-The bundled Kernel seeds ordinary `surface/plan.md`, `report.md` and `notes.md`. Plan projects the current and next unchecked steps and instructs the model to record evidence; it is not independent stage acceptance. Archive persists complete native context under `surface/archive/` before reducing subsequent requests to references plus recent complete tool exchanges. It does not create a lossy summary. See the [Kernel contract](contracts/kernel-harness.md) and [usage contract](contracts/usage.md).
-
-## Advanced configuration and component builds
-
-Unattended setup uses credential references, never key values in arguments:
+`loom setup` reads Pi's model catalog or an explicit native model file. For unattended setup, use references to credentials rather than putting their values in argv:
 
 ```sh
-loom setup --provider openai --model gpt-4o-mini \
+loom setup --provider PROVIDER --model MODEL \
   --sandbox-endpoint https://sandbox.example.test \
   --model-key-env LOOM_MODEL_API_KEY --sandbox-key-env LOOM_SANDBOX_API_KEY
 ```
 
-`--model-key-file` and `--sandbox-key-file` accept existing restricted regular files instead. `--config FILE` selects a different host configuration location; its sibling `work-default.toml` contains the portable defaults. Setup refuses to overwrite either file. For a model absent from the supported catalog, use `--model-file /private/native-model.json --model-endpoint URL`; the JSON contains native Pi semantics without `baseUrl`, `headers` or secrets. Supply any special authentication separately through host configuration.
+The installed launcher forwards only credential environment names selected by the private host configuration. Interactive setup stores private key files in the deployment's host-state directory. Advanced `--config FILE` and credential files must be accessible to the trusted controller through its configured mounts. Secrets never belong in a Work or source checkout.
 
-The two configuration files serve different purposes:
+[Host configuration](../deploy/config.example.toml) binds logical services and Target profiles, credentials, the locked launcher, reserved UID range and delegated cgroup. [Work defaults](../deploy/work.example.toml) carry schema 2 logical declarations. Different Targets receive independent saved copies of their declared resources. Granting a resource does not authorize a shared-project update.
 
-- [Work declaration](../deploy/work.example.toml) fixes native Pi model semantics, named services, a digest-pinned Sandbox image/profile/resources/time limits and a logical Userspace name. `new` copies its defaults into the Work, fixing the digest. It carries no endpoints, keys, worker paths or host grants.
-- [Host configuration](../deploy/config.example.toml) maps those service names to endpoints, installed worker commands and credential references. `api_key_env` and `api_key_file` are mutually exclusive. Optional model `headers_env` maps header names to environment variable names; values are loaded only in the trusted controller. The authority database defaults to `~/.local/state/loom/authority.sqlite`, overridable with `--authority FILE`.
+## Assemble and select a Work
 
-`new --harness DIR --definition FILE` selects explicit components. The lower-level offline `create` and separate `grant`/`admit` commands remain available for integrations:
+A directory containing valid `work.toml`, Harness files and Surface files can be assembled with ordinary `mkdir`/`cp` operations and initialized with `loom register DIRECTORY`. Registration preserves those files and creates hidden Runtime metadata once; resource grants remain separate. An incomplete or invalid existing `.loom` directory is rejected, never silently reset.
 
-```sh
-loom create /path/to/work --harness /path/to/harness \
-  --definition /path/to/work-definition.toml
-loom grant /path/to/work /path/to/task-files
-loom admit /path/to/work work.objective.set \
-  --payload /path/to/objective.json --request-id objective-1
-loom run /path/to/work
-```
+Edit the candidate Harness and `work.toml`, check them in a separate test Work, then run `loom select-harness WORK`. This selects the complete immutable definition for a subsequent Round. Saving files alone does not activate them, and a resumed Round keeps its original code, model declaration and Target requirements. An invalid candidate does not prevent inspecting committed state or recovering the prior Round. The Work Bash view includes `/facts/interface.json` with the executing Harness reference, per-role operations and generated request/tool schemas; reading it does not grant control access. Resource aliases already bound to a source retain that identity; use a new alias for a different logical resource and grant it explicitly.
 
-The payload is a JSON object such as `{"text":"Read the task files and write a report."}`. A Harness without task tools can omit `[sandbox]`; one without an external task directory can omit `[userspace]`. Runtime production code uses the official remote OpenSandbox Go SDK, never direct Docker execution.
-
-For development, build the individual components:
+## Work history and movement
 
 ```sh
-npm ci --prefix services/model
-(cd runtime && go mod download && go build -o bin/loom ./cmd/loom)
-python3 -m venv .venv
-.venv/bin/pip install -r harnesses/kernel/requirements.txt -r tests/requirements.txt
-export PATH="$PWD/.venv/bin:$PWD/runtime/bin:$PATH"
+loom history WORK
+loom inspect WORK CHECKPOINT_ID NEW_DIRECTORY
+loom fork WORK CHECKPOINT_ID NEW_WORK
+loom export WORK ARCHIVE.tar.gz
+loom import ARCHIVE.tar.gz NEW_WORK
+loom register NEW_WORK
 ```
 
-`node_modules/`, `.venv/` and `runtime/bin/` are generated locally. The lock files and source are the reconstruction inputs. Component builds discover source assets relative to `runtime/bin/loom`; no developer-machine path is compiled into the binary.
+Inspect materializes immutable content without executing it. Fork retains the selected historical fact prefix and necessary bytes under a new identity; it has no inherited pending inputs, effects or physical grants. A new input starts the exploration. Export currently requires an inactive Work or a confirmed native continuation with known effects. Unknown effects stay with their original owner and destination; they cannot be cleared by export/import.
 
-## Move a confirmed Work to another host
+On a new host, explicitly grant each declared resource with `loom grant-resource WORK ALIAS DIRECTORY`. Original captured versions remain available even if that host's shared project has changed. To materialize a saved copy in a new directory, use `loom restore-resource WORK ALIAS DIRECTORY --target TARGET`; it neither overwrites the shared project nor grants access to the new directory.
 
-Export accepts a confirmed paused native Pi checkpoint once all effects are complete and remote resources released. It rejects a running Round or unknown effect. Use the consistent export command rather than copying files during active writes:
-
-```sh
-# Source host; do not keep advancing this copy after handing it over.
-loom export /path/to/work /path/to/work.tar
-
-# Destination host, with its own authority database and named service config.
-loom import /path/to/work.tar /new/path/to/work
-loom register /new/path/to/work
-loom restore-userspace /new/path/to/work /new/path/to/task-files
-loom grant /new/path/to/work /new/path/to/task-files
-loom resume /new/path/to/work
-```
-
-The import and Userspace destination must not already exist. Import grants no authority; registration is required before the CLI's restore operation, and restoration itself does not grant task access. Userspace restoration reads the captured archive in Work and does not require the original directory. An existing replacement directory can instead be granted only when its captured content identity matches. Omit restore/grant for a Work without a Userspace dependency. Use `resume` for a confirmed paused Round; use `run` for newly pending work with no such continuation.
-
-Resume retains the same Round and native context without repeating completed tools. The new host supplies the same declared model semantics via its explicitly named transport. An old checkpoint's model endpoint is audit information. In contrast, querying an existing remote Sandbox effect requires its original concrete endpoint: `loom query-remote WORK ROUND_ID EFFECT_ID` rejects a host mapping that points elsewhere. Host grants, credentials and remote resources are never transported as authority. These commands do not coordinate two concurrent owners or reconcile unknown effects.
+`loom recover WORK` revokes the old epoch and fences every retained Linux execution domain before deciding whether a confirmed continuation is ready. If fencing or an external outcome is unconfirmed, the Round remains recovering/blocked. `loom query-remote WORK ROUND_ID EFFECT_ID` queries only the original saved service binding. `loom cancel-effect WORK ROUND_ID EFFECT_ID` records cancellation responsibility before requesting a stop at that binding; a stopped execution does not prove its result or files were delivered. `loom inspect-allocation WORK ROUND_ID ALLOCATION_ID` reconciles the original resource request, including a lost create receipt. `loom release-allocation WORK ROUND_ID ALLOCATION_ID` requests release only after necessary execution output and content are saved. Reconciliation never creates a replacement instance.
 
 ## Checks
 
@@ -101,10 +61,18 @@ Resume retains the same Round and native context without repeating completed too
 (cd runtime && go test -race ./...)
 .venv/bin/python -m unittest discover -s tests/model -v
 .venv/bin/python -m unittest discover -s tests/harness -v
-python3 -m unittest discover -s tests/install -v
-.venv/bin/python tests/go_acceptance/run_frozen.py --output /tmp/loom-acceptance
 ```
 
-Real service tests are opt-in because they require operator-owned credentials and infrastructure. Always use a fresh output directory outside the source tree. A skip, fixture-only pass or stale output is not evidence for a real-service property.
+CLI execution checks need a real Linux facility. Inside that facility, set `LOOM_GO_BINARY` to the compiled CLI, `LOOM_TEST_CGROUP_ROOT` to its delegated cgroup, and `LOOM_GO_EVIDENCE` to a new directory outside the source tree:
 
-The frozen acceptance runner snapshots the current source/contracts and excludes generated dependencies, binaries and result directories. If contracts or source change after the snapshot, rerun against the changed tree.
+```sh
+python3 -m unittest discover -s tests/go_acceptance -v
+```
+
+Remote execution checks additionally require `LOOM_SANDBOX_ENDPOINT`, `LOOM_SANDBOX_KEY_FILE` and `LOOM_SANDBOX_EVIDENCE`. Use the [OpenSandbox deployment runbook](../deploy/opensandbox/README.md). `go test ./adapters/opensandbox -run TestReal -v -count=1` runs the real SDK cases when these are configured.
+
+The isolated execution probe retains its raw result and publishes `target.ready` with the actual platform, architecture, tools, permissions, read-only mounts and original allocation/session identity. Inspect those facts and their record references when diagnosing a Target that was allocated but could not execute.
+
+For a bounded scheduler load and restart check, run `python3 tests/go_acceptance/scale.py --binary /absolute/path/to/loom --output /tmp/loom-load` inside the configured Linux facility. Its plan fixes 32 Works, mixed Node/Python strategies, concurrency, event rate, byte volume and thresholds before dispatch. The controlled model endpoint and two-second offline interval do not establish real-provider throughput or long-duration reliability.
+
+Keep every failed run and record its source/image/dependency identities. Rerun changed checks against the final source. A fixture pass, skipped real-service test or old evidence directory does not establish conformance. A35 additionally needs repeated real-model workloads with fixed quality/safety/budget criteria; renderer mechanism tests cannot substitute for that comparison.

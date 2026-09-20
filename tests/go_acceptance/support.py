@@ -134,23 +134,27 @@ class CLIFixture(unittest.TestCase):
     def policy(self, name="policy", *, continuation=False, max_turns=2, timeout=4, reject=False, prepare_model=False):
         destination = self.base / name
         destination.mkdir()
-        rpc = (ROOT / "services/model/node_modules/vscode-jsonrpc/lib/node/main.js").as_uri()
-        preparation = ('p=>({context:{...p.turn.context,messages:[...p.turn.context.messages,{role:"user",content:"Continue the same objective.",timestamp:1}]}})' if continuation else 'p=>null')
+        shutil.copyfile(ROOT / "tests/go_acceptance/peer.mjs", destination / "peer.mjs")
+        rpc = "./peer.mjs"
+        preparation = ('p=>({context:{...p.turn.context,messages:[...p.turn.context.messages,{role:"user",content:"Continue the same objective.",timestamp:1}]}})' if continuation else 'p=>({context:p.turn.context})')
         if prepare_model:
             selected = {"id": "fixture-model", "name": "Fixture", "provider": "fixture", "api": "openai-completions", "reasoning": True,
                 "input": ["text", "image"], "contextWindow": 4096, "maxTokens": 128,
                 "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0}}
             preparation = preparation.replace('p=>({context:', 'p=>({model:' + json.dumps(selected) + ',context:')
-        source = f'''import {{createMessageConnection,StreamMessageReader,StreamMessageWriter}} from {json.dumps(rpc)};
-const c=createMessageConnection(new StreamMessageReader(process.stdin),new StreamMessageWriter(process.stdout));
+        source = f'''import {{createWorkerConnection}} from {json.dumps(rpc)};
+import {{readFileSync}} from 'node:fs';
+import {{execFileSync}} from 'node:child_process';
+const c=createWorkerConnection("harness");
+const inputs=p=>JSON.parse(execFileSync('sqlite3',['-readonly','-json',p.facts_database,'SELECT fact_id,record_path FROM facts ORDER BY ordinal'],{{encoding:'utf8'}})).filter(f=>p.required_fact_ids.includes(f.fact_id)).map(f=>JSON.parse(readFileSync(f.record_path,'utf8')));
 c.onRequest("policy.admit",p=>{str(not reject).lower()});
-c.onRequest("policy.start",p=>({{context:{{systemPrompt:"INDEPENDENT NODE POLICY",messages:[{{role:"user",content:JSON.stringify(p.facts),timestamp:p.timestamp}}]}},max_turns:{max_turns},timeout:{timeout}}}));
+c.onRequest("policy.start",p=>c.publish(p,{{context:{{systemPrompt:"INDEPENDENT NODE POLICY",messages:[{{role:"user",content:JSON.stringify(inputs(p)),timestamp:p.timestamp}}]}},max_turns:{max_turns},timeout:{timeout}}}));
 c.onRequest("policy.continue",p=>{str(continuation).lower()} && p.turn.context.messages.filter(m=>m.role==="assistant").length<2);
-c.onRequest("policy.prepare",{preparation});
-process.stdin.on("end",()=>process.exit(0)); c.listen();
+c.onRequest("policy.prepare",p=>c.publish(p,({preparation})(p)));
+c.listen();
 '''
         (destination / "worker.mjs").write_text(source)
-        (destination / "manifest.json").write_text(json.dumps({"protocol": 1, "command": ["node", "{harness}/worker.mjs"],
+        (destination / "manifest.json").write_text(json.dumps({"protocol": 1,
             "events": {"work.objective.set": {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"], "additionalProperties": False}}, "tools": []}))
         return destination
 
@@ -165,21 +169,20 @@ process.stdin.on("end",()=>process.exit(0)); c.listen();
         source.write_text(json.dumps(payload if payload is not None else {"text": "independent input"}))
         return self.call("admit", work, "work.objective.set", "--payload", source, "--request-id", identity, ok=ok)
 
-    def definition(self, *, userspace=False, native=None, sandbox=True, name="definition.toml"):
+    def definition(self, *, userspace=False, native=None, sandbox=True, name="definition.toml", harness_argv=None):
         native = native or {"id": "fixture-model", "name": "Fixture", "provider": "fixture", "api": "openai-completions",
             "reasoning": True, "input": ["text", "image"], "contextWindow": 4096, "maxTokens": 128,
             "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0}}
-        lines = ['[model]', 'service="model-main"', '[model.definition]']
+        lines = ['schema_version=2','[harness]', 'path="harness"', 'argv='+json.dumps(harness_argv or ['node','{harness}/worker.mjs']), '[surface]', 'path="surface"', '[model]', 'service="model-main"', '[model.parameters]']
         lines.extend(key + "=" + json.dumps(value) for key, value in native.items() if not isinstance(value, dict))
         for key, value in native.items():
             if isinstance(value, dict):
-                lines.append('[model.definition.' + key + ']')
+                lines.append('[model.parameters.' + key + ']')
                 lines.extend(k + '=' + json.dumps(v) for k, v in value.items())
-        if sandbox:
-            image = json.loads((ROOT / "deploy/opensandbox/versions.json").read_text())["code"]
-            lines.extend(['[sandbox]', 'service="sandbox-main"', 'image=' + json.dumps(image), 'profile="code"', 'cpu="1"', 'memory="512Mi"', 'lease_seconds=600', 'request_timeout_seconds=30'])
         if userspace:
-            lines.extend(['[userspace]', 'name="task-files"'])
+            lines.extend(['[userspaces.app]', 'resource="task-files"', 'access="write"', 'delivery="per-tool"'])
+        if sandbox:
+            lines.extend(['[targets.default]', 'profile="code"', 'userspaces='+json.dumps(['app'] if userspace else [])])
         path = self.base / name
         path.write_text("\n".join(lines) + "\n")
         return path
@@ -193,6 +196,17 @@ process.stdin.on("end",()=>process.exit(0)); c.listen();
         if headers_env:
             lines.append("[models.model-main.headers_env]")
             lines.extend(json.dumps(name) + "=" + json.dumps(env) for name, env in headers_env.items())
+        image = json.loads((ROOT / "deploy/opensandbox/versions.json").read_text())["code"]
+        lines.extend(['[profiles.code]', 'service="sandbox-main"', 'image='+json.dumps(image), 'profile="code"', 'cpu="1"', 'memory="512Mi"', 'lease_seconds=600', 'request_timeout_seconds=30'])
+        facility = os.environ.get("LOOM_TEST_CGROUP_ROOT")
+        if not facility:
+            raise RuntimeError("execution acceptance requires a real shared Linux Work facility")
+        launcher = Path("/usr/local/bin/nsjail")
+        state = Path("/tmp/loom-acceptance-execution")
+        lines.extend(['[execution]', 'launcher=' + json.dumps(str(launcher)),
+                      'launcher_sha256=' + json.dumps(hashlib.sha256(launcher.read_bytes()).hexdigest()),
+                      'state_directory=' + json.dumps(str(state)), 'cgroup_root=' + json.dumps(facility),
+                      'uid_base=100000', 'uid_count=100000', 'memory_bytes=536870912', 'processes=64', 'cpu_milliseconds=1000'])
         self.config.write_text("\n".join(lines) + "\n")
 
     def save_provider(self, server):

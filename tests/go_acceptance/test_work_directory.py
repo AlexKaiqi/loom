@@ -15,7 +15,7 @@ from support import CLIFixture, ROOT, provider, query, assert_no_secrets
 
 
 class WorkDirectoryAcceptance(CLIFixture):
-    def test_explicit_declaration_hidden_layout_and_immutable_binding(self):
+    def test_explicit_declaration_hidden_layout_and_selected_binding(self):
         self.call("create", self.base / "undeclared", "--harness", self.policy("undeclared-policy"), ok=False)
         self.assertFalse((self.base / "undeclared").exists())
         work = self.create()
@@ -25,13 +25,35 @@ class WorkDirectoryAcceptance(CLIFixture):
         self.assertTrue((work / ".loom/versions.git/objects").is_dir())
         definition = tomllib.loads((work / "work.toml").read_text())
         self.assertEqual(definition["model"]["service"], "model-main")
-        self.assertEqual(definition["model"]["definition"]["id"], "fixture-model")
-        self.assertNotIn("baseUrl", definition["model"]["definition"])
-        self.assertNotIn("endpoint", definition["sandbox"])
+        self.assertEqual(definition["model"]["parameters"]["id"], "fixture-model")
+        self.assertNotIn("baseUrl", definition["model"]["parameters"])
+        self.assertEqual(definition["schema_version"], 2)
+        self.assertEqual(definition["targets"]["default"]["profile"], "code")
         self.assertFalse((work / "surface/content").exists())
         (work / "work.toml").write_text((work / "work.toml").read_text().replace('fixture-model', 'changed-model'))
-        self.call("status", work, ok=False)
-        self.call("export", work, self.base / "mutated.tar.gz", ok=False)
+        self.assertEqual(self.call("status", work)["definition"]["model"]["parameters"]["id"], "fixture-model")
+        self.call("export", work, self.base / "candidate.tar.gz")
+        self.call("select-harness", work)
+        self.assertEqual(self.call("status", work)["definition"]["model"]["parameters"]["id"], "changed-model")
+        (work / "work.toml").write_text("invalid TOML !")
+        self.call("select-harness", work, ok=False)
+        self.assertEqual(self.call("status", work)["definition"]["model"]["parameters"]["id"], "changed-model")
+
+    def test_register_plain_directory_preserves_template_and_harness(self):
+        directory = self.base / "assembled"
+        directory.mkdir()
+        shutil.copytree(self.policy(), directory / "harness")
+        (directory / "surface").mkdir()
+        shutil.copyfile(self.definition(), directory / "work.toml")
+        initial = b"Human assembled context\r\n"
+        (directory / "surface/main.md").write_bytes(initial)
+        first = self.call("register", directory)
+        self.assertEqual(self.call("register", directory), first)
+        self.assertEqual((directory / "surface/main.md").read_bytes(), initial)
+        self.assertEqual(query(directory, "SELECT * FROM events"), [])
+        with closing(sqlite3.connect(self.authority)) as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM resource_grants").fetchone()[0], 0)
+        self.assertEqual(self.call("status", directory)["work_id"], first["registered"])
 
     def test_model_definition_rejects_transport_credentials(self):
         for field, value in (("baseUrl", "https://example.invalid"), ("apiKey", "canary-forbidden-key"), ("headers", {"Authorization": "canary-forbidden-header"})):
@@ -54,7 +76,7 @@ class WorkDirectoryAcceptance(CLIFixture):
             self.config.write_text(self.config.read_text() + '\n[models.unused-default]\nendpoint="http://127.0.0.1:1"\napi_key_env="UNAVAILABLE_DEFAULT_KEY"\nworker=["missing-worker"]\n')
             self.call("run", work, ok=False)
             before = query(work, "SELECT * FROM rounds")[0]
-            self.assertEqual(before["state"], "paused")
+            self.assertEqual(before["state"], "ready")
             self.assertIsNotNone(before["checkpoint"])
             old_effects = query(work, "SELECT * FROM effects ORDER BY rowid")
             self.assertEqual(len(server.calls), 1)
@@ -80,7 +102,7 @@ class WorkDirectoryAcceptance(CLIFixture):
                 self.assertNotEqual(relocated.base_url, server.base_url)
                 result = self.call("resume", imported, authority=fresh_authority)
                 (self.base / "provider-relocation.json").write_text(json.dumps({"old_endpoint": server.base_url, "old_calls": server.calls, "new_endpoint": relocated.base_url, "new_calls": relocated.calls}, indent=2))
-                self.assertEqual(result["state"], "completed")
+                self.assertEqual(result["state"], "handed_off")
                 self.assertEqual(result["round_id"], before["id"])
                 self.assertEqual(len(server.calls), 1, "resume used stale endpoint from native checkpoint")
                 self.assertEqual(len(relocated.calls), 1)
@@ -102,37 +124,41 @@ class WorkDirectoryAcceptance(CLIFixture):
         (userspace / "numbers.txt").write_bytes(b"2\n3\n5\n")
         (userspace / "hidden.bin").write_bytes(bytes(range(256)))
         self.call("grant", work, userspace)
-        self.assertTrue(any(p.is_file() for p in (work / ".loom/dependencies").rglob("*")))
+        self.assertEqual(len(query(work,"SELECT * FROM resource_sources")),1)
         archive = self.base / "portable.tar.gz"
         self.call("export", work, archive)
         moved, fresh_authority = self.base / "moved", self.base / "new-host-authority.sqlite"
         self.call("import", archive, moved, authority=fresh_authority)
+        denied = self.base / "unregistered-restore"
+        self.call("restore-resource", moved, "app", denied, authority=fresh_authority, ok=False)
+        self.assertFalse(denied.exists(), "unregistered Work exposed retained resource bytes")
         self.call("register", moved, authority=fresh_authority)
         restored = self.base / "restored-userspace"
-        self.call("restore-userspace", moved, restored, authority=fresh_authority)
+        self.call("restore-resource", moved, "app", restored, authority=fresh_authority)
         self.assertEqual((restored / "numbers.txt").read_bytes(), b"2\n3\n5\n")
         self.assertEqual((restored / "hidden.bin").read_bytes(), bytes(range(256)))
         with closing(sqlite3.connect(fresh_authority)) as db:
-            self.assertEqual(db.execute("SELECT COUNT(*) FROM grants").fetchone()[0], 0, "restore silently granted physical authority")
-        self.call("restore-userspace", moved, restored, authority=fresh_authority, ok=False)
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM resource_grants").fetchone()[0], 0, "restore silently granted physical authority")
+        self.call("restore-resource", moved, "app", restored, authority=fresh_authority, ok=False)
         changed = self.base / "different-bytes"
         shutil.copytree(restored, changed)
         (changed / "numbers.txt").write_bytes(b"999\n")
-        self.call("grant", moved, changed, authority=fresh_authority, ok=False)
-        self.call("grant", moved, restored, authority=fresh_authority)
+        self.call("grant", moved, changed, authority=fresh_authority)
+        retained=self.base/"retained-source"
+        self.call("restore-resource", moved, "app", retained, authority=fresh_authority)
+        self.assertEqual((retained/"numbers.txt").read_bytes(),b"2\n3\n5\n")
         shutil.rmtree(work)
         shutil.rmtree(userspace)
         self.call("status", moved, authority=fresh_authority)
-        dependency_files = [p for p in (moved / ".loom/dependencies").rglob("*") if p.is_file()]
-        self.assertTrue(dependency_files)
-        damaged = next((p for p in dependency_files if tarfile.is_tarfile(p)), dependency_files[0])
+        ref=json.loads(query(moved,"SELECT source FROM resource_sources WHERE alias='app'")[0]['source'])['base_ref']
+        damaged=moved/'.loom/records'/ref['sha256']
         damaged.write_bytes(b"independently corrupted dependency bytes")
-        self.call("restore-userspace", moved, self.base / "bad-restore", authority=fresh_authority, ok=False)
+        self.call("restore-resource", moved, "app", self.base / "bad-restore", authority=fresh_authority, ok=False)
         self.call("export", moved, self.base / "bad-export.tar.gz", authority=fresh_authority, ok=False)
         damaged.unlink()
-        self.call("restore-userspace", moved, self.base / "missing-restore", authority=fresh_authority, ok=False)
+        self.call("restore-resource", moved, "app", self.base / "missing-restore", authority=fresh_authority, ok=False)
 
-    def test_resume_rejects_changed_granted_userspace_before_dispatch(self):
+    def test_resume_uses_retained_source_without_overwriting_shared_edits(self):
         work = self.create(userspace=True, continuation=True, max_turns=1)
         userspace = self.base / "userspace"
         userspace.mkdir()
@@ -145,17 +171,16 @@ class WorkDirectoryAcceptance(CLIFixture):
             self.call("run", work, ok=False)
             before_round = query(work, "SELECT * FROM rounds")
             before_effects = query(work, "SELECT * FROM effects")
-            self.assertEqual(before_round[0]["state"], "paused")
+            self.assertEqual(before_round[0]["state"], "ready")
             self.assertIsNotNone(before_round[0]["checkpoint"])
-            source.write_bytes(b"unapproved content drift\n")
-            self.call("resume", work, ok=False)
-            self.assertEqual(len(server.calls), 1, "resume dispatched a model against changed dependency bytes")
-            self.assertEqual(query(work, "SELECT * FROM rounds"), before_round)
-            self.assertEqual(query(work, "SELECT * FROM effects"), before_effects)
-            source.write_bytes(b"2\n3\n5\n")
+            source.write_bytes(b"independent shared project edit\n")
             result = self.call("resume", work)
+            self.assertEqual(source.read_bytes(),b"independent shared project edit\n")
+            restored=self.base/"retained-resume-source"
+            self.call("restore-resource",work,"app",restored)
+            self.assertEqual((restored/"numbers.txt").read_bytes(),b"2\n3\n5\n")
             self.assertEqual(result["round_id"], before_round[0]["id"])
-            self.assertEqual(result["state"], "completed")
+            self.assertEqual(result["state"], "handed_off")
             self.assertEqual(len(server.calls), 2)
             self.assertEqual(server.errors, [])
             self.save_provider(server)
@@ -179,8 +204,8 @@ class WorkDirectoryAcceptance(CLIFixture):
             image = json.loads((ROOT / "deploy/opensandbox/versions.json").read_text())["code"]
             receipt = {"sandbox_id": "old-sandbox", "execution_id": "old-session/old-run", "binding": {"service_id": "sandbox-main", "endpoint": "http://127.0.0.1:1", "image": image, "profile": "code", "cpu": "1", "memory": "512Mi", "lease_seconds": 600, "request_timeout_seconds": 30}}
             with closing(sqlite3.connect(work / ".loom/state.sqlite")) as db, db:
-                db.execute("INSERT INTO rounds(id,owner,input_seq,state) VALUES('old-round','old-owner',1,'paused')")
-                db.execute("INSERT INTO effects(id,round_id,key,kind,request,digest,status,receipt) VALUES('old-effect','old-round','old-tool','sandbox.shell','{}','fixture','unknown',?)", (json.dumps(receipt),))
+                db.execute("INSERT INTO rounds(id,owner,input_seq,state) VALUES('old-round','old-owner',1,'blocked')")
+                db.execute("INSERT INTO effects(id,round_id,key,kind,request,digest,status,receipt) VALUES('old-effect','old-round','old-tool','tool.exec',?,'fixture','unknown',?)", (json.dumps({'environment':'sandbox'}), json.dumps(receipt)))
             self.config.write_text('[sandboxes.sandbox-main]\nendpoint=' + json.dumps(endpoint) + '\napi_key_env="LOOM_TEST_SANDBOX_KEY"\n')
             before = query(work, "SELECT * FROM effects")
             self.call("query-remote", work, "old-round", "old-effect", ok=False)

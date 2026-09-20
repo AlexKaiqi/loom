@@ -26,3 +26,14 @@ func TestContinuationResolvesNewTransportWithoutChangingDeclaredModel(t *testing
 		t.Fatal("undeclared model capabilities accepted")
 	}
 }
+
+func TestStrategyCannotReadHostTransportCredentials(t *testing.T) {
+	private := Object{"id": "test", "headers": Object{"Authorization": "private"}, "baseUrl": "https://host-only.example", "contextWindow": 42}
+	view := modelSemantics(private)
+	if view["headers"] != nil || view["baseUrl"] != nil || view["id"] != "test" {
+		t.Fatal("strategy view leaked deployment credentials")
+	}
+	if private["headers"] == nil {
+		t.Fatal("private model binding changed")
+	}
+}

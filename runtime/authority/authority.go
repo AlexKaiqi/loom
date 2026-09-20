@@ -38,7 +38,16 @@ func Open(path string) (*Authority, error) {
 		return nil, err
 	}
 	defer db.Close()
-	if _, err = db.Exec(`PRAGMA journal_mode=WAL;CREATE TABLE IF NOT EXISTS works(id TEXT PRIMARY KEY,path TEXT UNIQUE NOT NULL,device INTEGER NOT NULL,inode INTEGER NOT NULL);CREATE TABLE IF NOT EXISTS grants(work_id TEXT PRIMARY KEY REFERENCES works(id),path TEXT NOT NULL,device INTEGER NOT NULL,inode INTEGER NOT NULL);CREATE TABLE IF NOT EXISTS relays(sender TEXT REFERENCES works(id),receiver TEXT REFERENCES works(id),PRIMARY KEY(sender,receiver));`); err != nil {
+	if _, err = db.Exec(`PRAGMA journal_mode=WAL;CREATE TABLE IF NOT EXISTS works(id TEXT PRIMARY KEY,path TEXT UNIQUE NOT NULL,device INTEGER NOT NULL,inode INTEGER NOT NULL);CREATE TABLE IF NOT EXISTS authority_identity(singleton INTEGER PRIMARY KEY CHECK(singleton=1),scope TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS resources(id TEXT PRIMARY KEY,name TEXT UNIQUE NOT NULL,path TEXT NOT NULL,device INTEGER NOT NULL,inode INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS resource_grants(work_id TEXT NOT NULL REFERENCES works(id),alias TEXT NOT NULL,resource_id TEXT NOT NULL REFERENCES resources(id),access TEXT NOT NULL CHECK(access IN('read','write')),PRIMARY KEY(work_id,alias));CREATE TABLE IF NOT EXISTS execution_identity_range(singleton INTEGER PRIMARY KEY CHECK(singleton=1),base INTEGER NOT NULL,size INTEGER NOT NULL);CREATE TABLE IF NOT EXISTS execution_identities(ordinal INTEGER PRIMARY KEY AUTOINCREMENT,work_id TEXT UNIQUE NOT NULL REFERENCES works(id));CREATE TABLE IF NOT EXISTS execution_domains(id TEXT PRIMARY KEY,work_id TEXT NOT NULL REFERENCES works(id),round_id TEXT NOT NULL,owner TEXT NOT NULL,role TEXT NOT NULL,cgroup TEXT NOT NULL,staging TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN('retained','fenced','cleaned')));CREATE TABLE IF NOT EXISTS read_grants(source TEXT NOT NULL REFERENCES works(id),reader TEXT NOT NULL REFERENCES works(id),alias TEXT NOT NULL,PRIMARY KEY(reader,alias));CREATE TABLE IF NOT EXISTS relays(sender TEXT REFERENCES works(id),receiver TEXT REFERENCES works(id),PRIMARY KEY(sender,receiver));`); err != nil {
+		return nil, err
+	}
+	scope, e := store.ID()
+	if e != nil {
+		return nil, e
+	}
+	if _, err = db.Exec("INSERT OR IGNORE INTO authority_identity VALUES(1,?)", scope); err != nil {
 		return nil, err
 	}
 	if err = os.Chmod(path, 0600); err != nil {
@@ -78,7 +87,7 @@ func (a *Authority) Register(w *work.Work) error {
 		if contains(target.Path, a.Path) {
 			return fmt.Errorf("%w: Work contains authority storage", store.ErrConflict)
 		}
-		if err = checkOverlap(db, target, "SELECT path,device,inode FROM works UNION ALL SELECT path,device,inode FROM grants"); err != nil {
+		if err = checkOverlap(db, target, "SELECT path,device,inode FROM works UNION ALL SELECT path,device,inode FROM resources"); err != nil {
 			return err
 		}
 		_, err = db.ExecContext(ctx, "INSERT INTO works VALUES(?,?,?,?)", w.ID, target.Path, target.Device, target.Inode)
@@ -138,6 +147,13 @@ func (a *Authority) Export(w *work.Work, archive string) error {
 		if err := a.authorize(db, w); err != nil {
 			return err
 		}
+		var retained int
+		if err := db.QueryRowContext(context.Background(), "SELECT count(*) FROM execution_domains WHERE work_id=? AND state!='cleaned'", w.ID).Scan(&retained); err != nil {
+			return err
+		}
+		if retained != 0 {
+			return fmt.Errorf("%w: export requires saved fencing and content custody for every execution domain", store.ErrConflict)
+		}
 		return w.Export(archive)
 	})
 }
@@ -153,157 +169,44 @@ func (a *Authority) Claim(w *work.Work, owner string, resume bool) (store.Round,
 			return err
 		}
 		for _, existing := range rounds {
-			if !resume && (existing.State == "running" || existing.State == "paused") {
+			if !resume && (existing.State != "handed_off") {
 				return fmt.Errorf("%w: active or paused Round exists", store.ErrConflict)
 			}
 		}
-		if w.Definition.Userspace != nil {
-			directory, err := a.userspace(db, w)
-			if err != nil {
+		ref, err := w.Control.SelectedStrategy()
+		if err != nil {
+			return err
+		}
+		if resume {
+			for _, existing := range rounds {
+				if existing.State != "handed_off" {
+					ref = existing.HarnessRef
+					break
+				}
+			}
+		}
+		w, err := w.ForStrategy(ref)
+		if err != nil {
+			return err
+		}
+		for alias := range w.Definition.Userspaces {
+			if _, err := a.resource(db, w, alias); err != nil {
 				return err
 			}
-			if resume {
-				err = w.VerifyUserspace(directory)
-			} else {
-				_, err = w.CaptureUserspace(directory)
-			}
-			if err != nil {
+			if source, err := w.ResourceSource(alias); err != nil {
 				return err
+			} else if source == nil {
+				return errors.New("dependency_missing: resource source is not fixed")
 			}
 		}
 		if resume {
 			round, err = w.Control.ResumeRound(owner)
 		} else {
-			round, err = w.Control.BeginRound(owner)
+			round, err = w.Control.BeginRoundSelected(owner, ref)
 		}
 		return err
 	})
 	return round, err
-}
-func (a *Authority) Grant(w *work.Work, directory string) error {
-	target, err := StatIdentity(directory)
-	if err != nil {
-		return err
-	}
-	return store.Immediate(a.Path, func(db *sql.Conn) error {
-		if err := a.authorize(db, w); err != nil {
-			return err
-		}
-		if contains(target.Path, a.Path) {
-			return fmt.Errorf("%w: Userspace contains authority storage", store.ErrConflict)
-		}
-		if err := checkOverlap(db, target, "SELECT path,device,inode FROM works UNION ALL SELECT path,device,inode FROM grants WHERE work_id!=?", w.ID); err != nil {
-			return err
-		}
-		if w.Definition.Userspace == nil {
-			return errors.New("Work does not declare a Userspace dependency")
-		}
-		rounds, err := w.Control.Rounds()
-		if err != nil {
-			return err
-		}
-		for _, round := range rounds {
-			if round.State == "running" || round.State == "paused" && round.Checkpoint == nil {
-				return fmt.Errorf("%w: cannot change Userspace during an unconfirmed active Round", store.ErrConflict)
-			}
-			if round.State == "paused" {
-				effects, err := w.Control.Effects(round.ID)
-				if err != nil {
-					return err
-				}
-				for _, effect := range effects {
-					if effect.Status != "completed" {
-						return store.ErrUnknownEffect
-					}
-				}
-			}
-		}
-		snapshot, err := w.UserspaceSnapshot()
-		if err != nil {
-			return err
-		}
-		if snapshot == nil {
-			for _, round := range rounds {
-				if round.State == "paused" {
-					return errors.New("paused Userspace version is missing")
-				}
-			}
-			_, err = w.CaptureUserspace(target.Path)
-		} else {
-			err = w.VerifyUserspace(target.Path)
-		}
-		if err != nil {
-			return err
-		}
-		verified, err := StatIdentity(target.Path)
-		if err != nil {
-			return err
-		}
-		if verified != target {
-			return fmt.Errorf("%w: Userspace changed during grant", store.ErrConflict)
-		}
-		_, err = db.ExecContext(context.Background(), "INSERT OR REPLACE INTO grants VALUES(?,?,?,?)", w.ID, target.Path, target.Device, target.Inode)
-		return err
-	})
-}
-func (a *Authority) Userspace(w *work.Work) (string, error) {
-	db, err := store.OpenDB(a.Path)
-	if err != nil {
-		return "", err
-	}
-	defer db.Close()
-	if err = a.authorize(db, w); err != nil {
-		return "", err
-	}
-	return a.userspace(db, w)
-}
-func (a *Authority) userspace(db interface {
-	QueryRowContext(context.Context, string, ...any) *sql.Row
-}, w *work.Work) (string, error) {
-	old, err := scanIdentity(db.QueryRowContext(context.Background(), "SELECT path,device,inode FROM grants WHERE work_id=?", w.ID))
-	if err != nil {
-		return "", fmt.Errorf("%w: no Userspace grant", ErrPermission)
-	}
-	target, err := StatIdentity(old.Path)
-	if err != nil {
-		return "", err
-	}
-	if old != target {
-		return "", fmt.Errorf("%w: Userspace physical identity changed; explicit regrant required", ErrPermission)
-	}
-	return old.Path, nil
-}
-
-// RefreshGrant is exclusively for Runtime's confirmed remote-file publication.
-func (a *Authority) RefreshGrant(w *work.Work, oldIdentity Identity) error {
-	return store.Immediate(a.Path, func(db *sql.Conn) error {
-		if err := a.authorize(db, w); err != nil {
-			return err
-		}
-		old, err := scanIdentity(db.QueryRowContext(context.Background(), "SELECT path,device,inode FROM grants WHERE work_id=?", w.ID))
-		if err != nil || old != oldIdentity {
-			return fmt.Errorf("%w: Userspace grant changed during execution", store.ErrConflict)
-		}
-		target, err := StatIdentity(old.Path)
-		if err != nil {
-			return err
-		}
-		if err = checkOverlap(db, target, "SELECT path,device,inode FROM works UNION ALL SELECT path,device,inode FROM grants WHERE work_id!=?", w.ID); err != nil {
-			return err
-		}
-		if _, err = w.CaptureUserspace(target.Path); err != nil {
-			return err
-		}
-		verified, err := StatIdentity(target.Path)
-		if err != nil {
-			return err
-		}
-		if verified != target {
-			return fmt.Errorf("%w: Userspace changed during publication capture", store.ErrConflict)
-		}
-		_, err = db.ExecContext(context.Background(), "UPDATE grants SET device=?,inode=? WHERE work_id=?", target.Device, target.Inode, w.ID)
-		return err
-	})
 }
 func (a *Authority) AllowRelay(sender, receiver *work.Work) error {
 	return store.Immediate(a.Path, func(db *sql.Conn) error {

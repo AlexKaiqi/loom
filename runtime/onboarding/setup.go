@@ -130,7 +130,7 @@ func (s Setup) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	definition.Model = work.ModelDefinition{Service: "primary", Definition: native.Definition}
+	definition.Model = work.ModelDefinition{Service: "primary", Parameters: native.Definition}
 	if err = definition.Validate(); err != nil {
 		return err
 	}
@@ -177,7 +177,18 @@ func (s Setup) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	host := config.Config{Models: map[string]config.ModelService{"primary": {Endpoint: s.ModelEndpoint, Worker: worker, APIKeyEnv: menv, APIKeyFile: mfile}}, Sandboxes: map[string]config.SandboxService{"code": {Endpoint: s.SandboxEndpoint, APIKeyEnv: senv, APIKeyFile: sfile}}}
+	example, err := config.Load(filepath.Join(root, "deploy/config.example.toml"))
+	if err != nil {
+		return err
+	}
+	facility, err := config.Facility()
+	if err != nil {
+		return err
+	}
+	if err = facility.Check(); err != nil {
+		return err
+	}
+	host := config.Config{Profiles: example.Profiles, Models: map[string]config.ModelService{"primary": {Endpoint: s.ModelEndpoint, Worker: worker, APIKeyEnv: menv, APIKeyFile: mfile}}, Sandboxes: map[string]config.SandboxService{"code": {Endpoint: s.SandboxEndpoint, APIKeyEnv: senv, APIKeyFile: sfile}}}
 	hostBytes, err := toml.Marshal(host)
 	if err != nil {
 		return err

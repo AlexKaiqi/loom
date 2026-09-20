@@ -68,6 +68,7 @@ func command() *cobra.Command {
 		return w, nil
 	}
 	usageCommands(root, add, &configPath, open)
+	eventCommands(root, &authorityPath, &configPath)
 	var harness, definition string
 	create := add("create", "create PATH --harness DIR --definition FILE", 1, func(cmd *cobra.Command, args []string, a *authority.Authority) (any, error) {
 		w, err := work.Create(args[0], harness, definition)
@@ -83,8 +84,19 @@ func command() *cobra.Command {
 	_ = create.MarkFlagRequired("harness")
 	create.Flags().StringVar(&definition, "definition", "", "portable Work requirements (TOML)")
 	_ = create.MarkFlagRequired("definition")
+	add("select-harness", "select-harness PATH", 1, func(_ *cobra.Command, args []string, a *authority.Authority) (any, error) {
+		w, err := open(a, args[0])
+		if err != nil {
+			return nil, err
+		}
+		ref, err := w.SelectHarness()
+		if err != nil {
+			return nil, err
+		}
+		return map[string]any{"selected_harness_ref": ref, "activation": "next Round"}, nil
+	})
 	add("register", "register PATH", 1, func(_ *cobra.Command, args []string, a *authority.Authority) (any, error) {
-		w, err := work.Open(args[0])
+		w, err := work.Initialize(args[0])
 		if err != nil {
 			return nil, err
 		}
@@ -93,6 +105,36 @@ func command() *cobra.Command {
 		}
 		return map[string]any{"registered": w.ID}, nil
 	})
+	add("grant-resource", "grant-resource PATH ALIAS DIRECTORY", 3, func(_ *cobra.Command, args []string, a *authority.Authority) (any, error) {
+		w, err := open(a, args[0])
+		if err != nil {
+			return nil, err
+		}
+		if err = a.GrantResource(w, args[1], args[2]); err != nil {
+			return nil, err
+		}
+		grant, err := a.Resource(w, args[1])
+		return grant, err
+	})
+	var restoreTarget string
+	restoreResource := add("restore-resource", "restore-resource PATH ALIAS DESTINATION", 3, func(_ *cobra.Command, args []string, a *authority.Authority) (any, error) {
+		w, err := open(a, args[0])
+		if err != nil {
+			return nil, err
+		}
+		// Materialize retained Work bytes into a new directory. Registration
+		// authorizes reading that history; a grant to the original live source is
+		// neither needed nor recreated when moving the Work to another host.
+		destination, err := filepath.Abs(args[2])
+		if err != nil {
+			return nil, err
+		}
+		if err = w.RestoreResource(args[1], restoreTarget, destination); err != nil {
+			return nil, err
+		}
+		return map[string]any{"restored": destination, "target": restoreTarget, "authorized": false}, nil
+	})
+	restoreResource.Flags().StringVar(&restoreTarget, "target", "", "copy version to restore; omitted selects initial resource version")
 	add("grant", "grant PATH DIRECTORY", 2, func(_ *cobra.Command, args []string, a *authority.Authority) (any, error) {
 		w, err := open(a, args[0])
 		if err != nil {
@@ -138,10 +180,13 @@ func command() *cobra.Command {
 		_ = cmd.MarkFlagRequired("payload")
 		_ = cmd.MarkFlagRequired("request-id")
 	}
-	for _, name := range []string{"status", "events", "run", "resume", "query-remote"} {
+	for _, name := range []string{"status", "events", "run", "resume", "recover", "query-remote", "cancel-effect", "inspect-allocation", "release-allocation"} {
 		n, usage := 1, name+" PATH"
-		if name == "query-remote" {
+		if name == "query-remote" || name == "cancel-effect" || name == "inspect-allocation" || name == "release-allocation" {
 			n, usage = 3, name+" PATH ROUND_ID EFFECT_ID"
+			if name == "inspect-allocation" || name == "release-allocation" {
+				usage = name + " PATH ROUND_ID ALLOCATION_ID"
+			}
 		}
 		operation := add(name, usage, n, func(cmd *cobra.Command, args []string, a *authority.Authority) (any, error) {
 			if len(args) == 0 {
@@ -162,38 +207,64 @@ func command() *cobra.Command {
 			if err != nil {
 				return nil, err
 			}
-			if name == "query-remote" {
+			if name == "recover" {
 				r.ResolveSandbox = host.ResolveSavedSandbox
+				r.Execution = host.Execution
+				return r.Recover(cmd.Context(), w)
+			}
+			if name == "query-remote" || name == "cancel-effect" || name == "inspect-allocation" || name == "release-allocation" {
+				r.ResolveSandbox = host.ResolveSavedSandbox
+				if name == "inspect-allocation" {
+					return r.Allocation(cmd.Context(), w, args[1], args[2], "inspect")
+				}
+				if name == "release-allocation" {
+					return r.Allocation(cmd.Context(), w, args[1], args[2], "release")
+				}
+				if name == "cancel-effect" {
+					return r.CancelRemote(cmd.Context(), w, args[1], args[2])
+				}
 				return r.QueryRemote(cmd.Context(), w, args[1], args[2])
 			}
-			deployment, err := host.ResolveModel(w.Definition.Model)
-			if err != nil {
-				return nil, err
-			}
-			r.Model = deployment.Model
-			r.APIKey = deployment.APIKey
-			r.ModelCommand = deployment.Worker
-			r.Sandbox, err = host.ResolveSandbox(w.Definition.Sandbox)
-			if err != nil {
-				return nil, err
-			}
+			r.Execution = host.Execution
+			r.Configure = hostBinding(host)
 			return r.Run(cmd.Context(), w, name == "resume")
 		})
-		if name != "query-remote" {
+		if name != "query-remote" && name != "cancel-effect" && name != "inspect-allocation" && name != "release-allocation" {
 			operation.Use = name + " [PATH]"
 			operation.Args = cobra.MaximumNArgs(1)
 		}
 	}
-	add("restore-userspace", "restore-userspace PATH DESTINATION", 2, func(_ *cobra.Command, args []string, a *authority.Authority) (any, error) {
-		w, err := open(a, args[0])
-		if err != nil {
-			return nil, err
+
+	add("history", "history PATH", 1, func(_ *cobra.Command, args []string, a *authority.Authority) (any, error) {
+		w, e := open(a, args[0])
+		if e != nil {
+			return nil, e
 		}
-		if err = w.RestoreUserspace(args[1]); err != nil {
-			return nil, err
+		return w.Control.Checkpoints()
+	})
+	add("inspect", "inspect PATH CHECKPOINT DIRECTORY", 3, func(_ *cobra.Command, args []string, a *authority.Authority) (any, error) {
+		w, e := open(a, args[0])
+		if e != nil {
+			return nil, e
 		}
-		path, _ := filepath.Abs(args[1])
-		return map[string]any{"restored": path, "granted": false}, nil
+		if e = w.Inspect(args[1], args[2]); e != nil {
+			return nil, e
+		}
+		return map[string]any{"directory": args[2], "executable": false}, nil
+	})
+	add("fork", "fork PATH CHECKPOINT DIRECTORY", 3, func(_ *cobra.Command, args []string, a *authority.Authority) (any, error) {
+		w, e := open(a, args[0])
+		if e != nil {
+			return nil, e
+		}
+		child, e := w.Fork(args[1], args[2])
+		if e != nil {
+			return nil, e
+		}
+		if e = a.Register(child); e != nil {
+			return nil, e
+		}
+		return map[string]any{"work_id": child.ID, "path": child.Path, "resource_grants_inherited": false}, nil
 	})
 	add("export", "export PATH ARCHIVE", 2, func(_ *cobra.Command, args []string, a *authority.Authority) (any, error) {
 		w, err := open(a, args[0])
@@ -212,6 +283,31 @@ func command() *cobra.Command {
 			return nil, err
 		}
 		return map[string]any{"work_id": w.ID, "path": w.Path, "authorized": false}, nil
+	})
+
+	add("allow-read", "allow-read SOURCE_WORK READER_WORK ALIAS", 3, func(_ *cobra.Command, args []string, a *authority.Authority) (any, error) {
+		source, e := open(a, args[0])
+		if e != nil {
+			return nil, e
+		}
+		reader, e := open(a, args[1])
+		if e != nil {
+			return nil, e
+		}
+		if e = a.GrantRead(source, reader, args[2]); e != nil {
+			return nil, e
+		}
+		return map[string]any{"source_work_id": source.ID, "reader_work_id": reader.ID, "alias": args[2], "access": "read", "scope": "surface"}, nil
+	})
+	add("revoke-read", "revoke-read READER_WORK ALIAS", 2, func(_ *cobra.Command, args []string, a *authority.Authority) (any, error) {
+		reader, e := open(a, args[0])
+		if e != nil {
+			return nil, e
+		}
+		if e = a.RevokeRead(reader, args[1]); e != nil {
+			return nil, e
+		}
+		return map[string]any{"revoked": args[1]}, nil
 	})
 	add("allow-relay", "allow-relay PATH RECEIVER", 2, func(_ *cobra.Command, args []string, a *authority.Authority) (any, error) {
 		sender, err := open(a, args[0])
@@ -237,4 +333,14 @@ func publicError(err error) error {
 		return rpc.ErrTransport
 	}
 	return err
+}
+
+func onlyResource(w *work.Work) (string, error) {
+	if len(w.Definition.Userspaces) != 1 {
+		return "", errors.New("command requires exactly one resource; select an alias explicitly")
+	}
+	for alias := range w.Definition.Userspaces {
+		return alias, nil
+	}
+	return "", errors.New("no resource")
 }

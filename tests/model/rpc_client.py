@@ -10,6 +10,8 @@ from concurrent.futures import Future, TimeoutError
 import logging
 import math
 import os
+import socket
+import json
 from pathlib import Path
 import subprocess
 import threading
@@ -17,7 +19,23 @@ from typing import Callable
 from uuid import uuid4
 
 from pylsp_jsonrpc.endpoint import Endpoint
-from pylsp_jsonrpc.streams import JsonRpcStreamReader, JsonRpcStreamWriter
+class JsonRpcStreamReader:
+    def __init__(self, stream): self.stream = stream
+    def listen(self, consumer):
+        while True:
+            line = self.stream.readline(4 * 1024 * 1024 + 2)
+            if not line: return
+            if len(line) > 4 * 1024 * 1024 + 1 or not line.endswith(b'\n'): raise ValueError('frame limit')
+            consumer(json.loads(line))
+    def close(self): self.stream.close()
+
+class JsonRpcStreamWriter:
+    def __init__(self, stream): self.stream = stream; self.lock = threading.Lock()
+    def write(self, value):
+        with self.lock:
+            self.stream.write(json.dumps(value, separators=(',', ':')).encode() + b'\n')
+            self.stream.flush()
+    def close(self): self.stream.close()
 
 # The upstream transport's debug and error logs include whole request bodies.
 # Model credentials/prompts must never reach an application's configured logger.
@@ -42,10 +60,15 @@ class WorkerClient:
             command = ["node", str(worker.resolve())]
         env = {key: value for key, value in os.environ.items()
                if key in {"PATH", "LANG", "LC_ALL", "TMPDIR", "SYSTEMROOT"}}
-        self.process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                        stderr=subprocess.DEVNULL, env=env)
-        self._reader = JsonRpcStreamReader(self.process.stdout)
-        self._writer = JsonRpcStreamWriter(self.process.stdin)
+        parent, child = socket.socketpair()
+        # The test peer passes one explicit inherited endpoint as FD 3.
+        self.process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                        stderr=subprocess.DEVNULL, env=env, pass_fds=(child.fileno(), 3),
+                                        preexec_fn=lambda: os.dup2(child.fileno(), 3))
+        child.close()
+        self._channel = parent
+        self._reader = JsonRpcStreamReader(parent.makefile('rb'))
+        self._writer = JsonRpcStreamWriter(parent.makefile('wb'))
         self._handlers: dict[str, Callable] = {}
         self._active_id: str | None = None
         self._pending: Future | None = None
@@ -53,6 +76,12 @@ class WorkerClient:
         self._endpoint = Endpoint(self._handlers, self._writer.write, id_generator=self._request_id)
         self._thread = threading.Thread(target=self._listen, name="worker-test-rpc", daemon=True)
         self._thread.start()
+        hello = self._request('session.hello', {'protocol_version': 'loom/1', 'schema_version': 1,
+            'role': 'runtime', 'peer_role': 'model', 'max_frame_bytes': 4 * 1024 * 1024,
+            'required_capabilities': ['model/1']}, 5)
+        if hello.get('protocol_version') != 'loom/1' or hello.get('role') != 'model':
+            self.close()
+            raise WorkerTransportError('invalid handshake')
 
     def _request_id(self):
         self._active_id = str(uuid4())
@@ -87,7 +116,7 @@ class WorkerClient:
     def _params(context, model, api_key, timeout, options):
         if not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or timeout <= 0:
             raise ValueError("timeout must be positive and finite")
-        return {"protocol": 1, "context": context, "model": model, "apiKey": api_key,
+        return {"protocol_version": "loom/1", "schema_version": 1, "context": context, "model": model, "apiKey": api_key,
                 "timeoutMs": max(1, int(timeout * 1000)), "options": options or {}}
 
     def complete(self, context: dict, *, model: dict, api_key: str, timeout: float,
@@ -137,6 +166,7 @@ class WorkerClient:
             self._thread.join(timeout=0.5)
         self._reader.close()
         self._writer.close()
+        self._channel.close()
         self._endpoint.shutdown()
 
     def __enter__(self):

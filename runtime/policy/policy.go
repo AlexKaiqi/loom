@@ -23,11 +23,9 @@ type Tool struct {
 	schema      *jsonschema.Schema
 }
 type Manifest struct {
-	Protocol       int               `json:"protocol"`
-	InitialSurface string            `json:"initial_surface,omitempty"`
-	Command        []string          `json:"command"`
-	Events         map[string]Object `json:"events"`
-	Tools          []Tool            `json:"tools"`
+	Protocol int               `json:"protocol"`
+	Events   map[string]Object `json:"events"`
+	Tools    []Tool            `json:"tools"`
 }
 type Client struct {
 	Manifest Manifest
@@ -47,7 +45,7 @@ func compile(value Object) (*jsonschema.Schema, error) {
 	}
 	return c.Compile("urn:loom:schema")
 }
-func Open(ctx context.Context, directory string) (*Client, error) {
+func Open(ctx context.Context, directory string, argv []string, launch func([]string) ([]string, error), session rpc.Session, handler rpc.Handler) (*Client, error) {
 	directory, err := filepath.Abs(directory)
 	if err != nil {
 		return nil, err
@@ -66,7 +64,7 @@ func Open(ctx context.Context, directory string) (*Client, error) {
 	names := map[string]bool{}
 	for i := range c.Manifest.Tools {
 		tool := &c.Manifest.Tools[i]
-		if names[tool.Name] || tool.Name == "" || tool.Capability != "sandbox.shell" {
+		if names[tool.Name] || tool.Name == "" || tool.Capability != "tool.exec" {
 			return nil, errors.New("duplicate tool or unsupported capability")
 		}
 		names[tool.Name] = true
@@ -81,11 +79,18 @@ func Open(ctx context.Context, directory string) (*Client, error) {
 			return nil, errors.New("invalid event schema")
 		}
 	}
-	command, err := rpc.Command(c.Manifest.Command, directory)
+	if launch == nil {
+		return nil, errors.New("Harness requires a restricted Work execution domain")
+	}
+	command, err := rpc.Command(argv, "/harness")
 	if err != nil {
 		return nil, err
 	}
-	c.rpc, err = rpc.Start(ctx, command, directory, nil)
+	command, err = launch(command)
+	if err != nil {
+		return nil, err
+	}
+	c.rpc, err = rpc.Start(ctx, command, "", handler, "harness", session)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +98,7 @@ func Open(ctx context.Context, directory string) (*Client, error) {
 }
 func (c *Client) Close() { c.rpc.Close() }
 func (c *Client) Call(ctx context.Context, method string, params any, result any) error {
-	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	return c.rpc.Call(ctx, method, params, result)
 }

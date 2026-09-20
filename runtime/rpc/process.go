@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -17,6 +18,7 @@ import (
 	"time"
 
 	"github.com/sourcegraph/jsonrpc2"
+	"golang.org/x/sys/unix"
 )
 
 type Handler func(context.Context, string, json.RawMessage) (any, error)
@@ -46,6 +48,8 @@ type Client struct {
 	closing   bool
 	callbacks sync.WaitGroup
 	counter   atomic.Uint64
+	ready     atomic.Bool
+	session   Session
 }
 
 type receiver struct {
@@ -62,13 +66,20 @@ func (h receiver) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 	h.client.callbacks.Add(1)
 	h.client.mu.Unlock()
 	defer h.client.callbacks.Done()
+	if req.Notif {
+		return
+	}
 	var params json.RawMessage
 	if req.Params != nil {
 		params = *req.Params
 	}
 	var value any
 	var err error
-	if h.fn == nil {
+	if !h.client.ready.Load() {
+		err = &Error{Kind: "not_ready"}
+	} else if denied := h.client.session.authorize(req.Method, params); denied != nil {
+		err = denied
+	} else if h.fn == nil {
 		err = errors.New("unsupported callback")
 	} else {
 		value, err = h.fn(ctx, req.Method, params)
@@ -78,15 +89,22 @@ func (h receiver) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2
 	}
 	// Error details may contain a provider request or credentials. Never echo them.
 	if err != nil {
-		_ = conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{Code: -32001, Message: "host callback failed; inspect durable state"})
+		_ = conn.ReplyWithError(ctx, req.ID, &jsonrpc2.Error{Code: -32001, Message: "host callback failed; inspect durable state", Data: errorData(publicKind(err))})
 	} else {
 		_ = conn.Reply(ctx, req.ID, value)
 	}
 }
 
-func Start(parent context.Context, command []string, directory string, handler Handler) (*Client, error) {
+func Start(parent context.Context, command []string, directory string, handler Handler, role string, sessions ...Session) (*Client, error) {
 	if len(command) == 0 || command[0] == "" {
 		return nil, errors.New("worker command is required")
+	}
+	var session Session
+	if len(sessions) > 1 {
+		return nil, errors.New("one bound session required")
+	}
+	if len(sessions) == 1 {
+		session = sessions[0]
 	}
 	ctx, cancel := context.WithCancel(parent)
 	cmd := exec.Command(command[0], command[1:]...)
@@ -99,36 +117,83 @@ func Start(parent context.Context, command []string, directory string, handler H
 	}
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	cmd.Stderr = io.Discard
-	// Own the pipe descriptors: exec.Wait must not close StdoutPipe before the
-	// JSON-RPC reader drains a final response from a worker that exits promptly.
-	childIn, in, err := os.Pipe()
+	if session.LogDirectory != "" {
+		for _, name := range []string{"stdout", "stderr"} {
+			f, e := os.OpenFile(filepath.Join(session.LogDirectory, name+".log"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+			if e != nil {
+				cancel()
+				return nil, e
+			}
+			defer f.Close()
+			if name == "stdout" {
+				cmd.Stdout = f
+			} else {
+				cmd.Stderr = f
+			}
+		}
+	}
+	// macOS has no SOCK_CLOEXEC flag. Hold Go's fork lock while installing it
+	// explicitly so a concurrent worker cannot inherit another control channel.
+	syscall.ForkLock.RLock()
+	pair, err := unix.Socketpair(unix.AF_UNIX, unix.SOCK_STREAM, 0)
+	if err == nil {
+		syscall.CloseOnExec(pair[0])
+		syscall.CloseOnExec(pair[1])
+	}
+	syscall.ForkLock.RUnlock()
 	if err != nil {
 		cancel()
-		return nil, ErrTransport
+		return nil, err
 	}
-	out, childOut, err := os.Pipe()
-	if err != nil {
-		_ = in.Close()
-		_ = childIn.Close()
-		cancel()
-		return nil, ErrTransport
+	parentChannel := os.NewFile(uintptr(pair[0]), "loom-control")
+	childChannel := os.NewFile(uintptr(pair[1]), "loom-control-child")
+	cmd.ExtraFiles = []*os.File{childChannel}
+	cmd.Stdin = nil
+	if cmd.Stdout == nil {
+		cmd.Stdout = io.Discard
 	}
-	cmd.Stdin = childIn
-	cmd.Stdout = childOut
 	if err = ctx.Err(); err == nil {
 		err = cmd.Start()
 	}
-	_ = childIn.Close()
-	_ = childOut.Close()
+	_ = childChannel.Close()
 	if err != nil {
-		_ = in.Close()
-		_ = out.Close()
+		parentChannel.Close()
 		cancel()
 		return nil, errors.New("could not start configured worker")
 	}
-	c := &Client{cmd: cmd, cancel: cancel, exited: make(chan struct{})}
-	c.conn = jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(&pipe{Reader: out, WriteCloser: in, reader: out}, jsonrpc2.VSCodeObjectCodec{}), jsonrpc2.AsyncHandler(receiver{c, handler}), jsonrpc2.SetLogger(quietLogger{}))
+	c := &Client{cmd: cmd, cancel: cancel, exited: make(chan struct{}), session: session}
+	codec := &JSONLines{}
+	codec.Limit.Store(HandshakeLimit)
+	c.conn = jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(parentChannel, codec), jsonrpc2.AsyncHandler(receiver{c, handler}), jsonrpc2.SetLogger(quietLogger{}))
 	go func() { _ = cmd.Wait(); close(c.exited) }()
+	helloCtx, helloCancel := context.WithTimeout(ctx, 5*time.Second)
+	defer helloCancel()
+	var response struct {
+		Version      string   `json:"protocol_version"`
+		Role         string   `json:"role"`
+		MaxFrame     int64    `json:"max_frame_bytes"`
+		Capabilities []string `json:"capabilities"`
+	}
+	required := append([]string{role + "/1"}, session.RequiredCapabilities...)
+	err = c.Call(helloCtx, "session.hello", map[string]any{"protocol_version": "loom/1", "schema_version": 1, "role": "runtime", "peer_role": role, "max_frame_bytes": FrameLimit, "capabilities": session.Capabilities, "required_capabilities": required, "session": session}, &response)
+	if err != nil || response.Version != "loom/1" || response.Role != role || response.MaxFrame < HandshakeLimit || response.MaxFrame > FrameLimit {
+		c.Close()
+		return nil, errors.New("worker protocol handshake failed")
+	}
+	for _, needed := range required {
+		supported := false
+		for _, capability := range response.Capabilities {
+			if capability == needed {
+				supported = true
+			}
+		}
+		if !supported {
+			c.Close()
+			return nil, errors.New("worker missing required capability: " + needed)
+		}
+	}
+	c.ready.Store(true)
+	codec.Limit.Store(response.MaxFrame)
 	return c, nil
 }
 
@@ -219,4 +284,10 @@ func Command(command []string, directory string) ([]string, error) {
 		out[i] = strings.ReplaceAll(item, "{harness}", directory)
 	}
 	return out, nil
+}
+
+func errorData(kind string) *json.RawMessage {
+	body, _ := json.Marshal(map[string]string{"kind": kind})
+	raw := json.RawMessage(body)
+	return &raw
 }

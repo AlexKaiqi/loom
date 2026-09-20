@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
 	"loom/runtime/authority"
 	"loom/runtime/config"
@@ -41,6 +42,7 @@ func usageCommands(root *cobra.Command, add addCommand, configPath *string, open
 	root.AddCommand(setupCmd)
 	var harness, definition, userspace string
 	newCmd := add("new", "new PATH --userspace DIRECTORY", 1, func(cmd *cobra.Command, args []string, a *authority.Authority) (any, error) {
+		useDefaults := definition == ""
 		if harness == "" {
 			assets, err := onboarding.Assets()
 			if err != nil {
@@ -58,10 +60,10 @@ func usageCommands(root *cobra.Command, add addCommand, configPath *string, open
 		if _, err = config.Load(*configPath); err != nil {
 			return nil, err
 		}
-		if def.Userspace != nil && userspace == "" {
+		if len(def.Userspaces) > 0 && userspace == "" {
 			return nil, errors.New("choose task files explicitly with --userspace DIRECTORY")
 		}
-		if def.Userspace == nil && userspace != "" {
+		if len(def.Userspaces) == 0 && userspace != "" {
 			return nil, errors.New("selected definition does not declare Userspace")
 		}
 		if userspace != "" {
@@ -83,9 +85,53 @@ func usageCommands(root *cobra.Command, add addCommand, configPath *string, open
 			if authority.Overlaps(workPath, taskPath) {
 				return nil, errors.New("Work and task-files directories must not overlap")
 			}
+			if useDefaults {
+				if len(def.Userspaces) != 1 {
+					return nil, errors.New("default new requires exactly one task resource; use an explicit definition for multiple resources")
+				}
+				name, err := a.NameResource(taskPath)
+				if err != nil {
+					return nil, err
+				}
+				for alias, resource := range def.Userspaces {
+					resource.Resource = name
+					def.Userspaces[alias] = resource
+				}
+				raw, err := toml.Marshal(def)
+				if err != nil {
+					return nil, err
+				}
+				file, err := os.CreateTemp("", "loom-new-definition-")
+				if err != nil {
+					return nil, err
+				}
+				defer os.Remove(file.Name())
+				if _, err = file.Write(raw); err != nil {
+					file.Close()
+					return nil, err
+				}
+				if err = file.Close(); err != nil {
+					return nil, err
+				}
+				definition = file.Name()
+			}
 		}
 		w, err := work.Create(args[0], harness, definition)
 		if err != nil {
+			return nil, err
+		}
+		assets, err := onboarding.Assets()
+		if err != nil {
+			return nil, err
+		}
+		template, err := os.ReadFile(filepath.Join(assets, "templates/default/surface/main.md"))
+		if err != nil {
+			return nil, err
+		}
+		if err = work.Save(filepath.Join(w.Surface, "main.md"), template); err != nil {
+			return nil, err
+		}
+		if _, err = w.Snapshot("initial Work template"); err != nil {
 			return nil, err
 		}
 		if err = a.Register(w); err != nil {
@@ -146,7 +192,10 @@ func usageCommands(root *cobra.Command, add addCommand, configPath *string, open
 			return nil, err
 		}
 		for _, round := range rounds {
-			if round.State == "running" || round.State == "paused" {
+			if round.State != "handed_off" {
+				if round.State == "blocked" || round.State == "recovering" {
+					return humanOutput(fmt.Sprintf("Message queued. The current Round requires recovery. Run loom recover %q and inspect loom status %q; resume only when its state is ready.", w.Path, w.Path)), nil
+				}
 				return humanOutput("Message queued. Finish or explicitly resume the current Round, then run the pending work."), nil
 			}
 		}
@@ -162,7 +211,7 @@ func usageCommands(root *cobra.Command, add addCommand, configPath *string, open
 			return nil, err
 		}
 		if answer == "" {
-			answer = "Round completed. Inspect Surface and task files for the result."
+			answer = "Round handed off. Inspect Surface and saved resource copies for the result."
 		}
 		return humanOutput(answer + "\n\nSurface: " + w.Surface), nil
 	})
@@ -175,16 +224,32 @@ func bindRuntime(r *controller.Runtime, w *work.Work, path string) error {
 	if err != nil {
 		return err
 	}
-	deployment, err := host.ResolveModel(w.Definition.Model)
-	if err != nil {
+	r.Execution = host.Execution
+	r.Configure = hostBinding(host)
+	return nil
+}
+
+func hostBinding(host *config.Config) func(*controller.Runtime, *work.Work) error {
+	return func(r *controller.Runtime, w *work.Work) error {
+		deployment, err := host.DescribeModel(w.Definition.Model)
+		if err != nil {
+			return err
+		}
+		r.Model, r.APIKey, r.ModelCommand = deployment.Model, deployment.APIKey, deployment.Worker
+		r.ActivateModel = func(active *controller.Runtime) error {
+			resolved, err := host.ResolveModel(w.Definition.Model)
+			if err != nil {
+				return err
+			}
+			active.Model, active.APIKey, active.ModelCommand = resolved.Model, resolved.APIKey, resolved.Worker
+			return nil
+		}
+		r.Targets, err = host.ResolveTargets(w.Definition.Targets)
+		r.ResolveSandbox = host.ResolveSavedSandbox
 		return err
 	}
-	r.Model = deployment.Model
-	r.APIKey = deployment.APIKey
-	r.ModelCommand = deployment.Worker
-	r.Sandbox, err = host.ResolveSandbox(w.Definition.Sandbox)
-	return err
 }
+
 func assistantText(w *work.Work, result map[string]any) (string, error) {
 	reference, ok := result["messages"].(map[string]any)
 	if !ok {

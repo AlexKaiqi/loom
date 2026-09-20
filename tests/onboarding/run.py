@@ -27,7 +27,7 @@ from remote import APIObserver, serving
 ARCHIVE_CANARY = "OLD_ARCHIVE_BODY_MUST_NOT_BE_PROJECTED_34c270f"
 PLAN_CANARY = "CURRENT_PLAN_VISIBLE_69b1b07"
 MODEL_KEY = "onboarding-model-secret-361562b94"
-TASK = "读取 Userspace 的 numbers.txt，计算总和；更新 Surface 的计划、报告并归档过程。"
+TASK = "读取 default Target 中 app/numbers.txt，保存总和；在 Work 中维护计划和报告，通过主模板选择事实。"
 
 
 class UserProvider(Handler):
@@ -45,51 +45,96 @@ class UserProvider(Handler):
             self.chunk({"role": "assistant", "content": "unconfirmed"})
             return
         self.chunk({"role": "assistant"})
+        calls = []
         if self.server.mode == "tools" and number <= 4:
             self.chunk({"content": "NATIVE_ORIGINAL_TURN_" + str(number) + "_" + "e" * 12000})
         if self.server.mode == "tools" and number == 1:
-            scripts = {
-                "userspace": """python - <<'PY'
-import os,pathlib
-assert os.getuid()==65534
-assert 'LOOM_TEST_MODEL_KEY' not in os.environ
-assert 'LOOM_TEST_SANDBOX_KEY' not in os.environ
-assert not pathlib.Path('/var/run/docker.sock').exists()
-assert not pathlib.Path('/workspace/surface').exists()
-assert not pathlib.Path('/workspace/.loom').exists()
-values=[int(v) for v in pathlib.Path('numbers.txt').read_text().split()]
-assert values==[17,23]
-pathlib.Path('sum.txt').write_text(str(sum(values))+'\\n')
-print(sum(values))
-PY""",
-                "surface": """python - <<'PY'
-import os,pathlib
-assert os.getuid()==65534
-assert not pathlib.Path('/workspace/userspace').exists()
-assert not pathlib.Path('/workspace/.loom').exists()
-assert not pathlib.Path('../harness').exists()
-for p in ('/workspace/work.toml','/workspace/.loom/identity.json'):
-    assert not pathlib.Path(p).exists()
-assert pathlib.Path('archive/old.md').read_text()=='OLD_ARCHIVE_BODY_MUST_NOT_BE_PROJECTED_34c270f\\n'
-pathlib.Path('report.md').write_text('# Result\\n17 + 23 = 40\\n')
-pathlib.Path('plan.md').write_text('# Plan\\n- [x] Compute 17 + 23\\n- [x] Preserve archived evidence\\n')
-pathlib.Path('notes.md').write_text('Source: archive/new.md\\n')
-pathlib.Path('archive/new.md').write_text('ARCHIVED_REMOTE_DETAIL_NOT_AUTO_PROJECTED_7926\\n')
-print('surface files preserved and updated')
-PY""",
-            }
-            for index, (domain, script) in enumerate(scripts.items()):
-                self.chunk({"tool_calls": [{"index": index, "id": "onboarding_" + domain,
-                    "type": "function", "function": {"name": "shell", "arguments": json.dumps({"target": domain, "script": script, "timeout": 30})}}]})
-            self.chunk(finish="tool_calls", usage={"prompt_tokens": 20, "completion_tokens": 10, "total_tokens": 30})
-        elif self.server.mode == "tools" and 2 <= number <= 4:
-            self.chunk({"tool_calls": [{"index": 0, "id": "archive_turn_" + str(number), "type": "function",
-                "function": {"name": "shell", "arguments": json.dumps({"target": "surface", "script": "printf 'verified archive working turn\\n'", "timeout": 30})}}]})
-            self.chunk(finish="tool_calls", usage={"prompt_tokens": 20, "completion_tokens": 10, "total_tokens": 30})
+            calls = [
+                ("onboarding_task", {"environment":"sandbox", "target":"default", "script":
+                    "python - <<'SCRIPT'\nimport os,pathlib\nassert os.getuid()==65534\n"
+                    "assert 'LOOM_TEST_MODEL_KEY' not in os.environ\n"
+                    "assert 'LOOM_TEST_SANDBOX_KEY' not in os.environ\n"
+                    "assert not pathlib.Path('/var/run/docker.sock').exists()\n"
+                    "assert not pathlib.Path('/work/surface').exists()\n"
+                    "values=[int(v) for v in pathlib.Path('app/numbers.txt').read_text().split()]\n"
+                    "assert values==[17,23]\npathlib.Path('app/sum.txt').write_text(str(sum(values))+'\\n')\nprint(sum(values))\nSCRIPT"}),
+                ("onboarding_work", {"environment":"work", "script":
+                    "python3 - <<'SCRIPT'\nimport os,pathlib\nassert os.getuid()>=100000\n"
+                    "assert not pathlib.Path('/var/run/docker.sock').exists()\n"
+                    "assert not pathlib.Path('/work/.loom').exists()\n"
+                    "assert pathlib.Path('/harness/worker.py').exists()\n"
+                    "assert pathlib.Path('/work/work.toml').is_file()\n"
+                    "pathlib.Path('surface/report.md').write_text('# Result\\n17 + 23 = 40\\n')\n"
+                    "pathlib.Path('surface/plan.md').write_text('# Plan\\n- [x] Compute 17 + 23\\n')\n"
+                    "print('maintained Surface updated')\nSCRIPT"})]
+        elif self.server.mode == "tools" and number == 2:
+            calls = [("onboarding_evidence", {"environment":"work", "script":"printf 'retained tool evidence\\n'"})]
+        elif self.server.mode == "tools" and number in (3,4):
+            selected = 'onboarding_task' if number == 3 else 'onboarding_work'
+            key = 'body_refs' if number == 3 else 'after'
+            script = ("python3 - <<'SCRIPT'\nimport json,os,pathlib,sqlite3\n"
+                "db=sqlite3.connect('file:'+os.environ['FACTS_DB']+'?mode=ro',uri=True)\n"
+                "ids=[]\nfor fid,path in db.execute(\"SELECT fact_id,record_path FROM facts WHERE kind='tool.result' ORDER BY ordinal\"):\n"
+                " value=json.loads(pathlib.Path(path).read_text())\n"
+                f" if value['message']['toolCallId']=={selected!r}: ids.append(fid)\n"
+                "assert len(ids)==1\npath=pathlib.Path('surface/main.md')\ntext=path.read_text()\n"
+                + ("value=json.dumps(ids)\n" if number == 3 else "value=json.dumps(ids[0])\n")
+                + f"text=text.replace('```facts\\n','```facts\\n{key}='+value+'\\n')\n"
+                "path.write_text(text)\nprint('explicit template choice',ids[0])\nSCRIPT")
+            calls = [("onboarding_select_"+str(number), {"environment":"work","script":script})]
+        if calls:
+            for index,(identity,args) in enumerate(calls):
+                self.chunk({"tool_calls":[{"index":index,"id":identity,"type":"function",
+                    "function":{"name":"bash","arguments":json.dumps({**args,"timeout":30})}}]})
+            self.chunk(finish="tool_calls",usage={"prompt_tokens":20,"completion_tokens":10,"total_tokens":30})
         else:
-            self.chunk({"content": "已完成：17 + 23 = 40。计划与归档已保存。"})
-            self.chunk(finish="stop", usage={"prompt_tokens": 20, "completion_tokens": 10, "total_tokens": 30})
+            self.chunk({"content":"已完成：17 + 23 = 40。Surface 与事实选择已保存。"})
+            self.chunk(finish="stop",usage={"prompt_tokens":20,"completion_tokens":10,"total_tokens":30})
         self.event("[DONE]")
+
+
+def peer_server(upstream, work):
+    provider=ProviderFixture("tools");provider.RequestHandlerClass=UserProvider
+    provider.work,provider.errors=Path(work),[]
+    api=ThreadingHTTPServer(("127.0.0.1",0),APIObserver)
+    api.upstream,api.work,api.errors,api.creates,api.requests=upstream.rstrip('/'),Path(work),[],0,[]
+    with serving(provider),serving(api):
+        print(json.dumps({'model':provider.base_url,'sandbox_port':api.server_port}),flush=True)
+        for line in sys.stdin:
+            request=json.loads(line)
+            if request.get('stop'):break
+            if 'mode' in request:provider.mode=request['mode']
+            if 'work' in request:provider.work=api.work=Path(request['work'])
+            print(json.dumps({'provider_calls':provider.calls,'provider_errors':provider.errors,
+                'api_requests':api.requests,'api_errors':api.errors,'sandbox_creates':api.creates}),flush=True)
+
+
+class FacilityPeers:
+    def __init__(self,user):
+        from urllib.parse import urlsplit,urlunsplit
+        copied=user.private/'fixture-source'
+        for component in ('tests/model','tests/go_acceptance','tests/onboarding'):
+            shutil.copytree(ROOT/component,copied/component,ignore=shutil.ignore_patterns('__pycache__'))
+        endpoint=urlsplit(user.args.sandbox_endpoint)
+        if endpoint.hostname in ('127.0.0.1','localhost'):
+            endpoint=endpoint._replace(netloc='host.docker.internal'+(':'+str(endpoint.port) if endpoint.port else ''))
+        info=json.loads((user.prefix/'current/installation.json').read_text())
+        self.process=subprocess.Popen([shutil.which('docker'),'exec','-i',info['container'],'python3',
+            str(copied/'tests/onboarding/run.py'),'--peer-server',urlunsplit(endpoint),str(user.work)],
+            env=user.env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+        first=self.process.stdout.readline()
+        if not first:raise RuntimeError('facility peers did not start')
+        endpoints=json.loads(first);self.base_url=endpoints['model'];self.server_port=endpoints['sandbox_port']
+        self.saved={};self.refresh()
+    def refresh(self,**change):
+        self.process.stdin.write(json.dumps(change)+'\n');self.process.stdin.flush()
+        self.saved=json.loads(self.process.stdout.readline());return self.saved
+    def close(self):
+        self.refresh();self.process.stdin.write('{"stop":true}\n');self.process.stdin.flush()
+        try:self.process.wait(timeout=10)
+        except subprocess.TimeoutExpired:self.process.kill();self.process.wait(timeout=5)
+        for pipe in (self.process.stdin,self.process.stdout,self.process.stderr):pipe.close()
+
 
 
 class InstalledUser:
@@ -107,14 +152,15 @@ class InstalledUser:
         self.commands = []
         self.checks = []
         self.env = dict(os.environ)
+        self.env.setdefault("DOCKER_CONFIG", str(Path.home() / ".docker"))
         self.env["HOME"] = str(self.home)
         self.env["PATH"] = os.pathsep.join(p for p in self.env["PATH"].split(os.pathsep) if str(ROOT) not in p and "loom-onboarding-private" not in p)
         self.env.pop("PYTHONPATH", None)
         self.env.pop("LOOM_INSTALL_ROOT", None)
         self.env["LOOM_TEST_MODEL_KEY"] = MODEL_KEY
         self.env["LOOM_TEST_SANDBOX_KEY"] = Path(args.sandbox_key_file).read_text().strip()
-        self.config = self.home / ".config/loom/config.toml"
-        self.authority = self.home / ".local/state/loom/authority.sqlite"
+        self.config = self.prefix / "host-state/.config/loom/config.toml"
+        self.authority = self.prefix / "host-state/.local/state/loom/authority.sqlite"
         self.work = self.output / "work"
         self.userspace = self.private / "task files"
         self.userspace.mkdir()
@@ -131,12 +177,12 @@ class InstalledUser:
 
     def install(self):
         before = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
-                  for base in ("runtime", "services/model", "harnesses", "deploy", "scripts", "docs/contracts", "tests/onboarding", "tests/model", "tests/go_acceptance", "tests/harness", "tests/install")
+                  for base in ("runtime", "services/model", "harnesses", "deploy", "scripts", "tests/onboarding", "tests/model", "tests/go_acceptance", "tests/harness", "tests/install", "templates")
                   for p in (ROOT / base).rglob("*") if p.is_file() and not any(part in {"node_modules", "bin", "__pycache__"} for part in p.parts)}
-        for name in ("SPEC.md", "AGENTS.md", "install.sh"):
+        for name in ("docs/loom-design-book.html", "AGENTS.md", "install.sh"):
             before[name] = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
         (self.output / "source-hashes.json").write_text(json.dumps(before, sort_keys=True, indent=2))
-        result = subprocess.run([str(ROOT / "install.sh"), "--prefix", str(self.prefix)], cwd=self.cwd, env=self.env, capture_output=True, text=True, timeout=300)
+        result = subprocess.run([str(ROOT / "install.sh"), "--prefix", str(self.prefix), "--workspace-root", str(self.private), "--workspace-root", str(self.output)], cwd=self.cwd, env=self.env, capture_output=True, text=True, timeout=1800)
         (self.output / "install.log").write_text(result.stdout + result.stderr)
         assert result.returncode == 0, result.stderr
         self.command("--help")
@@ -201,136 +247,140 @@ class InstalledUser:
 
     def run(self):
         self.install()
-        provider = ProviderFixture("tools")
-        provider.RequestHandlerClass = UserProvider
-        provider.work, provider.errors = self.work, []
-        api = ThreadingHTTPServer(("127.0.0.1", 0), APIObserver)
-        api.upstream, api.work, api.errors, api.creates, api.requests = self.args.sandbox_endpoint.rstrip("/"), self.work, [], 0, []
+        peers=FacilityPeers(self)
         try:
-            with serving(provider), serving(api):
-                self.interactive_setup(provider, api)
-                self.setup(provider, api)
-                config_before = self.config.read_bytes()
-                config = tomllib.loads(config_before.decode())
-                worker = config["models"]["primary"].get("worker", [])
-                if worker:
-                    assert worker == ["loom-model"] or (str(self.prefix) in json.dumps(worker) and str(ROOT) not in json.dumps(worker)), "setup must resolve installed worker without user-written checkout paths"
-                assert not any(s in config_before for s in (MODEL_KEY.encode(), self.env["LOOM_TEST_SANDBOX_KEY"].encode()))
-                self.setup(provider, api, ok=False)
-                assert self.config.read_bytes() == config_before
-                self.checks.append("setup creates host-only routing plus default declaration without secrets; rerun preserves existing config")
-                self.command("new", self.work, "--userspace", self.userspace)
-                for file in ("plan.md", "report.md", "notes.md"):
-                    assert (self.work / "surface" / file).is_file(), file
-                (self.work / "surface/archive").mkdir(exist_ok=True)
-                (self.work / "surface/archive/old.md").write_text(ARCHIVE_CANARY + "\n")
-                (self.work / "surface/plan.md").write_text("# Plan\n" + PLAN_CANARY + "\n")
-                self.command("status", cwd=self.work)
-                denied_env = dict(self.env)
-                denied_env.pop("LOOM_TEST_MODEL_KEY")
-                self.command("ask", self.work, TASK, "--request-id", "natural-1", ok=False, env=denied_env)
-                assert len(query(self.work, "SELECT * FROM events")) == 1
-                assert len(query(self.work, "SELECT * FROM pending")) == 1
-                assert not query(self.work, "SELECT * FROM effects")
-                assert not provider.calls and not api.requests
-                self.checks.append("missing model key preserves natural-language admission/pending, creates no remote effect")
-                result = self.command("ask", self.work, TASK, "--request-id", "natural-1")
-                assert "40" in result.stdout
-                assert len(provider.calls) == 5 and api.creates == 5
-                assert provider.calls[0]["body"]["max_completion_tokens"] == 4096
-                first_prompt = json.dumps(provider.calls[0]["body"]["messages"], ensure_ascii=False)
-                assert PLAN_CANARY in first_prompt
-                assert ARCHIVE_CANARY not in first_prompt
-                assert "archive/index.jsonl" in first_prompt
-                assert (self.userspace / "sum.txt").read_text() == "40\n"
-                assert (self.work / "surface/report.md").read_text() == "# Result\n17 + 23 = 40\n"
-                assert (self.work / "surface/archive/old.md").read_text() == ARCHIVE_CANARY + "\n"
-                assert (self.work / "surface/archive/new.md").read_text() == "ARCHIVED_REMOTE_DETAIL_NOT_AUTO_PROJECTED_7926\n"
-                assert not provider.errors and not api.errors, (provider.errors, api.errors)
-                effects = query(self.work, "SELECT * FROM effects ORDER BY rowid")
-                assert sum(e["kind"] == "model" for e in effects) == 5
-                assert sum(e["kind"] == "sandbox.shell" for e in effects) == 5
-                assert all(e["status"] == "completed" for e in effects)
-                assert not query(self.work, "SELECT * FROM pending")
-                for effect in effects:
-                    if effect["kind"] == "sandbox.shell":
-                        receipt = json.loads(effect["result"])["receipt"]
-                        assert receipt["exit_code"] == 0 and receipt["released"]
-                        assert not subprocess.check_output(["docker", "ps", "-aq", "--filter", "label=loom.operation=" + effect["id"]], text=True).strip()
-                contexts = [json.loads(p.read_text()) for p in (self.work / "surface/archive").glob("*.json")]
-                native_archives = [c for c in contexts if c.get("kind") == "native-context"]
-                assert native_archives and any("NATIVE_ORIGINAL_TURN_1_" in json.dumps(c["original"]) for c in native_archives)
-                assert any("LOOM_KERNEL_ARCHIVE" in json.dumps(c["body"]["messages"]) for c in provider.calls[1:])
-                self.checks.append("native prepare hook archived full long Pi context before smaller provider projection; original first turn directly recovered")
-                self.checks.append("real Pi and two real isolated Sandbox domains; direct data=40, plan/report/archive bytes, durable custody and remote release")
-                self.command("ask", self.work, TASK, "--request-id", "natural-1")
-                assert len(provider.calls) == 5 and len(query(self.work, "SELECT * FROM events")) == 1
-                self.command("ask", self.work, "changed content", "--request-id", "natural-1", ok=False)
-                assert len(provider.calls) == 5 and len(query(self.work, "SELECT * FROM events")) == 1
-                self.checks.append("same request retries are idempotent and conflicting text rejects without new provider calls")
-                provider.mode = "text"
-                self.command("ask", "检查已保存的计划", "--request-id", "natural-2", cwd=self.work)
-                latest_prompt = json.dumps(provider.calls[-1]["body"]["messages"], ensure_ascii=False)
-                assert "Compute 17 + 23" in latest_prompt
-                assert "archive/index.jsonl" in latest_prompt
-                assert "ARCHIVED_REMOTE_DETAIL_NOT_AUTO_PROJECTED_7926" not in latest_prompt
-                self.checks.append("cwd shorthand works; later Round sees current plan and discoverable archived refs without archive bodies")
-                local_work = self.output / "local-rejection-work"
-                local_tasks = self.private / "local-rejection-task-files"
-                local_tasks.mkdir()
-                self.command("new", local_work, "--userspace", local_tasks)
-                before_http = (len(provider.calls), len(api.requests))
-                rejected = self.command("ask", local_work, "Explicit user input too large: " + "z" * 50000, "--request-id", "local-reject-1", ok=False)
-                assert "before model/tool dispatch" in rejected.stderr and "unknown" not in rejected.stderr
-                assert not query(local_work, "SELECT * FROM effects")
-                assert query(local_work, "SELECT state FROM rounds") == [{"state": "rejected"}]
-                assert len(query(local_work, "SELECT * FROM pending")) == 1
-                assert (len(provider.calls), len(api.requests)) == before_http
-                self.checks.append("oversized policy input fails locally with accurate pre-dispatch guidance, pending intact and zero HTTP/effects")
-                unknown_work = self.output / "unknown-work"
-                unknown_tasks = self.private / "unknown-task-files"
-                unknown_tasks.mkdir()
-                self.command("new", unknown_work, "--userspace", unknown_tasks)
-                provider.work = unknown_work
-                provider.mode = "truncated"
-                self.command("ask", unknown_work, "retain unknown responsibility", "--request-id", "unknown-1", ok=False)
-                count = len(provider.calls)
-                unknown_effects = query(unknown_work, "SELECT * FROM effects")
-                assert len(unknown_effects) == 1
-                interrupted_round = query(unknown_work, "SELECT * FROM rounds")[0]
-                assert interrupted_round["state"] == "paused" and interrupted_round["checkpoint"] is None
-                native_error = json.loads(unknown_effects[0]["result"])
-                assert native_error["stopReason"] == "error"
-                native_bytes = (unknown_work / native_error["artifact"]["path"]).read_bytes()
-                assert hashlib.sha256(native_bytes).hexdigest() == native_error["artifact"]["sha256"]
-                assert json.loads(native_bytes)["message"]["stopReason"] == "error"
-                queued = self.command("ask", unknown_work, "retain unknown responsibility", "--request-id", "unknown-1")
-                assert "queued" in queued.stdout.lower()
-                for operation in (("run", unknown_work), ("resume", unknown_work)):
-                    self.command(*operation, ok=False)
-                assert len(provider.calls) == count
-                assert query(unknown_work, "SELECT * FROM pending")
-                self.checks.append("truncated provider result is preserved as native error custody; paused Round without checkpoint never automatically redispatches")
-                report_version = subprocess.check_output(["git", "--git-dir", str(self.work / ".loom/versions.git"), "show", "HEAD:report.md"])
-                assert report_version == (self.work / "surface/report.md").read_bytes()
-                self.command("export", self.work, self.output / "work.tar.gz")
-                copied = self.output / "copied-work"
-                shutil.copytree(self.work, copied)
-                self.command("status", copied, ok=False)
-                self.checks.append("copied Work carries no host authority")
+            self.interactive_setup(peers,peers)
+            self.setup(peers,peers)
+            config_before=self.config.read_bytes()
+            config=tomllib.loads(config_before.decode())
+            assert config['models']['primary']['worker']==['loom-model']
+            assert not any(key in config_before for key in (MODEL_KEY.encode(),self.env['LOOM_TEST_SANDBOX_KEY'].encode()))
+            self.setup(peers,peers,ok=False)
+            assert self.config.read_bytes()==config_before
+            self.checks.append('setup and interactive secrets stay private; existing configuration is preserved')
+            self.command('new',self.work,'--userspace',self.userspace)
+            assert (self.work/'surface/main.md').is_file()
+            assert not (self.work/'surface/plan.md').exists()
+            (self.work/'surface/plan.md').write_text('# Plan\n'+PLAN_CANARY+'\n')
+            (self.work/'surface/report.md').write_text('# Result pending\n')
+            (self.work/'surface/reference.md').write_text(ARCHIVE_CANARY+'\n')
+            main=self.work/'surface/main.md'
+            main.write_text('# Maintained understanding\n```include\npath="surface/plan.md"\n```\n'
+                '```include\npath="surface/report.md"\n```\n```facts\n```\n')
+            self.command('status',cwd=self.work)
+            denied=dict(self.env);denied.pop('LOOM_TEST_MODEL_KEY')
+            self.command('ask',self.work,TASK,'--request-id','natural-1',ok=False,env=denied)
+            assert len(query(self.work,'SELECT * FROM pending'))==1
+            assert not query(self.work,'SELECT * FROM effects')
+            observed=peers.refresh();assert not observed['provider_calls'] and not observed['api_requests']
+            self.checks.append('missing credential preserves the admitted input with zero dispatch')
+            queued=self.command('ask',self.work,TASK,'--request-id','natural-1')
+            assert 'recover' in queued.stdout.lower()
+            assert peers.refresh()==observed, 'retrying admission bypassed recovery or dispatched a duplicate request'
+            recovered=json.loads(self.command('recover',self.work).stdout)
+            assert query(self.work,'SELECT state FROM rounds')==[{'state':'ready'}]
+            resumed=json.loads(self.command('resume',self.work).stdout)
+            assert resumed['state']=='handed_off'
+            assert len(query(self.work,"SELECT * FROM events WHERE kind='work.message'"))==1
+            self.checks.append('pre-dispatch credential failure resumes the saved projection after explicit recovery, without duplicate input')
+            observed=peers.refresh();calls=observed['provider_calls']
+            assert len(calls)==5 and observed['sandbox_creates']==1
+            assert not observed['provider_errors'] and not observed['api_errors'],observed
+            assert calls[0]['body']['max_completion_tokens']==4096
+            first=json.dumps(calls[0]['body']['messages'],ensure_ascii=False)
+            assert PLAN_CANARY in first and ARCHIVE_CANARY not in first
+            assert 'Original tool body:' in json.dumps(calls[3]['body']['messages'])
+            assert 'NATIVE_ORIGINAL_TURN_1_' not in json.dumps(calls[4]['body']['messages'])
+            assert not (self.userspace/'sum.txt').exists()
+            restored=self.output/'saved-task-result'
+            self.command('restore-resource',self.work,'app',restored,'--target','default')
+            assert (restored/'sum.txt').read_text()=='40\n'
+            assert (self.work/'surface/report.md').read_text()=='# Result\n17 + 23 = 40\n'
+            assert (self.work/'surface/reference.md').read_text()==ARCHIVE_CANARY+'\n'
+            assert not (self.work/'surface/archive').exists()
+            native=query(self.work,"SELECT * FROM events WHERE source='model-adapter' AND kind='model.message'")
+            original=[row for row in native if 'NATIVE_ORIGINAL_TURN_1_' in row['payload']]
+            assert len(original)==1
+            full=json.loads(original[0]['payload'])
+            assert 'e'*12000 in json.dumps(full)
+            effects=query(self.work,'SELECT * FROM effects ORDER BY rowid')
+            assert sum(e['kind']=='model' for e in effects)==5
+            assert sum(e['kind']=='tool.exec' for e in effects)==5
+            assert all(e['status']=='completed' for e in effects)
+            for effect in effects:
+                if effect['kind']=='tool.exec' and json.loads(effect['request'])['environment']=='sandbox':
+                    receipt=json.loads(effect['result'])['receipt']
+                    assert receipt['exit_code']==0 and receipt['released']
+                    assert not subprocess.check_output(['docker','ps','-aq','--filter','label=loom.operation='+effect['id']],text=True,env=self.env).strip()
+            assert not query(self.work,'SELECT * FROM pending')
+            self.checks.append('real Work Bash plus remote Sandbox; independent resource result=40; shared source unchanged; native results and release verified')
+            self.checks.append('model tool calls explicitly fold and archive through main.md; complete native facts survive without a Surface history copy')
+            before=query(self.work,'SELECT * FROM events')
+            self.command('ask',self.work,TASK,'--request-id','natural-1')
+            self.command('ask',self.work,'conflicting text','--request-id','natural-1',ok=False)
+            assert query(self.work,'SELECT * FROM events')==before
+            assert len(peers.refresh()['provider_calls'])==5
+            self.checks.append('same identity is idempotent; changed text conflicts without additional model requests')
+            peers.refresh(mode='text')
+            self.command('ask','检查保存的计划','--request-id','natural-2',cwd=self.work)
+            latest=json.dumps(peers.refresh()['provider_calls'][-1]['body']['messages'],ensure_ascii=False)
+            assert 'Compute 17 + 23' in latest and 'NATIVE_ORIGINAL_TURN_1_' not in latest
+            assert ARCHIVE_CANARY not in latest
+            # A declared small model window exercises pre-dispatch refusal. The
+            # admission itself remains the same natural-language CLI path.
+            limited=self.private/'limited-work.toml'
+            defaults=self.config.parent/'work-default.toml'
+            import re
+            text=defaults.read_text()
+            text=re.sub(r'contextWindow = \d+', 'contextWindow = 4096',text)
+            text=re.sub(r'maxTokens = \d+', 'maxTokens = 128',text)
+            limited.write_text(text)
+            local_work=self.output/'local-rejection-work';local_tasks=self.private/'local-tasks';local_tasks.mkdir()
+            self.command('new',local_work,'--userspace',local_tasks,'--definition',limited)
+            before_http=peers.refresh()
+            rejected=self.command('ask',local_work,'Required input '+('z'*50000),'--request-id','local-1',ok=False)
+            assert 'context capacity' in rejected.stderr
+            assert not query(local_work,'SELECT * FROM effects')
+            assert query(local_work,'SELECT state FROM rounds')==[{'state':'blocked'}]
+            assert len(query(local_work,'SELECT * FROM pending'))==1
+            assert peers.refresh()==before_http
+            self.checks.append('oversized required input blocks before dispatch, without hidden truncation or dropping responsibility')
+            unknown_work=self.output/'unknown-work';unknown_tasks=self.private/'unknown-tasks';unknown_tasks.mkdir()
+            self.command('new',unknown_work,'--userspace',unknown_tasks)
+            peers.refresh(work=str(unknown_work),mode='truncated')
+            self.command('ask',unknown_work,'retain interrupted input','--request-id','unknown-1',ok=False)
+            count=len(peers.refresh()['provider_calls'])
+            saved=query(unknown_work,'SELECT * FROM effects');assert len(saved)==1
+            round=query(unknown_work,'SELECT * FROM rounds')[0];assert round['state']=='blocked'
+            cp=json.loads(round['checkpoint']);assert cp['phase']=='model_ready' and 'native_turn' not in cp
+            native_error=json.loads(saved[0]['result']);assert native_error['stopReason']=='error'
+            raw=(unknown_work/native_error['artifact']['path']).read_bytes()
+            assert hashlib.sha256(raw).hexdigest()==native_error['artifact']['sha256']
+            assert json.loads(raw)['message']['stopReason']=='error'
+            queued=self.command('ask',unknown_work,'retain interrupted input','--request-id','unknown-1')
+            assert 'queued' in queued.stdout.lower()
+            self.command('run',unknown_work,ok=False);self.command('resume',unknown_work,ok=False)
+            assert len(peers.refresh()['provider_calls'])==count and query(unknown_work,'SELECT * FROM pending')
+            self.checks.append('truncated native response is retained; no confirmed continuation or automatic replay is invented')
+            captured=subprocess.check_output(['git','--git-dir',str(self.work/'.loom/versions.git'),'show','HEAD:surface/report.md'])
+            assert captured==(self.work/'surface/report.md').read_bytes()
+            self.command('export',self.work,self.output/'work.tar.gz')
+            copied=self.output/'copied-work';shutil.copytree(self.work,copied)
+            self.command('status',copied,ok=False)
+            self.checks.append('versioned Surface matches actual bytes; copied Work inherits no physical authority')
         finally:
-            observations = {"checks": self.checks, "provider_calls": provider.calls, "provider_errors": provider.errors,
-                "api_requests": api.requests, "api_errors": api.errors, "sandbox_creates": api.creates,
-                "rounds": query(self.work, "SELECT * FROM rounds") if self.work.exists() else [],
-                "effects": query(self.work, "SELECT * FROM effects ORDER BY rowid") if self.work.exists() else []}
-            (self.output / "observations.json").write_text(json.dumps(observations, ensure_ascii=False, indent=2))
-            scanned = assert_no_secrets(self.output, [MODEL_KEY.encode(), self.env["LOOM_TEST_SANDBOX_KEY"].encode()])
-            (self.output / "secret-scan.json").write_text(json.dumps({"objects": scanned, "matches": 0}))
-        frozen = json.loads((self.output / "source-hashes.json").read_text())
-        changed = [name for name, digest in frozen.items() if not (ROOT / name).is_file() or hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != digest]
-        (self.output / "source-closure.json").write_text(json.dumps({"files": len(frozen), "changed_during_run": changed}, indent=2))
-        assert not changed, "source changed during acceptance: " + repr(changed)
-        (self.output / "PASS").write_text("\n".join(self.checks) + "\n")
+            observations={**peers.refresh(),'checks':self.checks,
+                'rounds':query(self.work,'SELECT * FROM rounds') if self.work.exists() else [],
+                'effects':query(self.work,'SELECT * FROM effects ORDER BY rowid') if self.work.exists() else []}
+            peers.close()
+            (self.output/'observations.json').write_text(json.dumps(observations,ensure_ascii=False,indent=2))
+            scanned=assert_no_secrets(self.output,[MODEL_KEY.encode(),self.env['LOOM_TEST_SANDBOX_KEY'].encode()])
+            (self.output/'secret-scan.json').write_text(json.dumps({'objects':scanned,'matches':0}))
+        frozen=json.loads((self.output/'source-hashes.json').read_text())
+        changed=[name for name,digest in frozen.items() if not (ROOT/name).is_file() or hashlib.sha256((ROOT/name).read_bytes()).hexdigest()!=digest]
+        (self.output/'source-closure.json').write_text(json.dumps({'files':len(frozen),'changed_during_run':changed}))
+        assert not changed,changed
+        (self.output/'PASS').write_text('\n'.join(self.checks)+'\n')
 
 
 def main():
@@ -344,4 +394,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv)>1 and sys.argv[1]=="--peer-server": peer_server(sys.argv[2],sys.argv[3])
+    else: main()

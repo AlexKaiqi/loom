@@ -1,4 +1,5 @@
-import { createMessageConnection, StreamMessageReader, StreamMessageWriter, ResponseError } from "vscode-jsonrpc/node";
+import { ResponseError } from "vscode-jsonrpc/node";
+import { createWorkerConnection } from "./transport.mjs";
 import { prepare } from "./pi.mjs";
 import { runAgent } from "./agent.mjs";
 
@@ -6,7 +7,7 @@ if (Number(process.versions.node.split(".")[0]) !== 24) {
   process.stderr.write("Loom model worker requires Node 24\n");
   process.exit(1);
 }
-const connection = createMessageConnection(new StreamMessageReader(process.stdin), new StreamMessageWriter(process.stdout));
+const connection = createWorkerConnection("model", ["context.feedback/1", "userspace.binding/1", "record.file/1"]);
 
 for (const method of ["model.complete", "agent.run"]) {
   connection.onRequest(method, async (params, token) => {
@@ -24,5 +25,4 @@ for (const method of ["model.complete", "agent.run"]) {
   });
 }
 connection.onClose(() => process.exit(0));
-process.stdin.on("end", () => process.exit(0));
 connection.listen();

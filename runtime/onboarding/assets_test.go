@@ -47,7 +47,7 @@ func TestExplicitOperatorWorkerIsPreserved(t *testing.T) {
 	host := config.Config{Models: map[string]config.ModelService{"primary": {
 		Endpoint: "https://example.invalid/v1", APIKeyEnv: "LOOM_WORKER_TEST_KEY", Worker: argv,
 	}}}
-	deployment, err := host.ResolveModel(work.ModelDefinition{Service: "primary", Definition: map[string]any{
+	deployment, err := host.ResolveModel(work.ModelDefinition{Service: "primary", Parameters: map[string]any{
 		"id": "explicit", "api": "openai-completions", "provider": "configured",
 	}})
 	if err != nil {

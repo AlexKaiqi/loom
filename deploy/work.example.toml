@@ -1,10 +1,18 @@
+schema_version = 2
+
+[harness]
+path = 'harness'
+argv = ['python3', '-I', '{harness}/worker.py']
+[surface]
+path = 'surface'
+
 # Portable, non-secret Work requirements. Edit before `loom create --definition`.
 # Runtime fixes this declaration's digest when creating the Work.
 [model]
 service = "primary"
 
 # Native Pi model semantics. The named host service supplies baseUrl and keys.
-[model.definition]
+[model.parameters]
 id = "your-model-id"
 name = "Configured model"
 api = "openai-completions"
@@ -13,22 +21,17 @@ reasoning = false
 input = ["text", "image"]
 contextWindow = 128000
 maxTokens = 8192
-[model.definition.cost]
+[model.parameters.cost]
 input = 0
 output = 0
 cacheRead = 0
 cacheWrite = 0
 
-[sandbox]
-service = "code"
-# Accepted code environment; use another digest only after verifying its profile.
-image = "python@sha256:97bb82da414a3216a18949f7d4a9c2a2860296027a05e2dcdcb6a9801d019fc5"
-profile = "code"
-cpu = "1"
-memory = "512Mi"
-lease_seconds = 600
-request_timeout_seconds = 30
+[userspaces.app]
+resource = "task-files"
+access = "write"
+delivery = "per-tool"
 
-# Logical dependency identity only. Actual paths and grants belong to each host.
-[userspace]
-name = "task-files"
+[targets.default]
+profile = "code"
+userspaces = ["app"]

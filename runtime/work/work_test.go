@@ -15,16 +15,29 @@ func fixture(t *testing.T) *Work {
 	root := t.TempDir()
 	h := filepath.Join(root, "policy")
 	os.Mkdir(h, 0700)
-	os.WriteFile(filepath.Join(h, "manifest.json"), []byte(`{"protocol":1,"command":["unused"]}`), 0600)
+	os.WriteFile(filepath.Join(h, "manifest.json"), []byte(`{"protocol":1}`), 0600)
 	definition := filepath.Join(root, "definition.toml")
-	os.WriteFile(definition, []byte(`[model]
+	os.WriteFile(definition, []byte(`schema_version=2
+[harness]
+path='harness'
+argv=['unused']
+[surface]
+path='surface'
+[model]
 service="test"
-[model.definition]
+[model.parameters]
 id="test-model"
 api="openai-completions"
 provider="test"
-[userspace]
-name="project"
+[userspaces.app]
+resource="project"
+access="write"
+[targets.default]
+profile="code"
+userspaces=["app"]
+[targets.other]
+profile="code"
+userspaces=["app"]
 `), 0600)
 	w, err := Create(filepath.Join(root, "work"), h, definition)
 	if err != nil {
@@ -42,7 +55,7 @@ func TestVersionAndPortablePending(t *testing.T) {
 	}
 	os.WriteFile(name, []byte("after"), 0600)
 	w.Snapshot("after")
-	old, err := w.git("show", rev+":note")
+	old, err := w.git("show", rev+":surface/note")
 	if err != nil || old != "before" {
 		t.Fatal(old, err)
 	}
@@ -71,7 +84,7 @@ func TestVersionAndPortablePending(t *testing.T) {
 	if err != nil || len(events) != 1 || events[0].Seq != event.Seq {
 		t.Fatal(events, err)
 	}
-	old, err = restored.git("show", rev+":note")
+	old, err = restored.git("show", rev+":surface/note")
 	if err != nil || old != "before" {
 		t.Fatal(old, err)
 	}
@@ -118,7 +131,7 @@ func TestSnapshotRetainsIgnoredBytesWithoutAttributeConversion(t *testing.T) {
 		t.Fatal(err)
 	}
 	for name, expected := range map[string]string{"hidden.bin": string([]byte{0, 1, 2, 255}), "exact.txt": "a\r\nb\r\nc"} {
-		observed, err := w.git("show", rev+":"+name)
+		observed, err := w.git("show", rev+":surface/"+name)
 		if err != nil || observed != expected {
 			t.Fatalf("snapshot %s = %q, expected %q: %v", name, observed, expected, err)
 		}

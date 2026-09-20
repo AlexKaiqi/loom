@@ -15,13 +15,13 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def sources():
     paths = []
-    for name in ("runtime", "services/model", "harnesses", "tests/go_acceptance", "tests/model", "docs/contracts", "deploy/opensandbox"):
+    for name in ("runtime", "services/model", "harnesses", "tests/go_acceptance", "tests/model", "deploy", "scripts", "templates", "tests/harness", "tests/install", "tests/onboarding"):
         for path in (ROOT / name).rglob("*"):
             relative = path.relative_to(ROOT)
             if not path.is_file() or path.is_symlink() or any(part in {"node_modules", "evidence", "__pycache__", "bin"} for part in relative.parts):
                 continue
             paths.append(path)
-    for name in ("README.md", "SPEC.md", "AGENTS.md", "THIRD_PARTY.md", "install.sh", "Makefile", "go.work", "go.work.sum", "docs/architecture.md", "docs/development.md", "deploy/config.example.toml", "deploy/work.example.toml"):
+    for name in ("README.md", "docs/loom-design-book.html", "AGENTS.md", "THIRD_PARTY.md", "install.sh", "Makefile", "go.work", "go.work.sum", "docs/development.md", "deploy/config.example.toml", "deploy/work.example.toml"):
         if (ROOT / name).is_file():
             paths.append(ROOT / name)
     return sorted(set(paths))
@@ -63,7 +63,7 @@ def main(args):
         run("blackbox", [sys.executable, "-m", "unittest", "discover", "-s", "tests/go_acceptance", "-v"])
         if args.sandbox_key_file:
             run("remote", [sys.executable, "tests/go_acceptance/remote.py", "--binary", binary, "--sandbox-endpoint", args.sandbox_endpoint, "--sandbox-key-file", args.sandbox_key_file, "--output", output / "remote"])
-            run("remote-surface-only", [sys.executable, "tests/go_acceptance/remote.py", "--binary", binary, "--sandbox-endpoint", args.sandbox_endpoint, "--sandbox-key-file", args.sandbox_key_file, "--output", output / "remote-surface-only", "--surface-only"])
+            run("remote-work-only", [sys.executable, "tests/go_acceptance/remote.py", "--binary", binary, "--sandbox-endpoint", args.sandbox_endpoint, "--sandbox-key-file", args.sandbox_key_file, "--output", output / "remote-work-only", "--work-only"])
             run("remote-portable", [sys.executable, "tests/go_acceptance/remote.py", "--binary", binary, "--sandbox-endpoint", args.sandbox_endpoint, "--sandbox-key-file", args.sandbox_key_file, "--output", output / "remote-portable", "--portable"])
         if args.provider_env_file:
             if not args.sandbox_key_file:

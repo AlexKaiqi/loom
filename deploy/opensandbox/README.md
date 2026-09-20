@@ -1,6 +1,6 @@
 # OpenSandbox deployment
 
-Loom's Go Runtime uses the official Go SDK and a separately deployed official server image. It never launches Docker from the Runtime. The supported deployment uses server v0.2.3 and execd v1.1.0, both digest-pinned in `versions.json`. No Loom sandbox image, Python proxy or custom Docker API proxy is built. The Go SDK is pinned to official commit `ff4d1bc269cf6a9be03592649bed19633bf45222`. See [the Sandbox contract](../../docs/contracts/sandbox.md).
+Loom's Go Runtime uses the official Go SDK and a separately deployed official server image. It never launches Docker from the Runtime. The supported deployment uses server v0.2.3 and execd v1.1.0, both digest-pinned in `versions.json`. No Loom sandbox image, Python proxy or custom Docker API proxy is built. The Go SDK is pinned to official commit `ff4d1bc269cf6a9be03592649bed19633bf45222`. See [the Sandbox contract](../../docs/loom-design-book.html#chapter-7).
 
 The `code` profile uses upstream bubblewrap isolated sessions and upstream seccomp configuration. `execd.toml` preserves execd's built-in syscall deny list and adds socket/socketpair/connect denial. This closes access to the privileged execd HTTP endpoint from task code. The Runtime verifies this restriction inside each session before dispatching user code. Task processes have uid/gid 65534, zero effective/permitted/ambient capabilities and `no_new_privs=1`.
 
@@ -50,7 +50,7 @@ Verify health before running tests. From `runtime/`, run:
 LOOM_SANDBOX_ENDPOINT=http://127.0.0.1:18088 \
 LOOM_SANDBOX_KEY_FILE=<restricted-file> \
 LOOM_SANDBOX_EVIDENCE=<new-absolute-evidence-directory> \
-go test ./sandbox -run '^TestReal' -v -count=1
+go test ./adapters/opensandbox -run '^TestReal' -v -count=1
 ```
 
 These tests use Docker as an independent observer and, in the explicit dead-execd test, as a fault injector in their own container. Each test cleans up only its own native service IDs. The shared service must remain available until independent acceptance finishes, then can be stopped separately. API keys and complete server configuration stay outside source and evidence. Tests without an explicit endpoint skip the real-service cases; a skip is not a validation pass.

@@ -293,31 +293,32 @@ func Restore(source io.Reader, directory string, identity os.FileInfo, digest st
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(stage)
+	cleanup := true
+	defer func() {
+		if cleanup {
+			_ = os.RemoveAll(stage)
+		}
+	}()
 	if err = Extract(source, stage); err != nil {
 		return err
 	}
 	if err = Unchanged(directory, identity, digest); err != nil {
 		return err
 	}
-	backup, err := os.MkdirTemp(filepath.Dir(directory), ".loom-backup-")
-	if err != nil {
+	// The root is never absent, even if the controller is killed at publication.
+	// Unsupported filesystems fail; a two-rename fallback would reintroduce a gap.
+	if err = exchangeDirectories(stage, directory); err != nil {
 		return err
 	}
-	if err = os.Remove(backup); err != nil {
-		return err
+	cleanup = false
+	if err = Unchanged(stage, identity, digest); err != nil {
+		rollback := exchangeDirectories(stage, directory)
+		cleanup = rollback == nil
+		return errors.Join(err, rollback)
 	}
-	if err = os.Rename(directory, backup); err != nil {
-		return err
-	}
-	if err = Unchanged(backup, identity, digest); err != nil {
-		return errors.Join(err, os.Rename(backup, directory))
-	}
-	if err = os.Rename(stage, directory); err != nil {
-		return errors.Join(err, os.Rename(backup, directory))
-	}
+	cleanup = true
 	if err = SyncDir(filepath.Dir(directory)); err != nil {
 		return err
 	}
-	return os.RemoveAll(backup)
+	return nil
 }

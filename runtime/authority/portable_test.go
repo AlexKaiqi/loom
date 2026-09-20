@@ -11,7 +11,7 @@ import (
 	"loom/runtime/work"
 )
 
-func TestFreshRoundCapturesEditsAndResumeRefusesDrift(t *testing.T) {
+func TestSharedSourceEditsDoNotReplaceWorkCopyOrBlockResume(t *testing.T) {
 	a, w, root := fixture(t)
 	directory := filepath.Join(root, "users")
 	os.Mkdir(directory, 0700)
@@ -20,45 +20,34 @@ func TestFreshRoundCapturesEditsAndResumeRefusesDrift(t *testing.T) {
 	if err := a.Grant(w, directory); err != nil {
 		t.Fatal(err)
 	}
-	first, err := w.UserspaceSnapshot()
+	first, err := w.ResourceCopy("app", "default")
 	if err != nil {
 		t.Fatal(err)
 	}
 	os.WriteFile(file, []byte("human edit before Round"), 0600)
-	if _, err = w.Events.Admit("host", "request", "input", store.Object{}); err != nil {
-		t.Fatal(err)
-	}
+	w.Events.Admit("host", "request", "input", store.Object{})
 	r, err := a.Claim(w, "firsthost", false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	current, err := w.UserspaceSnapshot()
-	if err != nil {
+	current, err := w.ResourceCopy("app", "default")
+	if err != nil || current != first {
+		t.Fatal("shared source drift replaced copy", err)
+	}
+	if err = w.Control.PauseRound(r.ID, "budget", store.Object{"plan": store.Object{}}); err != nil {
 		t.Fatal(err)
 	}
-	if first.TreeDigest == current.TreeDigest {
-		t.Fatal("fresh Round did not capture edit")
+	os.WriteFile(file, []byte("another shared edit"), 0600)
+	continued, err := a.Claim(w, "newowner", true)
+	if err != nil || continued.ID != r.ID {
+		t.Fatal("shared source drift blocked independent continuation", err)
 	}
-	if err = w.Control.PauseRound(r.ID, "budget", store.Object{"plan": store.Object{"context": store.Object{}}}); err != nil {
-		t.Fatal(err)
+	after, err := w.ResourceCopy("app", "default")
+	if err != nil || after != first {
+		t.Fatal("resume changed copy", err)
 	}
-	os.WriteFile(file, []byte("edit during confirmed pause"), 0600)
-	if _, err = a.Claim(w, "newowner", true); err == nil {
-		t.Fatal("resume accepted changed dependency")
-	}
-	if _, err = a.Claim(w, "newowner", false); err == nil {
-		t.Fatal("new Round replaced paused dependency")
-	}
-	after, err := w.UserspaceSnapshot()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if after.TreeDigest != current.TreeDigest {
-		t.Fatal("failed claim changed saved dependency")
-	}
-	rounds, err := w.Control.Rounds()
-	if err != nil || len(rounds) != 1 || rounds[0].State != "paused" || rounds[0].Checkpoint == nil {
-		t.Fatal(rounds, err)
+	if _, err = a.Claim(w, "thirdowner", false); err == nil {
+		t.Fatal("active Round replaced")
 	}
 }
 
@@ -85,8 +74,15 @@ func TestExportWaitsForAuthorizedSnapshotPublication(t *testing.T) {
 		if err := os.WriteFile(filename, []byte("after"), 0600); err != nil {
 			return err
 		}
-		_, err := w.CaptureUserspace(directory)
-		return err
+		copy, err := w.ResourceCopy("app", "default")
+		if err != nil {
+			return err
+		}
+		ref, err := w.CaptureContent(directory)
+		if err != nil {
+			return err
+		}
+		return w.SaveResourceCopy(copy, ref, "test-confirmed-effect")
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -104,7 +100,7 @@ func TestExportWaitsForAuthorizedSnapshotPublication(t *testing.T) {
 		t.Fatal(err)
 	}
 	destination := filepath.Join(t.TempDir(), "users")
-	if err = imported.RestoreUserspace(destination); err != nil {
+	if err = imported.RestoreResource("app", "default", destination); err != nil {
 		t.Fatal(err)
 	}
 	content, err := os.ReadFile(filepath.Join(destination, "state"))
@@ -145,7 +141,7 @@ func TestPausedMigrationRequiresMatchingIndependentGrant(t *testing.T) {
 		t.Fatal(err)
 	}
 	target := filepath.Join(t.TempDir(), "restored")
-	if err = imported.RestoreUserspace(target); err != nil {
+	if err = imported.RestoreResource("app", "", target); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = b.Claim(imported, "newhost", true); err == nil {
@@ -153,12 +149,12 @@ func TestPausedMigrationRequiresMatchingIndependentGrant(t *testing.T) {
 	}
 	different := t.TempDir()
 	os.WriteFile(filepath.Join(different, "retained"), []byte("different"), 0750)
-	if err = b.Grant(imported, different); err == nil {
-		t.Fatal("mismatched rebind succeeded")
-	}
-	if err = b.Grant(imported, target); err != nil {
+	// New host authority is rebuilt explicitly; shared current bytes may differ
+	// because the portable Work already retains its own exact initial/copy bytes.
+	if err = b.Grant(imported, different); err != nil {
 		t.Fatal(err)
 	}
+
 	continued, err := b.Claim(imported, "newhost", true)
 	if err != nil {
 		t.Fatal(err)
@@ -168,22 +164,46 @@ func TestPausedMigrationRequiresMatchingIndependentGrant(t *testing.T) {
 	}
 }
 
-func TestFailedUserspaceCaptureDoesNotCreateRunningRound(t *testing.T) {
+func TestFailedInitialResourceCaptureDoesNotGrantOrClaim(t *testing.T) {
 	a, w, root := fixture(t)
 	directory := filepath.Join(root, "users")
 	os.Mkdir(directory, 0700)
-	if err := a.Grant(w, directory); err != nil {
-		t.Fatal(err)
-	}
-	w.Events.Admit("host", "input", "input", store.Object{})
 	if err := os.Symlink("/etc/passwd", filepath.Join(directory, "escape")); err != nil {
 		t.Fatal(err)
 	}
+	if err := a.Grant(w, directory); err == nil {
+		t.Fatal("unsafe initial source granted")
+	}
+	if _, err := a.Resource(w, "app"); err == nil {
+		t.Fatal("failed grant left authority")
+	}
+	w.Events.Admit("host", "input", "input", store.Object{})
 	if _, err := a.Claim(w, "owner", false); err == nil {
-		t.Fatal("unsafe snapshot claimed Round")
+		t.Fatal("missing dependency claimed Round")
 	}
 	rounds, err := w.Control.Rounds()
 	if err != nil || len(rounds) != 0 {
-		t.Fatal("failed capture left running Round", rounds, err)
+		t.Fatal(rounds, err)
+	}
+}
+
+func TestExportRejectsRetainedExecutionDomain(t *testing.T) {
+	a, w, root := fixture(t)
+	db, err := store.OpenDB(a.Path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	// A confirmed Work checkpoint does not imply its old Linux writer is fenced.
+	_, err = db.Exec("INSERT INTO execution_domains(id,work_id,round_id,owner,role,cgroup,staging,state) VALUES('domain',?,'round','owner','harness','cgroup','stage','retained')", w.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	destination := filepath.Join(root, "must-not-publish.tar.gz")
+	if err = a.Export(w, destination); err == nil {
+		t.Fatal("export ignored retained writer")
+	}
+	if _, err = os.Stat(destination); !os.IsNotExist(err) {
+		t.Fatal("export published before fencing", err)
 	}
 }

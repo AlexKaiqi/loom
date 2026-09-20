@@ -1,6 +1,6 @@
 # 本仓库 Agent 工作约束
 
-开始工作前读取用户当前要求、`SPEC.md`、`docs/architecture.md`、`docs/architecture-target.md`、相关 `docs/contracts/` 和 `docs/development.md`。`SPEC.md` 是产品目标、开发原则与不变量的唯一来源；`docs/architecture-target.md` 描述目标的落地设计及尚未实现的差距；源码、锁文件和无版本前缀的契约描述当前实现。不要把目标设计或现有契约测试通过误报为目标已经实现。
+开始工作前读取用户当前要求、`docs/loom-design-book.html`、相关源码及验证入口。HTML 设计书是产品规格、架构、技术基线、协议与验收的唯一真相源；源码、生成的 schema、依赖锁和测试证据是落实规范的实现构件，不能另立要求。发现设计错误时先说明理由、影响并修订设计书，不以现有实现反向降低目标。不要把设计要求或局部测试通过误报为系统已经实现。
 
 ## 必须遵守
 

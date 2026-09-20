@@ -11,17 +11,11 @@ import (
 // semantics are explicit Work requirements, never undeclared host defaults.
 func (r *Runtime) bindModel(selected Object) (Object, error) {
 	if selected != nil {
-		semantics := func(native Object) Object {
-			out := copyObject(native)
-			delete(out, "baseUrl")
-			delete(out, "headers")
-			return out
-		}
-		expected, err := json.Marshal(semantics(r.Model))
+		expected, err := json.Marshal(modelSemantics(r.Model))
 		if err != nil {
 			return nil, err
 		}
-		actual, err := json.Marshal(semantics(selected))
+		actual, err := json.Marshal(modelSemantics(selected))
 		if err != nil {
 			return nil, err
 		}
@@ -30,4 +24,11 @@ func (r *Runtime) bindModel(selected Object) (Object, error) {
 		}
 	}
 	return copyObject(r.Model), nil
+}
+
+func modelSemantics(native Object) Object {
+	out := copyObject(native)
+	delete(out, "baseUrl")
+	delete(out, "headers")
+	return out
 }

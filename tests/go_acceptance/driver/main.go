@@ -23,7 +23,8 @@ func main() {
 	}
 	mode, path := os.Args[1], os.Args[2]
 	if mode == "rpc-stall" {
-		client, err := rpc.Start(context.Background(), []string{path, "-e", "setInterval(()=>{},100000)"}, "", nil)
+		source := `const net=require('node:net');const s=new net.Socket({fd:3,readable:true,writable:true});let raw='';s.on('data',b=>{raw+=b;const n=raw.indexOf('\n');if(n<0)return;const m=JSON.parse(raw.slice(0,n));s.write(JSON.stringify({jsonrpc:'2.0',id:m.id,result:{protocol_version:'loom/1',role:'model',max_frame_bytes:4194304,capabilities:['model/1']}})+'\n');s.removeAllListeners('data');s.pause();});setInterval(()=>{},100000);`
+		client, err := rpc.Start(context.Background(), []string{path, "-e", source}, "", nil, "model")
 		if err != nil {
 			panic(err)
 		}

@@ -1,10 +1,5 @@
 {
   "protocol": 1,
-  "command": [
-    "python3",
-    "-I",
-    "{harness}/worker.py"
-  ],
   "events": {
     "work.objective.set": {
       "type": "object",
@@ -35,18 +30,15 @@
   },
   "tools": [
     {
-      "name": "shell",
-      "capability": "sandbox.shell",
-      "description": "Run a shell script in the selected remote domain. Surface contains the report and notes; Userspace contains the separately authorized task files. Only that domain's files are visible. Networking is disabled in the code profile.",
+      "name": "bash",
+      "capability": "tool.exec",
+      "description": "Execute ordinary Bash. environment=work exposes /work/surface and /work/harness for file editing and $FACTS_DB for readonly SQLite queries. environment=sandbox runs in the named task target. No Loom-specific shell commands are needed.",
       "parameters": {
         "type": "object",
         "properties": {
           "target": {
             "type": "string",
-            "enum": [
-              "surface",
-              "userspace"
-            ]
+            "minLength": 1
           },
           "script": {
             "type": "string"
@@ -55,15 +47,21 @@
             "type": "number",
             "exclusiveMinimum": 0,
             "maximum": 120
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "work",
+              "sandbox"
+            ]
           }
         },
         "required": [
-          "target",
+          "environment",
           "script"
         ],
         "additionalProperties": false
       }
     }
-  ],
-  "initial_surface": "surface"
+  ]
 }

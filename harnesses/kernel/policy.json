@@ -1,11 +1,1 @@
-{
-  "projection_bytes": 24576,
-  "archive_trigger_bytes": 49152,
-  "retained_turns": 2,
-  "recent_facts": 4,
-  "max_turns": 16,
-  "timeout": 300,
-  "context_bytes_per_token": 2,
-  "context_reserve_percent": 6,
-  "max_output_tokens": 4096
-}
+{"max_turns": 12, "timeout": 600, "max_output_tokens": 4096}

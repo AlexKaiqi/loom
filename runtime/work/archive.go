@@ -21,7 +21,7 @@ func portable(db interface {
 	QueryRowContext(context.Context, string, ...any) *sql.Row
 }) error {
 	var n int
-	if err := db.QueryRowContext(context.Background(), "SELECT (SELECT count(*) FROM rounds WHERE state='running' OR (state='paused' AND checkpoint IS NULL)) + (SELECT count(*) FROM effects WHERE status!='completed')").Scan(&n); err != nil {
+	if err := db.QueryRowContext(context.Background(), "SELECT (SELECT count(*) FROM rounds WHERE state IN('running','recovering','blocked') OR (state='ready' AND checkpoint IS NULL)) + (SELECT count(*) FROM effects WHERE status!='completed')").Scan(&n); err != nil {
 		return err
 	}
 	if n != 0 {
@@ -65,7 +65,7 @@ func (w *Work) Export(archive string) error {
 		if _, err := Open(w.Path); err != nil {
 			return err
 		}
-		if _, err := w.UserspaceSnapshot(); err != nil {
+		if err := w.ValidateResources(); err != nil {
 			return err
 		}
 		if err = copyPortableTree(w.Path, staging); err != nil {
@@ -212,7 +212,7 @@ func Import(archive, destination string) (*Work, error) {
 	if closeErr != nil {
 		return nil, closeErr
 	}
-	if _, err = candidate.UserspaceSnapshot(); err != nil {
+	if err = candidate.ValidateResources(); err != nil {
 		return nil, err
 	}
 	if _, err = candidate.git("fsck", "--full"); err != nil {
@@ -265,6 +265,13 @@ func copyPortableTree(source, target string) error {
 				return err
 			}
 			return os.Chmod(destination, info.Mode().Perm())
+		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			link, err := os.Readlink(name)
+			if err != nil {
+				return err
+			}
+			return os.Symlink(link, destination)
 		}
 		if !info.Mode().IsRegular() {
 			return errors.New("unsupported Work file: " + relative)

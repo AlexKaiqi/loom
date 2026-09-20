@@ -1,214 +1,204 @@
-"""Direct contract observations for the fixed, external kernel policy."""
+"""Design book A14/A32/A33: inspect actual projected native messages and files."""
+import copy
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
-import shutil
 import sys
-import tempfile
 import unittest
-from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.dont_write_bytecode = True
-sys.path.insert(0, str(ROOT / "harnesses/kernel"))
-from policy import ARCHIVE_MARKER, Kernel
-from archive import encode
+sys.path.insert(0, str(ROOT / 'harnesses/kernel'))
+from projection import project, ProjectionError
+from policy import Kernel
 
 
-class KernelContract(unittest.TestCase):
-    def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="loom-kernel-")
-        self.work = Path(self.temporary.name) / "work"
-        self.harness = self.work / "harness"
-        shutil.copytree(ROOT / "harnesses/kernel", self.harness)
-        shutil.copytree(self.harness / "surface", self.work / "surface")
-        self.kernel = Kernel(self.harness)
-
-    def tearDown(self):
-        self.temporary.cleanup()
-
-    def start(self, **updates):
-        params = {"facts": [{"seq": 1, "kind": "work.objective.set", "payload": {"text": "Keep the original goal"}}],
-                  "surface": {}, "timestamp": 123}
-        params.update(updates)
-        return self.kernel.start(params)
-
-    def context(self, count=8, width=8000):
-        context = self.start()["context"]
-        for number in range(count):
-            context["messages"].extend(self.group(number, width))
-        return context
-
-    @staticmethod
-    def group(number, width):
-        return [{"role": "assistant", "content": [{"type": "text", "text": str(number) + "x" * width},
-                {"type": "toolCall", "id": "tool-" + str(number), "name": "shell", "arguments": {"script": "true", "target": "surface"}}],
-                 "stopReason": "toolUse", "timestamp": number},
-                {"role": "toolResult", "toolCallId": "tool-" + str(number), "toolName": "shell",
-                 "content": [{"type": "text", "text": "verified-" + str(number)}], "isError": False, "timestamp": number}]
-
-    def prepare(self, context):
-        return self.kernel.prepare({"turn": {"context": context}})
-
-    def reference(self, context):
-        pointer = next(message for message in context["messages"] if str(message.get("content", "")).startswith(ARCHIVE_MARKER))
-        return json.loads(pointer["content"][len(ARCHIVE_MARKER):])
-
-    def original(self, reference):
-        raw = (self.work / "surface" / reference["path"]).read_bytes()
-        self.assertEqual(hashlib.sha256(raw).hexdigest(), reference["sha256"])
-        self.assertEqual(len(raw), reference["bytes"])
-        return json.loads(raw)["original"]
-
-    def test_archive_preserves_exact_original_and_recent_complete_tool_groups(self):
-        context = self.context()
-        original = encode(context)
-        output = self.prepare(context)["context"]
-        self.assertLessEqual(len(encode(output)), self.kernel.config["projection_bytes"])
-        self.assertLess(len(encode(output)), len(original) // 2)
-        self.assertEqual(output["messages"][0], context["messages"][0])
-        self.assertEqual(output["messages"][-4:], context["messages"][-4:])
-        self.assertEqual(self.original(self.reference(output)), context)
-        self.assertEqual(encode(context), original)
-        self.assertEqual(len((self.work / "surface/archive/index.jsonl").read_text().splitlines()), 1)
-
-    def test_second_archive_keeps_first_archive_retrievable_without_unbounded_pointer_list(self):
-        first = self.prepare(self.context())["context"]
-        first_reference = self.reference(first)
-        for number in range(20, 28):
-            first["messages"].extend(self.group(number, 8000))
-        second = self.prepare(first)["context"]
-        archived = self.original(self.reference(second))
-        self.assertEqual(self.reference(archived), first_reference)
-        self.assertIn("Keep the original goal", json.dumps(self.original(first_reference)))
-        self.assertEqual(sum(str(m.get("content", "")).startswith(ARCHIVE_MARKER) for m in second["messages"]), 1)
-
-    def test_persistence_failure_never_returns_shrunk_context(self):
-        original = self.context()
-        before = encode(original)
-        with patch("archive.os.fsync", side_effect=OSError("disk unavailable")):
-            with self.assertRaises(OSError):
-                self.prepare(original)
-        self.assertEqual(encode(original), before)
-
-    def test_archive_directory_cannot_redirect_to_another_location(self):
-        outside = Path(self.temporary.name) / "outside"
-        outside.mkdir()
-        (self.work / "surface/archive").symlink_to(outside, target_is_directory=True)
-        with self.assertRaises(OSError):
-            self.prepare(self.context())
-        self.assertEqual(list(outside.iterdir()), [])
-
-    def test_surface_boundary_cannot_be_a_symlink(self):
-        outside = Path(self.temporary.name) / "outside"
-        (self.work / "surface").rename(outside)
-        (self.work / "surface").symlink_to(outside, target_is_directory=True)
-        with self.assertRaises(ValueError):
-            self.prepare(self.context())
-        self.assertFalse((outside / "archive").exists())
-
-    def test_archive_index_cannot_redirect_to_another_file(self):
-        outside = Path(self.temporary.name) / "keep.txt"
-        outside.write_text("must stay unchanged")
-        (self.work / "surface/archive").mkdir()
-        (self.work / "surface/archive/index.jsonl").symlink_to(outside)
-        with self.assertRaises((OSError, ValueError)):
-            self.prepare(self.context())
-        self.assertEqual(outside.read_text(), "must stay unchanged")
-
-    def test_oversized_latest_group_rejects_without_clipping_tool_results(self):
-        context = self.context(count=2, width=60000)
-        before = encode(context)
-        with self.assertRaisesRegex(ValueError, "latest complete tool turn"):
-            self.prepare(context)
-        self.assertEqual(encode(context), before)
-
-    def test_incomplete_tool_group_rejects_instead_of_returning_invalid_context(self):
-        context = self.context()
-        del context["messages"][2]
-        with self.assertRaisesRegex(ValueError, "incomplete tool group"):
-            self.prepare(context)
-
-    def test_initial_projection_bounds_facts_and_surface_and_archives_original_facts(self):
-        facts = [{"seq": i, "kind": "work.message", "payload": {"text": str(i) + "m" * 4000}} for i in range(20)]
-        facts.insert(0, {"seq": 0, "kind": "work.objective.set", "payload": {"text": "Mandatory current objective"}})
-        surface = {"archive/old.json": "FORBIDDEN_RECURSIVE_ARCHIVE_BODY" * 1000,
-                   "plan.md": "# Plan\n- [x] Previous step; evidence report.md\n- [ ] Current step marker\n- [ ] Next step marker\n",
-                   "report.md": "Existing evidence", "notes.md": "Working observations"}
-        surface.update({"extra-" + str(i) + ".md": "z" * 10000 for i in range(30)})
-        context = self.start(facts=facts, surface=surface)["context"]
-        self.assertLessEqual(len(encode(context)), self.kernel.config["projection_bytes"] // 2)
-        self.assertNotIn("FORBIDDEN_RECURSIVE_ARCHIVE_BODY", encode(context).decode())
-        projected = json.loads(context["messages"][0]["content"])
-        self.assertEqual(projected["surface"]["plan.md"]["current_step"], "Current step marker")
-        self.assertEqual(projected["surface"]["plan.md"]["next_step"], "Next step marker")
-        self.assertEqual(self.original(projected["fact_archive"]), facts)
-        self.assertEqual(projected["archive_index"]["path"], "archive/index.jsonl")
-        self.assertIn("Mandatory current objective", encode(context).decode())
-
-    def test_model_window_reduces_working_set_without_changing_model(self):
-        context = self.start(model_semantics={"contextWindow": 20000, "maxTokens": 2000})["context"]
-        projection = json.loads(context["messages"][0]["content"])["projection"]
-        self.assertLess(projection["archive_trigger_bytes"], self.kernel.config["archive_trigger_bytes"])
-        self.assertLessEqual(len(encode(context)), projection["projection_bytes"] // 2)
-        self.assertNotIn("model", context)
-
-    def test_existing_4096_token_model_supports_simple_goal_and_file_pointers(self):
-        surface = {path.name: path.read_text() for path in (self.work / "surface").iterdir()}
-        context = self.start(model_semantics={"contextWindow": 4096, "maxTokens": 512}, surface=surface)["context"]
-        projection = json.loads(context["messages"][0]["content"])["projection"]
-        self.assertIn("Keep the original goal", context["messages"][0]["content"])
-        self.assertLessEqual(len(encode(context)), projection["projection_bytes"] // 2)
-        self.assertIn("report.md", encode(context).decode())
-        self.assertGreater(projection["archive_trigger_bytes"], projection["projection_bytes"])
-
-    def test_catalog_output_capacity_is_not_mistaken_for_this_requests_budget(self):
-        plan = self.start(model_semantics={"contextWindow": 131072, "maxTokens": 131072})
-        self.assertEqual(plan["options"]["maxTokens"], self.kernel.config["max_output_tokens"])
-        self.assertIn("Keep the original goal", plan["context"]["messages"][0]["content"])
-        small = self.start(model_semantics={"contextWindow": 4096, "maxTokens": 4096})
-        self.assertEqual(small["options"]["maxTokens"], 1024)
-        capped = self.start(model_semantics={"contextWindow": 4096, "maxTokens": 512})
-        self.assertEqual(capped["options"]["maxTokens"], 512)
-
-    def test_window_too_small_for_actual_mandatory_input_rejects(self):
-        with self.assertRaisesRegex(ValueError, "current objective exceeds"):
-            self.start(model_semantics={"contextWindow": 1024, "maxTokens": 512})
-        with self.assertRaisesRegex(ValueError, "leaves no kernel input space"):
-            self.start(model_semantics={"contextWindow": 1, "maxTokens": 1})
-
-    def test_oversized_current_objective_rejects_instead_of_dropping_requirement(self):
-        with self.assertRaisesRegex(ValueError, "current objective exceeds"):
-            self.start(facts=[{"kind": "work.objective.set", "payload": {"text": "x" * 50000}}])
-
-    def test_plan_checkbox_and_comment_do_not_become_verified_completion(self):
-        view = self.kernel.plan_view("<!-- - [ ] Old example -->\n- [x] Claimed done\n- [ ] Real next step; evidence notes.md\n")
-        self.assertEqual(view["current_step"], "Real next step; evidence notes.md")
-        self.assertIn("not independently verified", view["meaning"])
-        self.assertFalse(self.kernel.continuation({"turn": {"message": {"stopReason": "stop"}, "context": {"plan": view}}}))
-
-    def test_latest_user_correction_is_mandatory_in_initial_projection(self):
-        facts = [{"kind": "work.objective.set", "payload": {"text": "Original goal"}},
-                 {"kind": "work.message", "payload": {"text": "Corrected requirement " + "c" * 7000}}]
-        context = self.start(facts=facts)["context"]
-        self.assertIn("Corrected requirement", context["messages"][0]["content"])
-        facts[-1]["payload"]["text"] += "c" * 10000
-        with self.assertRaisesRegex(ValueError, "current objective exceeds"):
-            self.start(facts=facts)
-
-    def test_index_hardlink_cannot_append_to_another_surface_file(self):
-        outside = self.work / "surface/report.md"
-        original = outside.read_bytes()
-        (self.work / "surface/archive").mkdir()
-        (self.work / "surface/archive/index.jsonl").hardlink_to(outside)
-        with self.assertRaisesRegex(ValueError, "ordinary file with one link"):
-            self.prepare(self.context())
-        self.assertEqual(outside.read_bytes(), original)
-
-    def test_below_threshold_does_not_create_archive(self):
-        self.assertIsNone(self.prepare(self.context(count=1, width=10)))
-        self.assertFalse((self.work / "surface/archive").exists())
+def fact(identity, kind, message=None, text=None, **extra):
+    payload = {'text': text} if text is not None else {'message': message, 'status': 'native_result', **extra}
+    raw = json.dumps(payload).encode()
+    return {'fact_id': identity, 'kind': kind, 'payload': payload, 'source': 'model-adapter' if kind in ('model.message', 'tool.result') else 'host',
+            'record_ref': {'sha256': hashlib.sha256(raw).hexdigest(), 'size_bytes': str(len(raw)), 'media_type': 'application/json'},
+            'record_path': '/facts/records/' + identity}
 
 
-if __name__ == "__main__":
-    unittest.main()
+def history():
+    return [fact('F900', 'work.message', text='早期约束：不要发送'),
+            fact('F2', 'model.message', {'role': 'assistant', 'content': [{'type': 'toolCall', 'id': 'call1', 'name': 'bash', 'arguments': {}}]}),
+            fact('F1', 'tool.result', {'role': 'toolResult', 'toolCallId': 'call1', 'toolName': 'bash', 'content': [{'type': 'text', 'text': 'original\n' * 20000}], 'isError': False}),
+            fact('F700', 'work.message', text='当前输入')]
+
+
+def params(selection='', **extra):
+    return {'surface': {'main.md': '# 当前约束\n不要发送\n```facts\n' + selection + '\n```\n'},
+            'facts': history(), 'required_fact_ids': ['F700'], **extra}
+
+
+class ProjectionTests(unittest.TestCase):
+    def test_no_automatic_archive_or_surface_history_copy(self):
+        source = params()
+        before = copy.deepcopy(source)
+        out = project(source)
+        self.assertEqual(out['selection']['fact_ids'], ['F900', 'F2', 'F1', 'F700'])
+        self.assertIn('original\n' * 20000, out['context']['messages'][3]['content'][0]['text'])
+        self.assertEqual(before, source)
+        self.assertFalse((ROOT / 'harnesses/kernel/archive.py').exists())
+
+    def test_archive_uses_ledger_order_and_retains_mandatory_input(self):
+        out = project(params('after = "F1"'))
+        self.assertEqual(out['selection']['fact_ids'], ['F700'])
+        self.assertIn('不要发送', out['context']['messages'][0]['content'])
+        self.assertEqual(project(params('after = "F700"'))['selection']['fact_ids'], ['F700'])
+
+    def test_include_closes_exchange_without_replaying_tools(self):
+        out = project(params('after = "F1"\ninclude = ["F1"]'))
+        self.assertEqual(out['selection']['fact_ids'], ['F2', 'F1', 'F700'])
+        self.assertEqual(out['context']['messages'][1]['content'][0]['id'], 'call1')
+
+    def test_fold_has_original_reference_and_preserves_error(self):
+        p = params('body_refs = ["F1"]')
+        p['facts'][2]['payload']['message']['isError'] = True
+        p['facts'][2]['payload']['error'] = 'command exited 7'
+        out = project(p)
+        body = out['context']['messages'][3]
+        self.assertTrue(body['isError'])
+        self.assertIn('command exited 7', body['content'][0]['text'])
+        self.assertIn(p['facts'][2]['record_ref']['sha256'], body['content'][0]['text'])
+        self.assertIn('original', p['facts'][2]['payload']['message']['content'][0]['text'])
+
+    def test_fold_does_not_reinclude_archived_body(self):
+        out = project(params('after = "F1"\nbody_refs = ["F1"]'))
+        self.assertEqual(out['selection']['fact_ids'], ['F700'])
+
+    def test_incomplete_cut_and_unknown_selection_reject(self):
+        for text in ['after = "F2"', 'after = "missing"', 'include=["missing"]', 'body_refs=["F900"]', 'unknown=1']:
+            with self.subTest(text=text), self.assertRaisesRegex(ProjectionError, 'surface/main.md:'):
+                project(params(text))
+
+    def test_unknown_and_missing_error_body_cannot_be_hidden(self):
+        p = params('body_refs=["F1"]')
+        p['facts'][2]['payload']['status'] = 'unresolved'
+        self.assertIn('unresolved', project(p)['context']['messages'][3]['content'][0]['text'])
+        p['facts'][2]['payload']['message']['isError'] = True
+        with self.assertRaisesRegex(ProjectionError, 'error detail'):
+            project(p)
+
+    def test_native_orphan_and_incomplete_exchange_reject(self):
+        p = params()
+        del p['facts'][1]
+        with self.assertRaisesRegex(ProjectionError, 'orphan'):
+            project(p)
+        p = params()
+        del p['facts'][2]
+        with self.assertRaisesRegex(ProjectionError, 'incomplete'):
+            project(p)
+
+    def test_concurrent_input_keeps_admission_but_projects_closed_native_exchange(self):
+        p = params()
+        p['facts'].insert(2, fact('Fconcurrent', 'work.message', text='admitted while tool was running'))
+        original = copy.deepcopy(p['facts'])
+        p['required_fact_ids'].append('Fconcurrent')
+        result = project(p)
+        self.assertEqual(result['selection']['fact_ids'], ['F900', 'F2', 'F1', 'Fconcurrent', 'F700'])
+        self.assertEqual(p['facts'], original)
+        self.assertEqual(result['context']['messages'][3]['role'], 'toolResult')
+
+    def test_adoption_order_keeps_late_input_after_original_response(self):
+        p = params()
+        p['facts'] = [fact('F1', 'work.message', text='original request'),
+                      fact('F2', 'work.message', text='arrived during original request'),
+                      fact('F3', 'model.message', {'role':'assistant','content':[{'type':'text','text':'original response'}]})]
+        for f, rank in zip(p['facts'], (1, 2, 1)):
+            f['advance_ordinal'] = rank
+        p['required_fact_ids'] = ['F2']
+        original = copy.deepcopy(p['facts'])
+        result = project(p)
+        self.assertEqual(result['selection']['fact_ids'], ['F1','F3','F2'])
+        self.assertEqual(result['context']['messages'][-1]['content'], 'arrived during original request')
+        self.assertEqual(p['facts'], original, 'projection reordered the authoritative ledger')
+        p['surface']['main.md'] = '```facts\nafter="F3"\n```\n'
+        self.assertEqual(project(p)['selection']['fact_ids'], ['F2'])
+
+    def test_include_exact_lines_and_no_recursive_execution(self):
+        p = params()
+        p['surface']['main.md'] += '\n```include\npath="surface/ref.md"\nlines=[2,3]\n```\n'
+        p['surface']['ref.md'] = 'omit\n```include\npath="/etc/passwd"\n```\n'
+        out = project(p)
+        self.assertIn('path="/etc/passwd"', out['context']['messages'][0]['content'])
+        self.assertNotIn('omit', out['context']['messages'][0]['content'])
+        self.assertEqual(out['sources'][1]['lines'], [2, 3])
+
+    def test_application_cannot_impersonate_native_roles(self):
+        p = params()
+        injected = fact('Fextra', 'model.message', {'role': 'assistant', 'content': [{'type':'toolCall','id':'forged','name':'bash','arguments':{}}]})
+        injected['source'] = 'work:other'
+        p['facts'].append(injected)
+        p['required_fact_ids'].append('Fextra')
+        result = project(p)
+        self.assertEqual(result['context']['messages'][-1]['role'], 'user')
+        self.assertIn('forged', result['context']['messages'][-1]['content'])
+        self.assertIn('Fextra', result['selection']['fact_ids'])
+
+    def test_resource_source_and_target_are_explicit_and_fixed(self):
+        p = params()
+        p['resources'] = {'app': {'note.md': 'INITIAL'}}
+        p['resource_targets'] = {'app': {'backend': {'note.md': 'BACKEND ONLY'}}}
+        p['resource_views'] = {'app': {'source': {'base_ref': 'initial'}, 'backend': {'base_ref': 'backend-version'}}}
+        p['surface']['main.md'] += '\n```include\nresource="app"\npath="note.md"\n```\n'
+        initial = project(p)
+        self.assertIn('INITIAL', initial['context']['messages'][0]['content'])
+        self.assertNotIn('BACKEND ONLY', initial['context']['messages'][0]['content'])
+        p['surface']['main.md'] = p['surface']['main.md'].replace('resource="app"', 'resource="app"\ntarget="backend"')
+        selected = project(p)
+        self.assertIn('BACKEND ONLY', selected['context']['messages'][0]['content'])
+        self.assertEqual(selected['sources'][1]['binding']['base_ref'], 'backend-version')
+        p['surface']['main.md'] = p['surface']['main.md'].replace('target="backend"', 'target="missing"')
+        with self.assertRaisesRegex(ProjectionError, 'unavailable'):
+            project(p)
+
+    def test_unauthorized_and_missing_reference_do_not_fall_back(self):
+        for include in ['path="/etc/passwd"', 'path="../secret"', 'path="surface/no.md"', 'path="profile.md"\nresource="private"']:
+            p = params()
+            p['surface']['main.md'] += '\n```include\n' + include + '\n```\n'
+            with self.subTest(include=include), self.assertRaises(ProjectionError):
+                project(p)
+
+    def test_range_missing_fence_and_duplicate_fence_reject(self):
+        p = params(); p['surface']['main.md'] = '# no selection'
+        with self.assertRaises(ProjectionError): project(p)
+        p = params(); p['surface']['main.md'] += '\n```facts\n```\n'
+        with self.assertRaises(ProjectionError): project(p)
+        p = params(); p['surface']['ref.md'] = 'one\n'
+        p['surface']['main.md'] += '\n```include\npath="surface/ref.md"\nlines=[1,2]\n```\n'
+        with self.assertRaisesRegex(ProjectionError, 'range invalid'): project(p)
+
+    def test_next_projection_adopts_local_edit_old_input_unchanged(self):
+        p = params(); old = project(p); preserved = copy.deepcopy(old)
+        p['surface']['main.md'] = p['surface']['main.md'].replace('```facts\n', '```facts\nafter="F1"\n')
+        new = project(p)
+        self.assertNotEqual(old['template_sha256'], new['template_sha256'])
+        self.assertEqual(old, preserved)
+        self.assertEqual(new['selection']['fact_ids'], ['F700'])
+
+    def test_reference_policy_delegates_model_loop_and_has_no_required_plan(self):
+        k = Kernel(ROOT / 'harnesses/kernel')
+        self.assertEqual(k.start(params())['max_turns'], 12)
+        self.assertEqual(k.prepare(params())['selection']['fact_ids'], ['F900', 'F2', 'F1', 'F700'])
+        self.assertTrue(k.continuation({'turn': {'message': {'stopReason': 'toolUse'}}}))
+        self.assertFalse(k.continuation({'turn': {'message': {'stopReason': 'stop'}}}))
+
+    def test_rejected_candidate_has_one_explicit_repair_and_no_automatic_edit(self):
+        k = Kernel(ROOT / 'harnesses/kernel')
+        valid = k.start(params('after="F1"'))
+        p = params('after="F2"', turn={'context': valid['context']}, previous_projection_ref={'sha256': 'prior'})
+        before = copy.deepcopy(p)
+        repair = k.prepare(p)
+        self.assertEqual(repair['execution_mode'], 'context_repair')
+        self.assertEqual(repair['selection']['status'], 'rejected')
+        self.assertEqual(repair['context']['messages'][:-1], valid['context']['messages'])
+        self.assertIn('surface/main.md:', repair['diagnostic'])
+        self.assertEqual(p, before)
+        p['repair_attempts'] = 1
+        with self.assertRaises(ProjectionError): k.prepare(p)
+        with self.assertRaises(ProjectionError): k.start(p)
+
+if __name__ == '__main__': unittest.main()

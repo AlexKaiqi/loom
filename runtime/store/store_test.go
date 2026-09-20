@@ -104,6 +104,18 @@ func TestControlCustody(t *testing.T) {
 	if _, err = c.PrepareEffect(r.ID, "tool", "shell", Object{"script": "append"}); !errors.Is(err, ErrUnknownEffect) {
 		t.Fatal(err)
 	}
+	if err = c.CompleteEffect(f.ID, Object{"ok": true}); err == nil {
+		t.Fatal("native result accepted before dispatch permission")
+	}
+	if err = c.AttemptEffect(f.ID, "stale-owner"); err == nil {
+		t.Fatal("stale owner dispatched")
+	}
+	if err = c.AttemptEffect(f.ID, r.Owner); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.AttemptEffect(f.ID, r.Owner); err == nil {
+		t.Fatal("dispatch permission issued twice")
+	}
 	if err = c.CompleteEffect(f.ID, Object{"ok": true}); err != nil {
 		t.Fatal(err)
 	}

@@ -55,12 +55,12 @@ func surface(w *work.Work) (Object, error) {
 	visible := Object{}
 	for name, sha := range files {
 		path := filepath.Join(w.Surface, name)
-		info, err := os.Stat(path)
+		info, err := os.Lstat(path)
 		if err != nil {
 			return nil, err
 		}
 		visible[name] = Object{"sha256": sha, "size": info.Size()}
-		if info.Size() <= 65536 {
+		if info.Mode().IsRegular() {
 			content, err := os.ReadFile(path)
 			if err != nil {
 				return nil, err

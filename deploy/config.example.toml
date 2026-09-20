@@ -14,3 +14,24 @@ worker = ["node", "/absolute/path/to/loom/services/model/worker.mjs"]
 [sandboxes.code]
 endpoint = "http://127.0.0.1:18088"
 api_key_env = "LOOM_SANDBOX_API_KEY"
+
+[profiles.code]
+service = "code"
+image = "python@sha256:97bb82da414a3216a18949f7d4a9c2a2860296027a05e2dcdcb6a9801d019fc5"
+profile = "code"
+cpu = "1"
+memory = "512Mi"
+lease_seconds = 600
+request_timeout_seconds = 30
+
+# Shared Linux facility; setup records the installed launcher digest.
+[execution]
+launcher = "/usr/local/bin/nsjail"
+launcher_sha256 = "REPLACE_WITH_INSTALLED_LAUNCHER_SHA256"
+state_directory = "/var/lib/loom-execution"
+cgroup_root = "/sys/fs/cgroup/loom"
+uid_base = 100000
+uid_count = 1000000
+memory_bytes = 536870912
+processes = 64
+cpu_milliseconds = 1000

@@ -15,7 +15,7 @@ export async function apiFor(model) {
 }
 
 export async function prepare(params, token) {
-  if (params?.protocol !== 1 || !supportsAPI(params?.model?.api) ||
+  if (params?.protocol_version !== "loom/1" || !supportsAPI(params?.model?.api) ||
       !Array.isArray(params?.context?.messages) ||
       typeof params.apiKey !== "string" || !params.apiKey ||
       !Number.isInteger(params.timeoutMs) || params.timeoutMs <= 0) {

@@ -1,14 +1,12 @@
 # Loom
 
-Loom 是一个持久、可恢复的 Harness Runtime。Go 控制端托管 Work、事实、授权与外部效果；独立 Node worker 复用 Pi 的 provider 适配和模型—工具循环；外部 Harness 定义投影与推进策略；任务命令由远程 OpenSandbox 执行。
+Loom 把长期工作上下文、完整事实和推进策略保存在 Work 中。Go Runtime 托管输入与执行责任；Harness 决定投影、上下文选择、工具和继续策略；模型组件复用 Pi；任务环境通过 OpenSandbox 远程访问。
 
-产品目标、开发原则和不变量只有一份：[SPEC.md](SPEC.md)。当前组件和数据流见[实现架构](docs/architecture.md)，后续重构采用[目标架构](docs/architecture-target.md)，当前精确行为见[契约](docs/contracts)，构建与验证见[开发说明](docs/development.md)。
+[HTML 设计书](docs/loom-design-book.html) 是产品规格、架构、协议、技术基线和验收的**唯一真相源**。本页及各 README 只说明操作，不另立规范。实现仍在按设计书重构；组件测试通过不等于全部验收完成。
 
-当前代码尚未实现共享 Work 执行环境、长期 Surface 模板、由模型控制的事实可见性、持久跨 Work 订阅及任意已记录点恢复。下面的安装和功能说明描述现有实现，不代表这些目标已经完成。
+## 安装
 
-## 安装与使用
-
-当前从源码安装，需要 macOS/Linux、Go 1.24+、Node.js 24、npm、Python 3.10+ 和 Git。安装器自动构建 Runtime、安装模型组件和独立 Harness Python 环境，无需手动填写组件路径或激活 venv。
+宿主需要 macOS/Linux、Python 3.11+ 和运行中的 Linux Docker 引擎。安装器构建一个共享 Linux 环境，里面提供 Go Runtime、Node/Pi、Python 和 NsJail；不同 Work 使用独立 Unix 身份与受限执行域。
 
 ```sh
 ./install.sh
@@ -16,61 +14,61 @@ export PATH="$HOME/.local/bin:$PATH"
 loom setup
 ```
 
-`setup` 引导选择 Pi 自带目录中的模型、填写独立部署的 OpenSandbox 地址，并隐藏输入密钥。配置与私有密钥保存在 `~/.config/loom/`，不会放进 Work。需要已有模型服务凭据和可访问的 [OpenSandbox 服务](deploy/opensandbox/README.md)；安装器不部署远程执行服务。复杂认证和自定义模型见[开发说明](docs/development.md)。
+默认把 `~/Loom` 映射给控制端。也可在安装时指定 `--workspace-root /path/to/works-and-projects`，多个根可重复指定。模型的 Work Bash 只看到当前获准的文件视图。
 
-准备一个已有的任务文件目录，然后：
+`setup` 配置模型和独立的 [OpenSandbox 服务](deploy/opensandbox/README.md)，隐藏输入密钥。安装的宿主配置保存在 `~/.local/share/loom/host-state/`，不进入镜像或 Work。安装、升级及完整使用流程的验证入口在 `tests/install/` 和 `tests/onboarding/`。
+
+## 使用
 
 ```sh
-loom new ~/works/demo --userspace ~/projects/demo
-cd ~/works/demo
-loom ask "阅读项目，制定计划并完成第一步，把结果写进报告"
-loom ask "根据报告继续下一步"
+mkdir -p ~/Loom/project
+loom new ~/Loom/demo --userspace ~/Loom/project
+cd ~/Loom/demo
+loom ask "阅读项目，完成修改并说明验证结果"
 loom status
 ```
 
-`ask` 接收自然语言并展示模型答复；文件结果在 `surface/` 和授权的任务目录。失败时保留输入并显示请求 ID；重试同一条消息使用原 `--request-id`，已处理的请求不会再次调用模型或工具。已有运行中或暂停的 Round 时，新消息入队；已确认暂停点用 `loom resume`，随后用 `loom run` 处理待办。未知效果不自动重放。
+`ask` 保存输入后推进。已有未交接 Round 时，新输入排队。`loom resume` 接续已确认的继续点；`loom recover` 先撤销旧执行权限并确认进程组停止，再判断能否继续。结果未知的外部操作不会自动重放。
 
-重新执行 `./install.sh` 即可安装新版本，配置和既有 Work 不变；失败不替换原安装。可以用 `--prefix /path/to/installation` 自定义安装目录。
+使用默认配置创建 Work 时，同一项目复用已登记的资源身份，不同项目自动使用不同的逻辑名称。`--definition` 提供的资源声明保持原样。
 
-## 最小 Harness
+任务修改保存为每个 Target 的独立资源副本，共享项目不会自动被覆盖。查看保存的结果：
 
-以下是当前 `kernel` 的行为。目标设计将 Plan 作为可选扩展，将 Archive 改为模型经普通文件操作控制事实可见性；当前自动门槛归档不能作为该目标的验收证据。
-
-默认 `kernel` 已包含“目标 → 模型 → 远程 Shell → 文件反馈 → 报告”的闭环，以及两项辅助策略：
-
-- **Plan**：普通 `surface/plan.md` 清单，投影当前与下一步，要求完成项引用证据。它帮助模型组织工作，不是独立验收器，也没有自动阶段门控。
-- **Archive**：上下文达到 Harness 配置的大小门槛后，将原生对话原文保存到 `surface/archive/`，后续请求保留引用与最近完整工具对话。它是可回读的无损归档，不是自动摘要；超大且不可分割的输入明确拒绝。
-
-`surface/report.md` 保存结果，`surface/notes.md` 保存笔记。归档和计划都由外部 Harness 实现，Runtime 不内置这些策略。完整边界见 [Kernel 契约](docs/contracts/kernel-harness.md)。
-
-## 目录
-
-```text
-runtime/             Go 控制端、SQLite 状态、宿主授权、Work 与 Sandbox 客户端
-services/model/      独立 Node/Pi 模型组件
-harnesses/kernel/    外部 Harness、策略配置与初始 Surface 文件
-deploy/              主机配置样例与 OpenSandbox 部署资产
-tests/               组件、协议与黑箱验收入口
-docs/                当前架构、契约和开发说明
+```sh
+loom restore-resource . app ~/Loom/demo-result --target default
 ```
 
-每个 Work 的完整持久状态集中在自己的目录：
+模型通过普通 Bash 维护 `surface/main.md`：引用文件、保留当前理解、调整可见事实。默认不会自动摘要或按年龄归档。Plan 是可选的普通文件/策略扩展。
 
 ```text
 work/
-  work.toml
-  harness/
-  surface/
-    plan.md
-    report.md
-    notes.md
-    archive/         # 按需生成
+  work.toml           # 逻辑资源、模型与 Harness 声明
+  harness/            # 可编辑的候选策略；运行使用确定快照
+  surface/main.md     # 长期维护的上下文模板与可见性选择
   .loom/
     identity.json
-    state.sqlite
-    versions.git/
-    artifacts/
-    dependencies/
+    state.sqlite      # 完整事实、责任与检查点
+    versions.git/     # 文件原始字节的历史版本
+    records/          # 不可变输入、结果、投影与必要内容
+    views/            # 可重建的只读视图
 ```
 
-当前 `kernel` 提供 `surface/` 的初始文件，系统状态集中在 `.loom/`；目标设计把初始 Surface 的组装交给 Work 模板和普通文件操作。当前 Work 包含外部 Userspace 的可验证快照，可在另一宿主恢复。Userspace 仍是单独授权的执行目录；复制 Work 不复制授权或凭据。当前规则见 [Work 契约](docs/contracts/work.md)，跨宿主导出、导入和恢复步骤见[开发说明](docs/development.md)。
+`loom select-harness .` 选择候选版本用于后续 Round；当前 Round 和恢复继续使用原策略。
+
+```sh
+loom history .
+loom inspect . CHECKPOINT_ID ~/Loom/history-view
+loom fork . CHECKPOINT_ID ~/Loom/exploration
+```
+
+查看历史不执行代码。Fork 使用新 Work 身份、独立副本，不继承宿主权限、活跃输入或旧效果的重放权。原历史与未决责任继续保留。
+
+## 源码入口
+
+- `runtime/`：Go 控制端；执行设施、存储、授权和适配器有独立包边界。
+- `services/model/`：独立 Node/Pi 模型组件，通过 FD 3 的 JSON-RPC 通信。
+- `harnesses/kernel/`：参考 Python Harness；`templates/` 提供初始 Surface。
+- `deploy/`：共享 Work 环境及独立 OpenSandbox 的部署构件。
+- `tests/`：组件、协议、真实环境和组合检查。
+
+构建、配置、迁移与验证入口见[开发操作说明](docs/development.md)。

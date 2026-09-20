@@ -14,12 +14,12 @@ func seededFixture(t *testing.T, initial string) (string, string, string) {
 	if err := os.MkdirAll(filepath.Join(h, "surface"), 0700); err != nil {
 		t.Fatal(err)
 	}
-	manifest, _ := json.Marshal(map[string]any{"protocol": 1, "command": []string{"unused"}, "initial_surface": initial})
-	for p, data := range map[string][]byte{
-		filepath.Join(h, "manifest.json"):      manifest,
-		filepath.Join(h, "surface", "plan.md"): []byte("- [ ] Inspect inputs\r\n"),
-		filepath.Join(root, "definition.toml"): []byte("[model]\nservice='test'\n[model.definition]\nid='test'\napi='openai-completions'\nprovider='test'\n"),
-	} {
+	fields := map[string]any{"protocol": 1}
+	if initial != "" {
+		fields["initial_surface"] = initial
+	}
+	manifest, _ := json.Marshal(fields)
+	for p, data := range map[string][]byte{filepath.Join(h, "manifest.json"): manifest, filepath.Join(h, "surface", "plan.md"): []byte("- [ ] Inspect inputs\r\n"), filepath.Join(root, "definition.toml"): []byte("schema_version=2\n[harness]\npath='harness'\nargv=['unused']\n[surface]\npath='surface'\n[model]\nservice='test'\n[model.parameters]\nid='test'\napi='openai-completions'\nprovider='test'\n")} {
 		if err := os.WriteFile(p, data, 0600); err != nil {
 			t.Fatal(err)
 		}
@@ -27,47 +27,95 @@ func seededFixture(t *testing.T, initial string) (string, string, string) {
 	return root, h, filepath.Join(root, "definition.toml")
 }
 
-func TestInitialSurfaceIsOrdinaryVersionedContent(t *testing.T) {
-	root, h, def := seededFixture(t, "surface")
+func TestTemplateIsIndependentOrdinaryVersionedContent(t *testing.T) {
+	root, h, def := seededFixture(t, "")
 	w, err := Create(filepath.Join(root, "work"), h, def)
 	if err != nil {
 		t.Fatal(err)
 	}
-	data, err := os.ReadFile(filepath.Join(w.Surface, "plan.md"))
-	if err != nil || string(data) != "- [ ] Inspect inputs\r\n" {
-		t.Fatal("seed bytes not preserved", err)
+	entries, err := os.ReadDir(w.Surface)
+	if err != nil || len(entries) != 0 {
+		t.Fatal("Harness implicitly created Surface", entries, err)
 	}
-	if got, err := w.git("show", "HEAD:plan.md"); err != nil || got != "- [ ] Inspect inputs" {
-		t.Fatal("seed missing from initial snapshot", err)
+	template := []byte("- [ ] Inspect inputs\r\n")
+	if err = os.WriteFile(filepath.Join(w.Surface, "plan.md"), template, 0600); err != nil {
+		t.Fatal(err)
+	}
+	ref, err := w.Snapshot("assembled template")
+	if err != nil {
+		t.Fatal(err)
 	}
 	if err = os.WriteFile(filepath.Join(w.Surface, "plan.md"), []byte("- [x] Inspect inputs\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = Open(w.Path); err != nil {
-		t.Fatal("ordinary Surface edits changed fixed Harness", err)
+		t.Fatal(err)
 	}
-	fixed, err := os.ReadFile(filepath.Join(w.Path, "harness", "surface", "plan.md"))
-	if err != nil || string(fixed) != string(data) {
-		t.Fatal("editing Surface also edited fixed template", err)
+	destination := filepath.Join(t.TempDir(), "history")
+	if err = w.Materialize(ref, destination); err != nil {
+		t.Fatal(err)
+	}
+	got, err := os.ReadFile(filepath.Join(destination, "surface", "plan.md"))
+	if err != nil || string(got) != string(template) {
+		t.Fatal("historical raw bytes changed", err)
 	}
 }
 
-func TestInitialSurfaceRejectsEscapesBeforeCreation(t *testing.T) {
-	for _, initial := range []string{"..", "../outside", "/tmp", ".", "surface/../surface", "manifest.json", "missing", "linked"} {
+func TestLegacyHarnessSurfaceProvisioningRejectedBeforeCreation(t *testing.T) {
+	for _, initial := range []string{"surface", "..", "../outside", "/tmp", ".", "surface/../surface", "manifest.json", "missing", "linked"} {
 		t.Run(initial, func(t *testing.T) {
 			root, h, def := seededFixture(t, initial)
-			if initial == "linked" {
-				if err := os.Symlink(filepath.Join(h, "surface"), filepath.Join(h, "linked")); err != nil {
-					t.Fatal(err)
-				}
-			}
 			path := filepath.Join(root, "work")
 			if _, err := Create(path, h, def); err == nil {
-				t.Fatal("invalid seed accepted")
+				t.Fatal("obsolete Harness-owned template accepted")
 			}
 			if _, err := os.Lstat(path); !os.IsNotExist(err) {
 				t.Fatal("failed validation left a Work", err)
 			}
 		})
+	}
+}
+
+func TestCandidateDoesNotReplaceSelectedRoundStrategy(t *testing.T) {
+	w := fixture(t)
+	w.Events.Admit("host", "one", "input", map[string]any{})
+	first, err := w.Control.BeginRound("owner")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(filepath.Join(w.Path, "harness", "candidate.txt"), []byte("new"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = Open(w.Path); err != nil {
+		t.Fatal("candidate edit invalidated Work", err)
+	}
+	newRef, err := w.SelectHarness()
+	if err != nil {
+		t.Fatal(err)
+	}
+	rounds, _ := w.Control.Rounds()
+	if rounds[0].HarnessRef != first.HarnessRef || first.HarnessRef == newRef {
+		t.Fatal("active strategy changed")
+	}
+	if err = w.Control.PauseRound(first.ID, "boundary", map[string]any{"plan": map[string]any{}}); err != nil {
+		t.Fatal(err)
+	}
+	resumed, err := w.Control.ResumeRound("next-owner")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resumed.HarnessRef != first.HarnessRef || resumed.Epoch != 2 {
+		t.Fatal("resume changed strategy or reused epoch")
+	}
+	if err = w.Control.FinishRound(first.ID, first.HarnessRef); err != nil {
+		t.Fatal(err)
+	}
+	w.Events.Admit("host", "two", "input", map[string]any{})
+	next, err := w.Control.BeginRound("third-owner")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if next.HarnessRef != newRef {
+		t.Fatal("new Round ignored selected strategy")
 	}
 }
