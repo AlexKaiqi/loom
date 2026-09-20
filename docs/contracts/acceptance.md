@@ -1,5 +1,7 @@
 # Independent acceptance contract
 
+This is the acceptance scope of the current implementation, not a claim of conformance to every target in `SPEC.md`. The target architecture's [implementation gaps and acceptance criteria](../architecture-target.md#实现差距与验收) remain outstanding. In particular, G05/G06 describe current per-operation isolation and fixed Harness behavior; their success cannot establish shared Work execution or editable, versioned strategies.
+
 Acceptance starts from `SPEC.md` and the current component contracts. Tests execute production boundaries and derive expected values from independent fixture bytes, raw SQLite/file/protocol observations and the execution environment—not from the implementation's status output. A fresh run must identify the exact source, dependencies and environment it covers.
 
 | ID | Required system observation |

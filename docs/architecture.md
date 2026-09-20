@@ -1,5 +1,7 @@
 # Loom architecture
 
+This document describes the current implementation. The accepted refactoring design is in [Target architecture](architecture-target.md), derived from [SPEC.md](../SPEC.md). In particular, the local trusted Harness, per-operation remote Surface sessions, fixed Harness digest and automatic Kernel archive below are existing behavior, not the target design or evidence that the target is complete.
+
 ## Components
 
 | Component | Current implementation | Owns |

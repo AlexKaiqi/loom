@@ -1,5 +1,7 @@
 # Development and reconstruction
 
+These commands build and check the current implementation. See [Target architecture](architecture-target.md) for the accepted design and outstanding work. Existing Kernel checks cover its automatic archive behavior; they do not validate model-controlled visibility, persistent Surface templates or arbitrary recorded-state recovery.
+
 ## Prerequisites
 
 - Unix host: macOS or Linux

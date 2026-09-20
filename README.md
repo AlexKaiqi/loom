@@ -2,7 +2,9 @@
 
 Loom 是一个持久、可恢复的 Harness Runtime。Go 控制端托管 Work、事实、授权与外部效果；独立 Node worker 复用 Pi 的 provider 适配和模型—工具循环；外部 Harness 定义投影与推进策略；任务命令由远程 OpenSandbox 执行。
 
-产品目标、开发原则和不变量只有一份：[SPEC.md](SPEC.md)。当前组件和数据流见[架构](docs/architecture.md)，精确行为见[契约](docs/contracts)，构建与验证见[开发说明](docs/development.md)。
+产品目标、开发原则和不变量只有一份：[SPEC.md](SPEC.md)。当前组件和数据流见[实现架构](docs/architecture.md)，后续重构采用[目标架构](docs/architecture-target.md)，当前精确行为见[契约](docs/contracts)，构建与验证见[开发说明](docs/development.md)。
+
+当前代码尚未实现共享 Work 执行环境、长期 Surface 模板、由模型控制的事实可见性、持久跨 Work 订阅及任意已记录点恢复。下面的安装和功能说明描述现有实现，不代表这些目标已经完成。
 
 ## 安装与使用
 
@@ -31,6 +33,8 @@ loom status
 重新执行 `./install.sh` 即可安装新版本，配置和既有 Work 不变；失败不替换原安装。可以用 `--prefix /path/to/installation` 自定义安装目录。
 
 ## 最小 Harness
+
+以下是当前 `kernel` 的行为。目标设计将 Plan 作为可选扩展，将 Archive 改为模型经普通文件操作控制事实可见性；当前自动门槛归档不能作为该目标的验收证据。
 
 默认 `kernel` 已包含“目标 → 模型 → 远程 Shell → 文件反馈 → 报告”的闭环，以及两项辅助策略：
 
@@ -69,4 +73,4 @@ work/
     dependencies/
 ```
 
-`surface/` 是普通、可编辑的工作面，内部布局由 Harness 决定；系统状态集中在 `.loom/`。Work 包含外部 Userspace 的可验证快照，可在另一宿主恢复。Userspace 仍是单独授权的执行目录；复制 Work 不复制授权或凭据。完整规则见 [Work 契约](docs/contracts/work.md)，跨宿主导出、导入和恢复步骤见[开发说明](docs/development.md)。
+当前 `kernel` 提供 `surface/` 的初始文件，系统状态集中在 `.loom/`；目标设计把初始 Surface 的组装交给 Work 模板和普通文件操作。当前 Work 包含外部 Userspace 的可验证快照，可在另一宿主恢复。Userspace 仍是单独授权的执行目录；复制 Work 不复制授权或凭据。当前规则见 [Work 契约](docs/contracts/work.md)，跨宿主导出、导入和恢复步骤见[开发说明](docs/development.md)。
