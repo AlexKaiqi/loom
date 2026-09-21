@@ -196,9 +196,21 @@ func (s Setup) Run(ctx context.Context) error {
 		if err != nil || json.Unmarshal(raw, &profile.Options) != nil || profile.Options == nil {
 			return errors.New("sandbox-options must name a non-secret JSON object")
 		}
-	} else if example.Sandboxes[profile.Service].Provider != s.SandboxProvider {
-		return errors.New("selected provider requires --sandbox-options; no preset is installed")
+	} else {
+		matches := 0
+		for _, preset := range example.Profiles {
+			if example.Sandboxes[preset.Service].Provider == s.SandboxProvider {
+				profile = preset
+				matches++
+			}
+		}
+		if matches != 1 {
+			return errors.New("selected provider requires --sandbox-options; no unique preset is installed")
+		}
 	}
+	// Setup creates one logical code service; preset names are deployment
+	// examples, not identities to copy into a new user's configuration.
+	profile.Service = "code"
 	options, err := json.Marshal(profile.Options)
 	if err != nil {
 		return err

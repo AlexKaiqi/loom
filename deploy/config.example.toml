@@ -11,16 +11,35 @@ worker = ["node", "/absolute/path/to/loom/services/model/worker.mjs"]
 # [models.primary.headers_env]
 # Authorization = "LOOM_PROVIDER_AUTHORIZATION"
 
+# Ordinary code uses prepared processes. Generate these exact non-secret
+# options on the facility with deploy/ssh-process/prepare.py.
 [sandboxes.code]
-provider = "opensandbox/v1"
-endpoint = "http://127.0.0.1:18088"
-api_key_env = "LOOM_SANDBOX_API_KEY"
+provider = "ssh-process/v1"
+endpoint = "ssh://linux-facility.example:22"
+api_key_file = "/private/loom-process.key"
 
 [profiles.code]
 service = "code"
-
-# These options belong only to opensandbox/v1, not to the Runtime contract.
 [profiles.code.options]
+user = "root"
+host_key = "REPLACE_WITH_VERIFIED_ED25519_PUBLIC_HOST_KEY"
+state_directory = "/var/lib/loom-process"
+nsjail = "/usr/local/bin/nsjail"
+nsjail_sha256 = "REPLACE_WITH_INSTALLED_LAUNCHER_SHA256"
+memory_bytes = 536870912
+processes = 64
+cpu_percent = 100
+lease_seconds = 600
+request_timeout_seconds = 30
+
+# Optional container-backed provider, selected explicitly.
+[sandboxes.containers]
+provider = "opensandbox/v1"
+endpoint = "http://127.0.0.1:18088"
+api_key_env = "LOOM_SANDBOX_API_KEY"
+[profiles.containers]
+service = "containers"
+[profiles.containers.options]
 image = "python@sha256:97bb82da414a3216a18949f7d4a9c2a2860296027a05e2dcdcb6a9801d019fc5"
 profile = "code"
 cpu = "1"

@@ -114,7 +114,7 @@ func (c *Client) redact(err error) string {
 // Execute dispatches at most one user command. Before any network operation an
 // error is a local rejection; afterwards every error is an unknown Result.
 func (c *Client) Execute(ctx context.Context, req Request, checkpoint func(Checkpoint) error) (Result, error) {
-	result := Result{Binding: c.Binding(), OperationID: req.OperationID, Target: req.Target, State: "unknown", Artifacts: []Artifact{}, Native: map[string]any{}}
+	result := Result{Binding: c.Binding(), OperationID: req.OperationID, Target: req.Target, State: "unknown", OutputStream: "combined", Artifacts: []Artifact{}, Native: map[string]any{}}
 	if !regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]*$`).MatchString(req.Target) {
 		return result, errors.New("target must be a declared logical name")
 	}

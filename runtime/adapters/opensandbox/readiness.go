@@ -1,13 +1,6 @@
 package opensandbox
 
-import (
-	"encoding/json"
-	"errors"
-	"loom/runtime/contracts"
-	"slices"
-	"strconv"
-	"strings"
-)
+import "loom/runtime/adapters/internal/taskio"
 
 // The fixed code profile checks the actual isolated session. In particular,
 // successful allocation/bootstrap is not evidence for Bash or file permissions.
@@ -38,26 +31,4 @@ print(json.dumps(dict(platform='linux',architecture=platform.machine(),shell=she
  process_capabilities=caps,no_new_privileges=True,network='denied',workspace=os.getcwd(),readonly_paths=readonly)))
 `
 
-func parseReadiness(raw string, readOnly []string) (*contracts.Readiness, error) {
-	var report contracts.Readiness
-	if err := json.Unmarshal([]byte(raw), &report); err != nil {
-		return nil, errors.New("not_ready: code profile probe returned invalid evidence")
-	}
-	valid := report.Platform == "linux" && report.Architecture != "" &&
-		strings.HasPrefix(report.Shell, "GNU bash, version ") && report.Tools["python"] != "" &&
-		report.UID == 65534 && report.GID == 65534 && report.NoNewPrivs &&
-		report.Network == "denied" && report.Workspace == "/workspace/task" &&
-		slices.Equal(report.ReadOnlyPaths, readOnly)
-	// The bounding set is a ceiling, not a granted capability. An empty
-	// permitted/inheritable/ambient set plus NoNewPrivs prevents acquiring it.
-	// Retain the measured ceiling without mistaking it for effective authority.
-	_, boundErr := strconv.ParseUint(report.Capabilities["CapBnd"], 16, 64)
-	valid = valid && boundErr == nil
-	for _, name := range []string{"CapEff", "CapPrm", "CapInh", "CapAmb"} {
-		valid = valid && report.Capabilities[name] == "0000000000000000"
-	}
-	if !valid {
-		return nil, errors.New("not_ready: code profile capabilities or permissions do not satisfy requirements")
-	}
-	return &report, nil
-}
+var parseReadiness = taskio.ParseReadiness

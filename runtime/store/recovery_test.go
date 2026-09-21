@@ -58,7 +58,7 @@ func TestRecoveryRevokesOwnerAndDoesNotReplayUnknown(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if effects[0].Resolution != "confirmed_not_executed" || effects[1].Resolution != "unresolved" {
+	if effects[0].Resolution != "confirmed_not_executed" || effects[1].Resolution != "unresolved" || effects[1].Status != "unknown" {
 		t.Fatal(effects)
 	}
 	rounds, _ := c.Rounds()

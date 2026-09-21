@@ -34,7 +34,7 @@ func usageCommands(root *cobra.Command, add addCommand, configPath *string, open
 	flags.StringVar(&setup.Model, "model", "", "model ID in Pi catalog")
 	flags.StringVar(&setup.ModelFile, "model-file", "", "custom portable native Pi model JSON")
 	flags.StringVar(&setup.ModelEndpoint, "model-endpoint", "", "override model API base URL")
-	flags.StringVar(&setup.SandboxProvider, "sandbox-provider", "", "versioned task provider (opensandbox/v1)")
+	flags.StringVar(&setup.SandboxProvider, "sandbox-provider", "", "versioned task provider (ssh-process/v1 or opensandbox/v1)")
 	flags.StringVar(&setup.SandboxOptions, "sandbox-options", "", "provider options JSON file without credentials (omit to use installed preset)")
 	flags.StringVar(&setup.SandboxEndpoint, "sandbox-endpoint", "", "remote Sandbox endpoint")
 	flags.StringVar(&setup.ModelKeyEnv, "model-key-env", "", "existing model credential environment variable")

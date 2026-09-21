@@ -131,6 +131,11 @@ func (c *Control) EndRecovery(r Round) error {
 		if _, err := db.ExecContext(ctx, "UPDATE allocations SET release_state='confirmed' WHERE COALESCE(sandbox_id,'')='' AND effect_id IN(SELECT id FROM effects WHERE round_id=? AND dispatch_state='prepared' AND resolution='confirmed_not_executed')", r.ID); err != nil {
 			return err
 		}
+		// The old owner can no longer finish its dispatch. Keep its original
+		// receipt and unresolved outcome, while making the unknown state explicit.
+		if _, err := db.ExecContext(ctx, "UPDATE effects SET status='unknown',error='owner recovered; original attempted execution requires reconciliation' WHERE round_id=? AND dispatch_state='attempted' AND resolution='unresolved' AND status='intent'", r.ID); err != nil {
+			return err
+		}
 		unknown, err := unresolved(db, r.ID)
 		if err != nil {
 			return err

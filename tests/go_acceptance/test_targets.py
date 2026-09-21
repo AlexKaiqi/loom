@@ -9,6 +9,9 @@ import tarfile
 from support import CLIFixture, ROOT, provider, query, ObservedHandler
 
 class Targets(CLIFixture):
+    def assert_native_probe(self, raw):
+        self.assertEqual(json.loads(raw)['ExitCode'], 0)
+
     def test_harness_can_reuse_allocation_without_a_model_loop(self):
         endpoint=os.environ.get('LOOM_SANDBOX_ENDPOINT')
         keyfile=os.environ.get('LOOM_SANDBOX_KEY_FILE')
@@ -129,7 +132,7 @@ PY
             ref = probe['record_ref']
             raw = (work/'.loom/records'/ref['sha256']).read_bytes()
             self.assertEqual(hashlib.sha256(raw).hexdigest(), ref['sha256'])
-            self.assertEqual(json.loads(raw)['ExitCode'], 0)
+            self.assert_native_probe(raw)
         for allocation in allocations:
             binding=json.loads(allocation['binding'])
             self.assertEqual(binding['target'],allocation['target'])

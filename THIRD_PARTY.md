@@ -14,6 +14,9 @@ Loom imports dependencies rather than vendoring their provider codecs, agent loo
 | Cobra | Apache-2.0 | https://github.com/spf13/cobra |
 | go-toml/v2 | MIT | https://github.com/pelletier/go-toml |
 | golang.org/x/term | BSD-3-Clause | https://cs.opensource.google/go/x/term; terminal secret input |
+| golang.org/x/crypto/ssh | BSD-3-Clause | https://cs.opensource.google/go/x/crypto; authenticated SSH transport, locked in `runtime/go.sum` |
+| pkg/sftp | BSD-2-Clause | https://github.com/pkg/sftp; standard SFTP client, locked in `runtime/go.sum` |
+| OpenSSH / systemd | BSD / LGPL-2.1+ (component-specific licenses) | https://www.openssh.com / https://systemd.io; separately deployed facility services |
 | ujson 6.0.0 | BSD-3-Clause | https://github.com/ultrajson/ultrajson; locked Python JSON-RPC dependency |
 | NsJail 3.6 | Apache-2.0 | https://github.com/google/nsjail; exact source commit and build dependencies in `deploy/work/Dockerfile` |
 | Git CLI | GPL-2.0 | https://git-scm.com; separately installed program |

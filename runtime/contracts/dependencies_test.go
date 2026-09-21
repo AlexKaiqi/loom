@@ -31,7 +31,8 @@ func TestProviderDependenciesPointTowardContracts(t *testing.T) {
 			if err != nil {
 				return err
 			}
-			if strings.HasPrefix(dependency, "loom/runtime/adapters/") && !composition {
+			sharedAdapterIO := adapter && strings.HasPrefix(dependency, "loom/runtime/adapters/internal/")
+			if strings.HasPrefix(dependency, "loom/runtime/adapters/") && !composition && !sharedAdapterIO {
 				t.Errorf("%s imports concrete adapter %s", path, dependency)
 			}
 			if strings.Contains(dependency, "github.com/alibaba/OpenSandbox") && !adapter {

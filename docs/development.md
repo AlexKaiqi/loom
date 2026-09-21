@@ -27,10 +27,15 @@ Copy only the `[execution]` table's contents from `deploy/config.example.toml` i
 ```sh
 ./install.sh --execution-config /etc/loom/execution.toml
 loom check-facility
-loom setup --sandbox-provider opensandbox/v1
+loom setup --sandbox-provider ssh-process/v1 \
+  --sandbox-endpoint ssh://linux-facility.example:22 \
+  --sandbox-options /private/loom-process-options.json \
+  --sandbox-key-file /private/loom-process.key
 ```
 
 The native default prefix is `/opt/loom`, with `/usr/local/bin/loom` as launcher. Custom prefixes must have searchable parent directories so NsJail can mount the read-only Python environment after adopting the Work identity; private homes are not chmodded. Credentials and control data remain private. A Linux facility is still needed on macOS; choosing a remote Linux host means running these commands there, not transparent host-directory synchronization.
+
+For ordinary task execution, prepare the [SSH Process facility](../deploy/ssh-process/README.md) once. It uses existing OpenSSH, systemd and NsJail; no task container or Loom execution server is required. Browser/desktop and independent-kernel providers remain optional capabilities.
 
 Native releases snapshot the launcher binary and execution binding and install separate Node/Python dependencies. They do not install or start a task Sandbox server. Only `runtime/cmd/loom/providers.go` registers concrete task factories; add a provider adapter implementing `contracts` and register it there. Configuration and controller packages must remain free of vendor imports. Saved options are versioned by the provider identifier and never re-resolved from a new Profile during recovery.
 

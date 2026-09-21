@@ -231,7 +231,7 @@ func (c *run) executeTool(ctx context.Context, key string, args Object) (answer 
 	if err != nil {
 		return nil, err
 	}
-	view := Object{"exit_code": receipt.ExitCode, "stdout": outputPreview(receipt.Stdout, data["stdout_ref"]), "stderr": outputPreview(receipt.Stderr, data["stderr_ref"]), "artifacts": saved, "target": target, "workspace": "/workspace/task", "resource_paths": resourcePaths(workspace), "output_stream": "combined (executor does not distinguish stdout/stderr)"}
+	view := Object{"exit_code": receipt.ExitCode, "stdout": outputPreview(receipt.Stdout, data["stdout_ref"]), "stderr": outputPreview(receipt.Stderr, data["stderr_ref"]), "artifacts": saved, "target": target, "workspace": "/workspace/task", "resource_paths": resourcePaths(workspace), "output_stream": receipt.OutputStream}
 	if receipt.Readiness != nil {
 		view["readiness"] = receipt.Readiness
 	}

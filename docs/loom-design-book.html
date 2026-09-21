@@ -42,10 +42,10 @@
 .independent-resource small{display:block;font-size:11px;color:var(--muted)}
 @media(max-width:800px){.independent-resource{padding:15px}.independent-resource>strong{font-size:15px}}
 </style></head>
-<body><aside class="sidebar"><div class="wordmark">LOOM</div><div class="brand-sub">FLEXIBLE HARNESS / DURABLE WORK</div><nav aria-label="章节目录"><a data-chapter="chapter-1" href="#chapter-1"><span>01</span>为什么需要这个底座</a><a data-chapter="chapter-2" href="#chapter-2"><span>02</span>总体架构与运行分工</a><a data-chapter="chapter-3" href="#chapter-3"><span>03</span>核心对象与状态归属</a><a data-chapter="chapter-4" href="#chapter-4"><span>04</span>Work 目录与长期推理面</a><a data-chapter="chapter-5" href="#chapter-5"><span>05</span>本版固定技术基线</a><a data-chapter="chapter-6" href="#chapter-6"><span>06</span>最小数据与协议契约</a><a data-chapter="chapter-7" href="#chapter-7"><span>07</span>执行目标与内容交接</a><a data-chapter="chapter-8" href="#chapter-8"><span>08</span>推进、等待与恢复</a><a data-chapter="chapter-9" href="#chapter-9"><span>09</span>不变量索引</a><a data-chapter="chapter-10" href="#chapter-10"><span>10</span>验收与反例</a><a data-chapter="chapter-11" href="#chapter-11"><span>11</span>重建、发布与替换规则</a><a data-chapter="chapter-12" href="#chapter-12"><span>12</span>必要理由与技术依据</a></nav><div class="side-bottom"><strong>规范 1.5 · 基线 2</strong>2026-09-21<br/>多样 Harness · 同一底座<br/>本书是唯一规范入口。<div class="progress"><div id="read-progress"></div></div></div></aside>
+<body><aside class="sidebar"><div class="wordmark">LOOM</div><div class="brand-sub">FLEXIBLE HARNESS / DURABLE WORK</div><nav aria-label="章节目录"><a data-chapter="chapter-1" href="#chapter-1"><span>01</span>为什么需要这个底座</a><a data-chapter="chapter-2" href="#chapter-2"><span>02</span>总体架构与运行分工</a><a data-chapter="chapter-3" href="#chapter-3"><span>03</span>核心对象与状态归属</a><a data-chapter="chapter-4" href="#chapter-4"><span>04</span>Work 目录与长期推理面</a><a data-chapter="chapter-5" href="#chapter-5"><span>05</span>本版固定技术基线</a><a data-chapter="chapter-6" href="#chapter-6"><span>06</span>最小数据与协议契约</a><a data-chapter="chapter-7" href="#chapter-7"><span>07</span>执行目标与内容交接</a><a data-chapter="chapter-8" href="#chapter-8"><span>08</span>推进、等待与恢复</a><a data-chapter="chapter-9" href="#chapter-9"><span>09</span>不变量索引</a><a data-chapter="chapter-10" href="#chapter-10"><span>10</span>验收与反例</a><a data-chapter="chapter-11" href="#chapter-11"><span>11</span>重建、发布与替换规则</a><a data-chapter="chapter-12" href="#chapter-12"><span>12</span>必要理由与技术依据</a></nav><div class="side-bottom"><strong>规范 1.6 · 基线 3</strong>2026-09-21<br/>多样 Harness · 同一底座<br/>本书是唯一规范入口。<div class="progress"><div id="read-progress"></div></div></div></aside>
 <main class="page" id="top">
 <header class="cover">
-<div class="eyebrow"><span>LOOM / DESIGN BOOK</span><span class="status">规范 1.5 · 基线 2</span></div>
+<div class="eyebrow"><span>LOOM / DESIGN BOOK</span><span class="status">规范 1.6 · 基线 3</span></div>
 <h1>让 Harness 更灵活。<br/><em>让工作持续推进。</em></h1>
 <p class="lede">Loom 为可编写、可修改、可扩展的 Harness 提供中立、持久、可恢复的运行基础。普通代码定义工作如何推进；不同 Work 独立推进或按需协作。工作以文件和持久记录存在，由事件驱动，按需加载并恢复继续。</p>
 <div class="cover-meta"><a class="primary-link" href="#chapter-1">理解系统目标 ↓</a><a href="#chapter-4">目录结构</a><a href="#chapter-5">技术选型</a><a href="#section-4-6">最简 Harness</a><button class="secondary" id="print-book" type="button">打印本书</button></div>
@@ -164,7 +164,7 @@
 <p>Harness 决定为何推进及使用什么能力；Runtime 决定是否获准、如何保存责任并交接；Pi 负责活跃的模型—工具局部循环；Sandbox 负责实际任务执行。所有模型请求与工具调用经 Runtime 授权和效果托管后才下发，Harness、Work Bash 和模型都不能绕过该边界访问管理端点。</p>
 <h3 id="section-2-1">任务执行契约与依赖方向</h3>
 <p>Runtime 核心只依赖 Loom 拥有的任务执行契约，不依赖某个 Sandbox SDK 的类型、异常或状态枚举。厂商 SDK、管理地址、凭据和原生状态映射集中在受控适配器。该边界是代码与语义边界，不要求新建一个常驻微服务，也不要求重新发明远程执行协议。</p>
-<p>任务 Provider 由宿主显式选择；Runtime、配置解析和公共契约不依赖任何具体 Provider。组装入口注册适配器工厂，适配器依赖 Runtime 拥有的契约并复用成熟 SDK。OpenSandbox 是已交付的参考适配器，不是所有任务必须使用的底座；Docker 只是该参考部署的一种承载方式。新增 Provider 只增加适配器、宿主配置与组合注册，不修改 Runtime 核心。只有满足已声明能力、授权、内容交接和责任语义的后端才可替换；统一接口不承诺操作系统命令兼容、活跃进程迁移或未知效果跨 Provider 重试。</p>
+<p>任务 Provider 由宿主显式选择；Runtime、配置解析和公共契约不依赖任何具体 Provider。组装入口注册适配器工厂，适配器依赖 Runtime 拥有的契约并复用成熟 SDK。普通代码优先使用预置工具链中的进程 Provider；OpenSandbox 是容器等环境的参考适配器，不是所有任务必须使用的底座；Docker 只是该参考部署的一种承载方式。新增 Provider 只增加适配器、宿主配置与组合注册，不修改 Runtime 核心。只有满足已声明能力、授权、内容交接和责任语义的后端才可替换；统一接口不承诺操作系统命令兼容、活跃进程迁移或未知效果跨 Provider 重试。</p>
 <h3 id="section-2-2">资源授权与控制角色</h3>
 <p><strong>同一 Work 的资源授权上限，不等于所有进程具有相同的有效权限。</strong> Harness 可请求投影提交、获准效果、订阅与等待；启用<a href="#section-6-8">受限 Work 创建或交付能力</a>时，也只可在授予的范围内请求。Work Bash 不持有该策略控制通道。两者都不能扩大宿主授予 Work 的资源范围，也不能直接改写账本、认领别的 Work、任意设置消费游标或声明某个外部效果已经成功。</p>
 <p>控制能力绑定 Work、Round、执行世代、实际策略版本和允许的操作集合，由 Runtime 创建并撤销，不由调用者自报。本版本地协议使用 Runtime 创建的专有继承通道（第 5、6 章）；通道本身不自动证明其不可被复制。Runtime 执行设施负责启动模型可用的 Work Bash，建立不继承控制能力的独立工具角色；不能只依赖 Harness 主动降权。Harness 自行启动的普通子程序仍属于 Harness 策略域，不因为程序名是 Bash 就变成工具域。</p>
@@ -407,7 +407,7 @@ sqlite3 -readonly -header -column "$FACTS_DB" \
 </tr>
 <tr>
 <td><strong>B08</strong></td>
-<td><strong>Provider 依赖倒置；OpenSandbox 官方 Go SDK 参考适配器</strong></td>
+<td><strong>Provider 依赖倒置；SSH 进程与 OpenSandbox SDK 适配器</strong></td>
 <td>厂商类型只在各自 <code>adapters/&lt;provider&gt;</code> 中出现。复用现成生命周期与执行协议，不自建容器控制器</td>
 <td>Provider 接口允许新增其他后端；旧效果始终使用原 Provider 与 Allocation 核对</td>
 </tr>
@@ -451,11 +451,23 @@ PRAGMA foreign_keys = ON;
 <p>Pi 文档提供自定义模型调用函数、工具钩子和继续入口，但“能订阅事件”不等于“事件处理会阻塞下一次效果”。因此，本版要求使用所锁定版本中<strong>可等待确认的屏障</strong>：发送每次模型请求前、执行每次工具前、继续依赖结果前，均等待 Runtime 持久确认；不能仅在事后监听事件写日志。<a class="cite" href="#src-pi">[S7]</a></p>
 <p>默认工具顺序执行；并行仅在 Runtime 已确认独立资源、明确效果身份和无冲突后启用。模型状态保存与继续阶段按版本报告并验证；<code>continue()</code> 只能推进既有状态，不能自动重试结果未知的请求。需要补充适配 hook 时在适配层实现并锁定；无法建立必要屏障就不宣称该版本已符合本书，不另写第二套模型循环弥补。</p>
 <h3 id="section-5-5">5.5 Sandbox Provider 与部署选择</h3>
+<div class="table-wrap"><table><thead><tr><th>场景</th><th>执行方式</th><th>生命周期</th></tr></thead><tbody>
+<tr><td>Work 内 Harness、Bash、文件查询</td><td>共享 Linux 设施中的受限进程；独立角色与文件视图</td><td>设施共享，按需启动进程</td></tr>
+<tr><td>普通代码、构建、测试</td><td>预置工具链 + 独立工作副本 + 受限进程；参考 <code>ssh-process/v1</code></td><td>不逐次创建容器或 VM；按工具边界保存内容</td></tr>
+<tr><td>Browser / Computer Use</td><td>预制环境中的独立会话，通过成熟浏览器/桌面服务接入</td><td>连续复用会话；重启不伪装为延续</td></tr>
+<tr><td>需要独立内核</td><td>成熟服务提供的 microVM、模板或快照</td><td>按所需内核隔离能力显式选择</td></tr>
+</tbody></table></div>
+<p>不把最强隔离的成本施加到所有任务上。共享设施不表示共享权限：Work 控制数据、任务内容、其他 Work 与宿主管理凭据仍是不同可见范围。模型继续调用普通 Bash，选择 Work 或具名任务 Target，不需要学习部署命令。</p>
+<p><strong>普通代码参考 Provider：OpenSSH + systemd + NsJail。</strong> Provider 通过 SSH exec/SFTP 访问预置 Linux 设施，固定主机公钥及私有密钥引用；systemd transient unit 提供原生执行身份、资源上限、超时与进程组生命周期；NsJail 提供 UID、挂载/PID/网络命名空间与无额外 capabilities 的任务视图。Loom 不新增执行 daemon、RPC 服务、调度池或虚拟化实现。管理命令是受信适配器的组装细节，不作为模型工具暴露。</p>
+<p>每次执行在不可复用的原生 unit 名下运行，先固定请求身份与远端目录，再创建 unit；远端失联不重发创建或用户脚本。实际受限进程先输出就绪证据并阻塞于只读控制门，Runtime 确认 <code>prepared</code> 后才放行 Bash。原 unit、完整输出和工作副本在效果未知时保留；核对、取消只触及原绑定。取消和超时不证明业务结果；复制输出前须确认原进程域无存活写入者，确认内容保存后才释放资源。不能只以 Shell 退出码代替进程域 fencing。</p>
+<p><code>ssh-process/v1</code> 的宿主 Options 固定 <code>user</code>、<code>host_key</code>、<code>state_directory</code>、<code>nsjail</code>、<code>nsjail_sha256</code>、<code>memory_bytes</code>、<code>processes</code>、<code>cpu_percent</code>、<code>lease_seconds</code> 与 <code>request_timeout_seconds</code>。Endpoint 为不含凭据的 <code>ssh://host[:port]</code>；本版管理身份为 root，固定 Ed25519 主机公钥，控制端私钥仅从宿主私有引用读取。它是设施管理授权，不属于任务身份。工具链目录只包含可公开读取的程序；控制状态不得位于这些目录。分配与执行目录使用不可重用的请求摘要，已完成内容交接的释放保留身份标记；原生期限在断连后仍生效。实际安装版本与测量证据记录在发布材料中，不把本书中的就绪定义替换为单纯的进程启动时间。</p>
+<p>普通任务默认无网络，不挂载 Work 控制目录、SSH 凭据、systemd 控制接口或其他任务目录；只读资源以只读挂载落实。预置工具链由部署管理员管理，不让任务借安装工具获得宿主管理权限。需要联网、GUI、设备或独立内核的能力必须选择经过相应验收的 Profile/Provider，不自动降级或扩大普通进程权限。</p>
+
 <p>OpenSandbox 适配器调用官方 Go SDK；其 Linux/Docker 部署仍作为真实参考验证环境。Provider 可以使用受限进程、预热环境或快照恢复，也可以使用容器或 VM；选择由任务要求与宿主授权决定，不由 Runtime 固定。每个已交付 Provider 分别锁定服务端、SDK 与环境版本；镜像摘要仅是使用镜像的 Provider 的要求。管理连接与凭据由宿主配置解析，实际使用的非秘密目的地随效果保存。官方仓库已提供 Go SDK，并把 Sandbox 生命周期与执行 API 分开。<a class="cite" href="#src-opensandbox">[S8]</a></p>
 <p>关闭会导致未知外部效果重放的 SDK 自动重试；只读查询和按同一身份确认幂等的传输可以重试。服务端支持某操作不等于提供 Loom 的所有耐久与恢复保证；适配器仍须补齐第 7、8 章的原目的地绑定、结果留存与交接确认。</p>
 <p><strong>环境准备与执行命令是两个生命周期。</strong> 环境可以事先准备并由显式 Allocation 复用；一次 Bash 不意味着必须创建一个容器。复用仍需每次执行的身份、权限、内容版本与实际 fencing；无法核对的旧执行不得在复用中消失。Runtime 不自建预热池、虚拟化或远程执行服务。</p>
 <p><strong>Work 设施与任务 Sandbox 分别部署。</strong> Linux 可直接安装 Runtime、Pi 组件及受控 NsJail launcher，使用宿主预先委派的 cgroup v2；不需要 Docker daemon。macOS 使用部署好的 Linux 设施，或显式选择 Docker 承载一个共享 Linux 设施。所有 Work 共用设施，角色隔离仍逐次执行；安装器不自动切换为无隔离 Shell。直接安装要求管理员配置的私有执行绑定、root 控制器和必要工具，安装时校验，失败不激活。它不等于自动提供任务 Provider。</p>
-<p>原规范把参考部署提升为必需组件，导致容器镜像与资源字段渗入公共契约。本版修正这项设计错误；没有因此降低文件可见性、资源限额、原目的地恢复或未知效果要求。直接启动上游 execd 并不足以满足这些要求：共享根视图与资源控制必须由其部署补齐，在经过真实隔离验收前不作为已支持的轻量 Provider。</p>
+<p>原规范把参考部署提升为必需组件，导致容器镜像与资源字段渗入公共契约。本版修正这项设计错误；没有因此降低文件可见性、资源限额、原目的地恢复或未知效果要求。直接启动上游 execd 并不足以满足这些要求：共享根视图与资源控制必须由其部署补齐，在经过真实隔离验收前不作为已支持的轻量 Provider；普通进程路径使用具备所需边界的成熟 systemd/NsJail 组合。</p>
 <h3 id="section-5-6">5.6 版本固定的三个尺度</h3>
 <p><strong>规范版本</strong>确定行为和公共字段；<strong>基线版本</strong>确定上表组件与路线；<strong>发布锁</strong>确定源码 commit、编译器/运行时、直接与传递依赖、嵌入引擎、协议、镜像摘要和测试环境。常规补丁升级不必改写产品目标，但必须产生新发布锁并重跑受影响测试。</p>
 <p>本书不编造尚未生成的 lockfile 或“已测试版本组合”。首个实现发布必须提供完整锁定与兼容矩阵才可声明可复现构建；重建者不能用 <code>latest</code>、漂移标签或只记录“Go + Pi”充当发布身份。模型服务实际 ID、语义参数与可用版本逐请求留存，不承诺云端模型输出逐字节可重复。</p>
@@ -1081,6 +1093,7 @@ A1 与 B1 均可保存、恢复和交付，不要求先修改共享分支。
 </table></div>
 <h4 class="subsection-title" id="section-10-1-cooperation">启用相应协作能力时追加的故障轨迹</h4><div class="table-wrap" tabindex="0"><table><thead><tr><th>轨迹</th><th>注入故障</th><th>恢复后的必要观察</th></tr></thead><tbody><tr><td>F5 · 创建闭环</td><td>分别在目标 ID 已保存、注册未齐、初始输入已保存及源 Work 收到回执前中断；以原 key 查询或续办</td><td>始终核对同一目标；没有第二个 Work 或第二条初始输入，注册未齐不执行；已运行的未知效果不随创建续办重放</td></tr><tr><td>F6 · 等待与迟到结果</td><td>结果先于订阅；接收方 handoff 时再到一条结果；委托由 V17 替代为 V18 后重投旧交付</td><td>持久输入不漏交、不误消费；接收方可卸载后再被唤醒；重复交付不重复采用，旧结果保留但不自动验证新基线</td></tr></tbody></table></div><p>额外在旧 Harness/Bash 持有 FD、后台写入、主进程已退出、资源归还未知、GC 与提交并发等条件下重跑。Mock 只证明协议分支，不证明真实文件隔离、持久存储或远端效果。</p>
 <p><strong>Provider 与安装边界追加验收。</strong> 无镜像字段的第二种受控测试适配器通过同一解析与 Runtime 契约；未知 Provider、改名服务、改变端点、丢失参数、篡改工厂绑定必须在外部效果前失败。真实 OpenSandbox 执行、双 Target、回执丢失与恢复测试继续保留，测试替身不等于发布了第二个生产后端。Linux 直接安装在没有可用 Docker 命令时完成安装与真实受限 Harness 推进，旧版本保留、失败激活不覆盖；Docker 部署单独显式验收。冷分配、已备环境取得、命令派发、内容交接与实际 Ready 分开计时；不得把厂商快照恢复的 10 ms 宣称为 Loom 端到端启动指标。</p>
+<p><strong>快速进程 Provider 必测。</strong> 实际 SSH 主机公钥不匹配时不得上传或执行；实际受限 Bash 不能读取管理文件、跨任务文件、网络或写只读资源。输入与命令原样交接，非零退出仍有完整输出；回执声明 <code>output_stream</code> 为 <code>separate</code> 或 <code>combined</code>，Runtime 不推断厂商的通道语义；后台写入者必须实际消失。分别在创建回执、就绪确认、放行和结果持久化边界故障，确认未重放及原 unit 可核对/取消。断开控制连接后由原生运行时期限约束资源，Loom 未决责任不被期限删除。用两目标和真实 Runtime/模型桥接验证文件副本与未知恢复。预置设施上分别测进程启动、含 SSH/输入交接/就绪证据的 Ready、完整结果交接；保留原始样本与硬件，不能承诺包含镜像下载/工具链准备的 10 ms。</p>
 <h3 id="section-10-2">10.2 性能、证据与通过条件</h3>
 <p>等待驻留规模、活跃吞吐、事件延迟与长期恢复分别测试；不能把“启动一个 Work 成功”作为系统规模证据。每次性能验收在运行前固定 Work 数量、活跃并发、事件速率、事实/文件体量、持续时间、硬件和阈值；结果注明适用范围。没有声明阈值就不能写“达到目标性能”。本版不捏造尚未测量的吞吐值。</p>
 <p>每条验收保存 <code>test_id</code>、规范/基线版本、源码与发布锁摘要、环境、故障位置、预期断言、实际观测引用、结果和时间。状态只能是 pass、fail、not_run、skipped、unsupported；必需能力只有 pass 可计为通过，可选能力 unsupported 必须不向使用者宣称可用。</p>
@@ -1192,7 +1205,7 @@ Harness → Loom 策略契约；不导入宿主管理 SDK
 <p>模型名称、预算、Target 数量、Profile 要求、Userspace 逻辑引用与业务 Surface 组织按 Work 声明；资源真实位置、稳定物理身份、权限、端点和凭据由宿主解析。资源的项目布局、开发分支与合并流程由使用者或 Harness 选择；Runtime 不要求统一仓库或新增常驻资源管理服务。配置不能把未实现、未获准能力变成 Ready。</p>
 <h3 id="section-11-4">11.4 发布锁：产物，不是第二份需求</h3>
 <p>每个正式发布在产物元数据中保存 <code>spec_version</code>、<code>baseline_version</code>、本书内容摘要、源码 commit、工具链、依赖锁摘要、实际嵌入引擎版本、模型组件、实际 Provider、服务/SDK/执行环境摘要、支持的 schema/协议和验收证据索引。Go 依赖使用模块锁，Node 依赖使用一个确定的包管理器锁；容器镜像使用内容摘要而非漂移标签。</p>
-<p>这份机器可读信息回答“这一次到底构建了什么”，不回答“产品应该是什么”。本书规范版本为 <strong>1.5</strong>，技术基线为 <strong>2</strong>；<code>work.toml</code> 结构 <strong>2</strong>、<code>userspace.binding/1</code>、<code>loom/1</code> 及可选协作身份规则保持。新增 <code>context.feedback/1</code> 为协商扩展，参考事实读取结构为版本 1；模板语法随 Harness 版本保存，不产生新的权威状态或强制目录。发布锁还须记录参考 Harness 版本、预算/输出范围策略、SQLite CLI/索引能力及上下文验收证据。既有配置迁移见第 6.7 节。编号是文档身份，不代表已有对应软件发布；当前尚无与本书匹配并通过系统验收的 Runtime 发布锁。</p>
+<p>这份机器可读信息回答“这一次到底构建了什么”，不回答“产品应该是什么”。本书规范版本为 <strong>1.6</strong>，技术基线为 <strong>3</strong>；<code>work.toml</code> 结构 <strong>2</strong>、<code>userspace.binding/1</code>、<code>loom/1</code> 及可选协作身份规则保持。新增 <code>context.feedback/1</code> 为协商扩展，参考事实读取结构为版本 1；模板语法随 Harness 版本保存，不产生新的权威状态或强制目录。发布锁还须记录参考 Harness 版本、预算/输出范围策略、SQLite CLI/索引能力及上下文验收证据。既有配置迁移见第 6.7 节。编号是文档身份，不代表已有对应软件发布；当前尚无与本书匹配并通过系统验收的 Runtime 发布锁。</p>
 <p>只要求基于规格重建时，遵循基线并形成自己的完整发布锁；要求复现某个历史发布时，必须使用那个发布的源码、锁和环境。不能把前一种能力宣传成后一种逐字节复现。</p>
 <h3 id="section-11-5">11.5 更换组件的准入条件</h3>
 <p>组件替换必须先指出触及的 C、B 和验收条目；给出新旧行为差异、数据/协议迁移、失败回退方式及真实验证。满足原契约后更新本书的基线，不同时留下两条未定义优先级的默认路线。</p>
@@ -1250,7 +1263,7 @@ Harness → Loom 策略契约；不导入宿主管理 SDK
 <div class="source-item" id="src-context-control"><strong>S13 · 上下文控制：简单机制仍须验证实际任务</strong><p>采用预算可见、正文可转引用、当前理解可维护与原文可查询的组合，主动控制作为参考默认而非效果定论；代码任务的观察折叠实验不能替代长期助手的更正、时间与召回测试。依据：<a href="https://platform.claude.com/docs/en/build-with-claude/context-windows" rel="noopener noreferrer">Claude 窗口与预算说明</a>、<a href="https://arxiv.org/abs/2508.21433v3" rel="noopener noreferrer">The Complexity Trap</a>、<a href="https://arxiv.org/abs/2410.10813v2" rel="noopener noreferrer">LongMemEval</a>与<a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" rel="noopener noreferrer">上下文工程实践</a>；这些来源不证明 Loom 已有效。</p></div>
 <div class="source-item" id="src-fact-query"><strong>S14 · 事实读取：复用 SQL，不把查询工具当隔离边界</strong><p><a href="https://www.sqlite.org/cli.html" rel="noopener noreferrer">SQLite CLI</a> 提供普通查询；权限与一致快照仍按本书建立，<a href="https://www.sqlite.org/wal.html" rel="noopener noreferrer">WAL</a> 中的已提交内容不能漏掉。<a href="https://www.sqlite.org/fts5.html#the_trigram_tokenizer" rel="noopener noreferrer">FTS5</a> 的分词/子串限制要求验证中文短词，不能由“有索引”推得模型会找到并正确使用原文。</p></div>
 <h3 id="section-12-1">本书与实现证据的边界</h3>
-<p>当前交付只整合和细化设计。首个实现仍须验证：Pi 锁定版本的逐效果屏障与原生继续、模型主动控制的预算余量与错误修复、SQLite 获准读取面、两类真实任务的约束保留和召回、Linux 角色隔离组合、OpenSandbox 副本稳定捕获、共享资源条件更新与恢复隔离，以及真实存储耐久。文档中的语法和 SQL 示例可检查一致性，但不构成这些系统性质已经通过的证据。</p>
+<p>本书是规范，不替代逐版本实现与验收证据。发布仍须覆盖：Pi 锁定版本的逐效果屏障与原生继续、模型主动控制的预算余量与错误修复、SQLite 获准读取面、两类真实任务的约束保留和召回、Linux 角色隔离组合、已启用 Provider 的副本稳定捕获、共享资源条件更新与恢复隔离，以及真实存储耐久。文档中的语法和 SQL 示例可检查一致性，但不构成这些系统性质已经通过的证据。</p>
 </section>
 <footer><span>Loom · 灵活 Harness 的持久运行底座<br/><span class="foot-id">DESIGN BOOK / SPEC 1.4 · BASELINE 1 · NOT AN IMPLEMENTATION CERTIFICATE</span></span><a class="back-top" href="#top">回到顶部 ↑</a></footer></main><script>
 (function(){

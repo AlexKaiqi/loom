@@ -65,20 +65,23 @@ type Artifact struct {
 	SHA256   string `json:"sha256"`
 }
 type Result struct {
-	Binding     Binding        `json:"binding"`
-	OperationID string         `json:"operation_id"`
-	Target      string         `json:"target"`
-	State       string         `json:"state"`
-	SandboxID   string         `json:"sandbox_id,omitempty"`
-	ExecutionID string         `json:"execution_id,omitempty"`
-	ExitCode    *int           `json:"exit_code"`
-	Stdout      string         `json:"stdout"`
-	Stderr      string         `json:"stderr"`
-	Artifacts   []Artifact     `json:"artifacts"`
-	Released    bool           `json:"released"`
-	Error       string         `json:"error,omitempty"`
-	Native      map[string]any `json:"native"`
-	Readiness   *Readiness     `json:"readiness,omitempty"`
+	Binding     Binding `json:"binding"`
+	OperationID string  `json:"operation_id"`
+	Target      string  `json:"target"`
+	State       string  `json:"state"`
+	SandboxID   string  `json:"sandbox_id,omitempty"`
+	ExecutionID string  `json:"execution_id,omitempty"`
+	ExitCode    *int    `json:"exit_code"`
+	Stdout      string  `json:"stdout"`
+	Stderr      string  `json:"stderr"`
+	// OutputStream describes native channel semantics: "separate" or "combined".
+	// Runtime must not infer this from the chosen provider or an empty stderr.
+	OutputStream string         `json:"output_stream"`
+	Artifacts    []Artifact     `json:"artifacts"`
+	Released     bool           `json:"released"`
+	Error        string         `json:"error,omitempty"`
+	Native       map[string]any `json:"native"`
+	Readiness    *Readiness     `json:"readiness,omitempty"`
 }
 
 // TaskExecutor is the Runtime-owned execution seam. Native SDK values remain
