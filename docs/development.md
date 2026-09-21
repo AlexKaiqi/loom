@@ -14,9 +14,27 @@ python3 -m venv .venv
 .venv/bin/pip install -r tests/requirements.txt
 ```
 
-A native macOS build supports management and component checks. Executing Harness or Work Bash requires the configured shared Linux facility; there is no host-shell fallback. `./install.sh` builds the reference facility and routes the CLI into it. `deploy/work/Dockerfile` pins the toolchain bases and NsJail source; the final image excludes the Go build toolchain and caches.
+A native macOS build supports management and component checks. Executing Harness or Work Bash requires the configured shared Linux facility; there is no host-shell fallback. `./install.sh --deployment docker` builds the optional reference facility and routes the CLI into it. `deploy/work/Dockerfile` pins the toolchain bases and NsJail source; the final image excludes the Go build toolchain and caches.
 
-The installer publishes `current` only after startup checks. Failed builds retain the previous installation. Reinstall with the same workspace roots. Old images/containers and persistent state are retained so an upgrade cannot silently terminate an in-flight owner or remove its staged result; inspect and fence old domains before retiring a deployment.
+The installer publishes `current` only after startup checks. Failed builds retain the previous installation. Reinstall with the same workspace roots. Old native releases or images/containers and persistent state are retained so an upgrade cannot silently terminate an in-flight owner or remove its staged result; inspect and fence old domains before retiring a deployment.
+
+## Direct Linux installation
+
+Run as the Linux facility administrator, with Go 1.25+, Node 24, npm, Python 3.11+ with venv/pip, Git, SQLite CLI and `setfacl`. Install the audited NsJail binary using the source revision recorded in `deploy/work/Dockerfile` or your independently verified deployment lock. Delegate a private cgroup v2 subtree with active `cpu memory pids` controllers using the host's existing service manager; do not point the configuration at the cgroup root or another service's allocation.
+
+Copy only the `[execution]` table's contents from `deploy/config.example.toml` into a private `/etc/loom/execution.toml`, without the table header. Fill in the actual launcher path, SHA-256, delegated cgroup, private staging directory, reserved UID range and explicit limits. These are physical host grants, never portable Work data. The installer checks the binding and probes the real NsJail environment before activation.
+
+```sh
+./install.sh --execution-config /etc/loom/execution.toml
+loom check-facility
+loom setup --sandbox-provider opensandbox/v1
+```
+
+The native default prefix is `/opt/loom`, with `/usr/local/bin/loom` as launcher. Custom prefixes must have searchable parent directories so NsJail can mount the read-only Python environment after adopting the Work identity; private homes are not chmodded. Credentials and control data remain private. A Linux facility is still needed on macOS; choosing a remote Linux host means running these commands there, not transparent host-directory synchronization.
+
+Native releases snapshot the launcher binary and execution binding and install separate Node/Python dependencies. They do not install or start a task Sandbox server. Only `runtime/cmd/loom/providers.go` registers concrete task factories; add a provider adapter implementing `contracts` and register it there. Configuration and controller packages must remain free of vendor imports. Saved options are versioned by the provider identifier and never re-resolved from a new Profile during recovery.
+
+Run `python3 -m unittest discover -s tests/native_install -v` in a prepared Linux facility with `LOOM_EXECUTION_CONFIG` and a fresh `LOOM_NATIVE_INSTALL_EVIDENCE` directory. The test deliberately makes any Docker invocation fail and inspects installed Work state, upgrade continuity and failed activation. Docker installer checks remain separate under `tests/install`.
 
 ## Host configuration
 
@@ -24,7 +42,7 @@ The installer publishes `current` only after startup checks. Failed builds retai
 
 ```sh
 loom setup --provider PROVIDER --model MODEL \
-  --sandbox-endpoint https://sandbox.example.test \
+  --sandbox-provider opensandbox/v1 --sandbox-endpoint https://sandbox.example.test \
   --model-key-env LOOM_MODEL_API_KEY --sandbox-key-env LOOM_SANDBOX_API_KEY
 ```
 

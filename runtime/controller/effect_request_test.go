@@ -106,7 +106,7 @@ func toolAPIFixture(t *testing.T) (*run, *observedExecutor) {
 	}
 	w.Control = w.Control.Bind(round)
 	w.Events.Control = w.Control
-	executor := &observedExecutor{binding: contracts.Binding{ServiceID: "original", Endpoint: "https://original.example", Image: "fixed"}}
+	executor := &observedExecutor{binding: contracts.Binding{ServiceID: "original", Endpoint: "https://original.example", Provider: "fixture/v1", OptionsJSON: `{}`}}
 	c := &run{round: round, work: w, runtime: &Runtime{Authority: a, Targets: map[string]contracts.TaskExecutor{"default": executor}}}
 	return c, executor
 }

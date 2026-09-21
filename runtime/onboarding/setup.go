@@ -15,10 +15,13 @@ import (
 	"github.com/pelletier/go-toml/v2"
 	"golang.org/x/term"
 	"loom/runtime/config"
+	"loom/runtime/contracts"
 	"loom/runtime/work"
 )
 
 type Setup struct {
+	SandboxProvider, SandboxOptions                                        string
+	SandboxFactories                                                       map[string]contracts.ProviderFactory
 	ConfigPath, Provider, Model, ModelFile, ModelEndpoint, SandboxEndpoint string
 	ModelKeyEnv, SandboxKeyEnv, ModelKeyFile, SandboxKeyFile               string
 	Input                                                                  io.Reader
@@ -112,19 +115,24 @@ func (s Setup) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	s.SandboxEndpoint, err = prompt("OpenSandbox endpoint (--sandbox-endpoint)", s.SandboxEndpoint)
+	s.SandboxProvider, err = prompt("Sandbox provider (--sandbox-provider)", s.SandboxProvider)
 	if err != nil {
 		return err
 	}
-	for _, endpoint := range []string{s.ModelEndpoint, s.SandboxEndpoint} {
-		u, err := url.Parse(endpoint)
-		if err != nil || u == nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
-			return errors.New("service endpoint must be an HTTP(S) URL without credentials")
-		}
+	if s.SandboxFactories[s.SandboxProvider] == nil {
+		return errors.New("Sandbox provider is not registered in this release")
 	}
-	u, _ := url.Parse(s.SandboxEndpoint)
-	if u.Path != "" && u.Path != "/" {
-		return errors.New("OpenSandbox endpoint must be an origin without a path")
+	s.SandboxEndpoint, err = prompt("Sandbox endpoint (--sandbox-endpoint)", s.SandboxEndpoint)
+	if err != nil {
+		return err
+	}
+	u, err := url.Parse(s.ModelEndpoint)
+	if err != nil || u == nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
+		return errors.New("model endpoint must be an HTTP(S) URL without credentials")
+	}
+	u, err = url.Parse(s.SandboxEndpoint)
+	if err != nil || u == nil || u.Scheme == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
+		return errors.New("sandbox endpoint must be a credential-free URI; provider validates its transport")
 	}
 	definition, err := work.ReadDefinition(filepath.Join(root, "deploy/work.example.toml"))
 	if err != nil {
@@ -181,6 +189,28 @@ func (s Setup) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	profile := example.Profiles["code"]
+	if s.SandboxOptions != "" {
+		profile.Options = nil
+		raw, err := os.ReadFile(s.SandboxOptions)
+		if err != nil || json.Unmarshal(raw, &profile.Options) != nil || profile.Options == nil {
+			return errors.New("sandbox-options must name a non-secret JSON object")
+		}
+	} else if example.Sandboxes[profile.Service].Provider != s.SandboxProvider {
+		return errors.New("selected provider requires --sandbox-options; no preset is installed")
+	}
+	options, err := json.Marshal(profile.Options)
+	if err != nil {
+		return err
+	}
+	binding := contracts.Binding{Provider: s.SandboxProvider, ServiceID: profile.Service, Endpoint: strings.TrimRight(s.SandboxEndpoint, "/"), OptionsJSON: string(options)}
+	client, err := s.SandboxFactories[s.SandboxProvider](binding, "setup-validation")
+	if err != nil {
+		return err
+	}
+	if client == nil || client.Binding() != binding {
+		return errors.New("provider changed the configured binding")
+	}
 	facility, err := config.Facility()
 	if err != nil {
 		return err
@@ -188,7 +218,7 @@ func (s Setup) Run(ctx context.Context) error {
 	if err = facility.Check(); err != nil {
 		return err
 	}
-	host := config.Config{Profiles: example.Profiles, Models: map[string]config.ModelService{"primary": {Endpoint: s.ModelEndpoint, Worker: worker, APIKeyEnv: menv, APIKeyFile: mfile}}, Sandboxes: map[string]config.SandboxService{"code": {Endpoint: s.SandboxEndpoint, APIKeyEnv: senv, APIKeyFile: sfile}}}
+	host := config.Config{Profiles: map[string]config.SandboxProfile{"code": profile}, Models: map[string]config.ModelService{"primary": {Endpoint: s.ModelEndpoint, Worker: worker, APIKeyEnv: menv, APIKeyFile: mfile}}, Sandboxes: map[string]config.SandboxService{profile.Service: {Provider: s.SandboxProvider, Endpoint: s.SandboxEndpoint, APIKeyEnv: senv, APIKeyFile: sfile}}}
 	hostBytes, err := toml.Marshal(host)
 	if err != nil {
 		return err

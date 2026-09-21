@@ -52,7 +52,7 @@ class InstallTests(unittest.TestCase):
 
     @classmethod
     def install_command(cls, *extra):
-        return [ROOT / 'install.sh', '--prefix', cls.prefix, '--workspace-root', cls.output, *extra]
+        return [ROOT / 'install.sh', '--deployment', 'docker', '--prefix', cls.prefix, '--workspace-root', cls.output, *extra]
 
     @classmethod
     def invoke(cls, name, command, **kwargs):
@@ -105,7 +105,7 @@ class InstallTests(unittest.TestCase):
             model.write_text(json.dumps({'id':'fixture-model','name':'Fixture','api':'openai-completions',
                 'provider':'fixture','reasoning':True,'input':['text'],'contextWindow':32768,'maxTokens':1024,
                 'cost':{'input':0,'output':0,'cacheRead':0,'cacheWrite':0}}))
-            configured = self.invoke('installed-setup', [self.launcher,'setup','--model-file',model,
+            configured = self.invoke('installed-setup', [self.launcher,'setup','--sandbox-provider','opensandbox/v1','--model-file',model,
                 '--model-endpoint',endpoint,'--sandbox-endpoint','http://127.0.0.1:2',
                 '--model-key-env','INSTALL_MODEL_KEY','--sandbox-key-env','INSTALL_SANDBOX_KEY'],timeout=30)
             self.assertEqual(configured.returncode,0,configured.stdout.decode())
@@ -203,7 +203,7 @@ class InstallTests(unittest.TestCase):
         bindir=self.output/'unrelated bin';bindir.mkdir()
         unrelated=bindir/'loom';unrelated.write_bytes(b'user executable must survive\n')
         before=unrelated.read_bytes()
-        result=self.invoke('unrelated-launcher',[ROOT/'install.sh','--prefix',self.output/'unrelated prefix','--bin-dir',bindir,'--workspace-root',self.output],timeout=30)
+        result=self.invoke('unrelated-launcher',[ROOT/'install.sh','--deployment','docker','--prefix',self.output/'unrelated prefix','--bin-dir',bindir,'--workspace-root',self.output],timeout=30)
         self.assertNotEqual(result.returncode,0)
         self.assertIn(b'Refusing to replace',result.stdout)
         self.assertEqual(unrelated.read_bytes(),before)
@@ -215,7 +215,7 @@ class InstallTests(unittest.TestCase):
         shim=shims/'docker';shim.write_text('#!/bin/sh\nprintf "windows\\n"\n');shim.chmod(0o755)
         env=dict(self.env,PATH=str(shims)+os.pathsep+self.env['PATH'])
         prefix=self.output/'wrong engine install'
-        result=self.invoke('wrong-engine',[ROOT/'install.sh','--prefix',prefix,'--workspace-root',self.output],env=env,timeout=30)
+        result=self.invoke('wrong-engine',[ROOT/'install.sh','--deployment','docker','--prefix',prefix,'--workspace-root',self.output],env=env,timeout=30)
         self.assertNotEqual(result.returncode,0)
         self.assertIn(b'Docker must use a Linux engine',result.stdout)
         self.assertFalse((prefix/'current').exists())

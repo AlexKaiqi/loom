@@ -17,15 +17,16 @@ import (
 )
 
 type Config struct {
-	StateDirectory  string `toml:"state_directory"`
-	UIDBase         int    `toml:"uid_base"`
-	UIDCount        int    `toml:"uid_count"`
-	Binary          string `toml:"launcher"`
-	SHA256          string `toml:"launcher_sha256"`
-	CgroupRoot      string `toml:"cgroup_root"`
-	MemoryBytes     int64  `toml:"memory_bytes"`
-	Processes       int    `toml:"processes"`
-	CPUMilliseconds int    `toml:"cpu_milliseconds"`
+	PythonEnvironment string `toml:"python_environment,omitempty"`
+	StateDirectory    string `toml:"state_directory"`
+	UIDBase           int    `toml:"uid_base"`
+	UIDCount          int    `toml:"uid_count"`
+	Binary            string `toml:"launcher"`
+	SHA256            string `toml:"launcher_sha256"`
+	CgroupRoot        string `toml:"cgroup_root"`
+	MemoryBytes       int64  `toml:"memory_bytes"`
+	Processes         int    `toml:"processes"`
+	CPUMilliseconds   int    `toml:"cpu_milliseconds"`
 }
 type Mount struct {
 	Source, Destination string
@@ -44,6 +45,13 @@ func (c Config) Check() error {
 	}
 	if os.Geteuid() != 0 {
 		return errors.New("not_ready: launcher requires the deployment's privileged controller identity")
+	}
+	if c.PythonEnvironment != "" {
+		resolved, err := filepath.EvalSymlinks(c.PythonEnvironment)
+		info, statErr := os.Stat(c.PythonEnvironment)
+		if err != nil || statErr != nil || !info.IsDir() || !filepath.IsAbs(c.PythonEnvironment) || resolved != c.PythonEnvironment || strings.ContainsAny(c.PythonEnvironment, ":\n\x00") {
+			return errors.New("invalid deployment Python environment")
+		}
 	}
 	if !filepath.IsAbs(c.Binary) || !filepath.IsAbs(c.CgroupRoot) || filepath.Clean(c.CgroupRoot) == "/sys/fs/cgroup" || c.MemoryBytes <= 0 || c.Processes <= 0 || c.CPUMilliseconds <= 0 {
 		return errors.New("invalid Work execution configuration; delegated cgroup and explicit limits required")
@@ -102,6 +110,9 @@ func (s *Scope) Command(argv []string, mounts []Mount, cwd string, seconds int) 
 		return nil, errors.New("execution argv, deadline and absolute cwd required")
 	}
 	argv = append([]string(nil), argv...)
+	if argv[0] == "python3" && s.Config.PythonEnvironment != "" {
+		argv[0] = "/opt/loom-python/bin/python3"
+	}
 	// NsJail intentionally uses execve, not a host shell or PATH lookup. Resolve
 	// bare executables only in the deployment's mounted toolchain directories.
 	if !strings.ContainsRune(argv[0], '/') {
@@ -117,8 +128,15 @@ func (s *Scope) Command(argv []string, mounts []Mount, cwd string, seconds int) 
 			return nil, errors.New("capability_missing: executable absent from locked Work toolchain")
 		}
 	}
-	args := []string{s.Config.Binary, "-Mo", "-q", "--user", fmt.Sprintf("%d:%d:1", s.UID, s.UID), "--group", fmt.Sprintf("%d:%d:1", s.GID, s.GID), "--time_limit", strconv.Itoa(seconds), "--rlimit_as", "max", "--rlimit_fsize", "256", "--rlimit_nofile", "256", "--rlimit_nproc", strconv.Itoa(s.Config.Processes), "--use_cgroupv2", "--cgroupv2_mount", s.Path, "--cgroup_mem_max", strconv.FormatInt(s.Config.MemoryBytes, 10), "--cgroup_pids_max", strconv.Itoa(s.Config.Processes), "--cgroup_cpu_ms_per_sec", strconv.Itoa(s.Config.CPUMilliseconds), "--cwd", cwd, "--env", "PATH=/usr/local/loom-python/bin:/usr/local/bin:/usr/bin:/bin", "--env", "LANG=C.UTF-8", "--env", "HOME=/tmp", "--tmpfsmount", "/tmp", "--iface_no_lo"}
+	toolPath := "/usr/local/loom-python/bin:/usr/local/bin:/usr/bin:/bin"
+	if s.Config.PythonEnvironment != "" {
+		toolPath = "/opt/loom-python/bin:/usr/local/bin:/usr/bin:/bin"
+	}
+	args := []string{s.Config.Binary, "-Mo", "-q", "--user", fmt.Sprintf("%d:%d:1", s.UID, s.UID), "--group", fmt.Sprintf("%d:%d:1", s.GID, s.GID), "--time_limit", strconv.Itoa(seconds), "--rlimit_as", "max", "--rlimit_fsize", "256", "--rlimit_nofile", "256", "--rlimit_nproc", strconv.Itoa(s.Config.Processes), "--use_cgroupv2", "--cgroupv2_mount", s.Path, "--cgroup_mem_max", strconv.FormatInt(s.Config.MemoryBytes, 10), "--cgroup_pids_max", strconv.Itoa(s.Config.Processes), "--cgroup_cpu_ms_per_sec", strconv.Itoa(s.Config.CPUMilliseconds), "--cwd", cwd, "--env", "PATH=" + toolPath, "--env", "LANG=C.UTF-8", "--env", "HOME=/tmp", "--tmpfsmount", "/tmp", "--iface_no_lo"}
 	// These are the deployment's read-only toolchain, never its home or secrets.
+	if s.Config.PythonEnvironment != "" {
+		args = append(args, "--bindmount_ro", s.Config.PythonEnvironment+":/opt/loom-python")
+	}
 	for _, path := range []string{"/usr", "/bin", "/lib", "/lib64"} {
 		if _, err := os.Stat(path); err == nil {
 			args = append(args, "--bindmount_ro", path)

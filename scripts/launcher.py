@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Route the normal CLI into one installed shared Linux facility."""
+import hashlib
 import json
 import os
 import re
@@ -12,6 +13,22 @@ import tomllib
 def main():
     release = Path(__file__).resolve().parent.parent
     installation = json.loads((release / 'installation.json').read_text())
+    if installation['deployment'] == 'native':
+        if sys.platform != 'linux' or os.geteuid() != 0:
+            raise ValueError('Native Work facility requires the Linux administrator controller identity')
+        binary = release / 'bin/loom-runtime'
+        binding = release / 'execution.toml'
+        if hashlib.sha256(binary.read_bytes()).hexdigest() != installation['runtime_sha256'] or hashlib.sha256(binding.read_bytes()).hexdigest() != installation['execution_sha256']:
+            raise ValueError('Native facility differs from installed release')
+        assets = release / 'assets'
+        env = dict(os.environ, LOOM_EXECUTION_CONFIG=str(binding), LOOM_INSTALL_ROOT=str(assets),
+                   PATH=str(assets / 'bin') + os.pathsep + os.environ.get('PATH', ''))
+        # Explicit CLI paths still override the private deployment defaults.
+        args = ['--authority', installation['host_state'] + '/authority.sqlite', '--config',
+                installation['host_state'] + '/.config/loom/config.toml', *sys.argv[1:]]
+        os.execve(binary, [str(binary), *args], env)
+    if installation['deployment'] != 'docker':
+        raise ValueError('Unsupported facility deployment')
     docker, container = installation['docker'], installation['container']
     info = json.loads(subprocess.check_output([docker, 'inspect', container]))[0]
     if info['Config']['Labels'].get('loom.installation') != installation['installation_id']:

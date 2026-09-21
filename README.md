@@ -1,22 +1,32 @@
 # Loom
 
-Loom 把长期工作上下文、完整事实和推进策略保存在 Work 中。Go Runtime 托管输入与执行责任；Harness 决定投影、上下文选择、工具和继续策略；模型组件复用 Pi；任务环境通过 OpenSandbox 远程访问。
+Loom 把长期工作上下文、完整事实和推进策略保存在 Work 中。Go Runtime 托管输入与执行责任；Harness 决定投影、上下文选择、工具和继续策略；模型组件复用 Pi；任务环境通过独立 Provider 的远程协议访问。
 
 [HTML 设计书](docs/loom-design-book.html) 是产品规格、架构、协议、技术基线和验收的**唯一真相源**。本页及各 README 只说明操作，不另立规范。实现仍在按设计书重构；组件测试通过不等于全部验收完成。
 
 ## 安装
 
-宿主需要 macOS/Linux、Python 3.11+ 和运行中的 Linux Docker 引擎。安装器构建一个共享 Linux 环境，里面提供 Go Runtime、Node/Pi、Python 和 NsJail；不同 Work 使用独立 Unix 身份与受限执行域。
+Linux 默认直接安装到 `/opt/loom`，使用管理员预先准备的 NsJail、cgroup v2 执行绑定及 Go、Node、Python 等工具；无需 Docker。安装会锁定独立版本的 Runtime、Pi 和 Python 依赖，并真实检查受限进程后激活。准备方法见[开发操作说明](docs/development.md)。
 
 ```sh
-./install.sh
-export PATH="$HOME/.local/bin:$PATH"
-loom setup
+# 在准备好的 Linux 设施中，以管理员身份执行
+./install.sh --execution-config /etc/loom/execution.toml
+loom setup --sandbox-provider opensandbox/v1
 ```
 
-默认把 `~/Loom` 映射给控制端。也可在安装时指定 `--workspace-root /path/to/works-and-projects`，多个根可重复指定。模型的 Work Bash 只看到当前获准的文件视图。
+macOS 或希望使用容器承载 Work 设施时，显式选择 Docker（需要 Python 3.11+ 和运行中的 Linux Docker 引擎）：
 
-`setup` 配置模型和独立的 [OpenSandbox 服务](deploy/opensandbox/README.md)，隐藏输入密钥。安装的宿主配置保存在 `~/.local/share/loom/host-state/`，不进入镜像或 Work。安装、升级及完整使用流程的验证入口在 `tests/install/` 和 `tests/onboarding/`。
+```sh
+./install.sh --deployment docker
+export PATH="$HOME/.local/bin:$PATH"
+loom setup --sandbox-provider opensandbox/v1
+```
+
+所有 Work 共用一套 Linux 设施，各自按 Unix 身份和受限文件视图执行。默认工作根为 `~/Loom`；`--workspace-root DIRECTORY` 可重复指定。Docker 部署将这些根挂载给控制端，模型的 Work Bash 仍只看到获准的文件。
+
+Work 设施与任务 Provider 独立配置。当前交付的生产适配器是 [OpenSandbox](deploy/opensandbox/README.md)，通过官方 SDK 远程访问；它的镜像、资源和租约放在宿主 `[profiles.code.options]` 中，Runtime 核心不解释这些字段。宿主 `[sandboxes.code].provider` 显式选择 `opensandbox/v1`；`setup --sandbox-options FILE` 可提供完整的非秘密参数 JSON。
+
+`setup` 隐藏输入密钥，宿主配置保存在安装前缀的 `host-state/`，不进入镜像或 Work。已有未决效果保持原 Provider 和参数；不支持旧绑定的版本不会猜测或重放。更换部署使用独立安装前缀，保留原版本核对旧责任。
 
 ## 使用
 

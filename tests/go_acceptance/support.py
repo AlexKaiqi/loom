@@ -191,13 +191,13 @@ c.listen();
         worker = worker or [shutil.which("node"), str(ROOT / "services/model/worker.mjs")]
         endpoint = model_endpoint or server.base_url
         lines = ['[models.model-main]', 'api_key_env="LOOM_TEST_MODEL_KEY"', 'worker=' + json.dumps(worker),
-            'endpoint=' + json.dumps(endpoint), '[sandboxes.sandbox-main]',
+            'endpoint=' + json.dumps(endpoint), '[sandboxes.sandbox-main]', 'provider="opensandbox/v1"',
             'api_key_env="LOOM_TEST_SANDBOX_KEY"', 'endpoint=' + json.dumps(sandbox_endpoint)]
         if headers_env:
             lines.append("[models.model-main.headers_env]")
             lines.extend(json.dumps(name) + "=" + json.dumps(env) for name, env in headers_env.items())
         image = json.loads((ROOT / "deploy/opensandbox/versions.json").read_text())["code"]
-        lines.extend(['[profiles.code]', 'service="sandbox-main"', 'image='+json.dumps(image), 'profile="code"', 'cpu="1"', 'memory="512Mi"', 'lease_seconds=600', 'request_timeout_seconds=30'])
+        lines.extend(['[profiles.code]', 'service="sandbox-main"', '[profiles.code.options]', 'image='+json.dumps(image), 'profile="code"', 'cpu="1"', 'memory="512Mi"', 'lease_seconds=600', 'request_timeout_seconds=30'])
         facility = os.environ.get("LOOM_TEST_CGROUP_ROOT")
         if not facility:
             raise RuntimeError("execution acceptance requires a real shared Linux Work facility")

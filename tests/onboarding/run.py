@@ -182,14 +182,14 @@ class InstalledUser:
         for name in ("docs/loom-design-book.html", "AGENTS.md", "install.sh"):
             before[name] = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
         (self.output / "source-hashes.json").write_text(json.dumps(before, sort_keys=True, indent=2))
-        result = subprocess.run([str(ROOT / "install.sh"), "--prefix", str(self.prefix), "--workspace-root", str(self.private), "--workspace-root", str(self.output)], cwd=self.cwd, env=self.env, capture_output=True, text=True, timeout=1800)
+        result = subprocess.run([str(ROOT / "install.sh"), "--deployment", "docker", "--prefix", str(self.prefix), "--workspace-root", str(self.private), "--workspace-root", str(self.output)], cwd=self.cwd, env=self.env, capture_output=True, text=True, timeout=1800)
         (self.output / "install.log").write_text(result.stdout + result.stderr)
         assert result.returncode == 0, result.stderr
         self.command("--help")
         self.checks.append("fresh installation in prefix with spaces from unrelated cwd; no manual Python env or worker path")
 
     def setup(self, provider, api, *, ok=True):
-        return self.command("setup", "--provider", "groq", "--model", "llama-3.1-8b-instant",
+        return self.command("setup", "--sandbox-provider", "opensandbox/v1", "--provider", "groq", "--model", "llama-3.1-8b-instant",
                             "--model-endpoint", provider.base_url, "--sandbox-endpoint", f"http://127.0.0.1:{api.server_port}",
                             "--model-key-env", "LOOM_TEST_MODEL_KEY", "--sandbox-key-env", "LOOM_TEST_SANDBOX_KEY", ok=ok)
 
@@ -216,7 +216,8 @@ class InstalledUser:
             for prompt, answer in (
                 (b"Provider (--provider): ", "groq"),
                 (b"Model (--model): ", "llama-3.1-8b-instant"),
-                (b"OpenSandbox endpoint (--sandbox-endpoint): ", f"http://127.0.0.1:{api.server_port}"),
+                (b"Sandbox provider (--sandbox-provider): ", "opensandbox/v1"),
+                (b"Sandbox endpoint (--sandbox-endpoint): ", f"http://127.0.0.1:{api.server_port}"),
                 (b"model API key (hidden): ", MODEL_KEY),
                 (b"sandbox API key (hidden): ", self.env["LOOM_TEST_SANDBOX_KEY"]),
             ):

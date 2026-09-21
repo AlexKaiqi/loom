@@ -102,7 +102,7 @@ func TestRemoteCancellationChecksOriginalBindingAndDoesNotSettleOutcome(t *testi
 	if err = w.Control.AttemptEffect(effect.ID, round.Owner); err != nil {
 		t.Fatal(err)
 	}
-	binding := contracts.Binding{ServiceID: "original", Endpoint: "https://old.example", Image: "fixed-image", Profile: "code", CPU: "1", Memory: "1Gi", LeaseSeconds: 600, RequestTimeoutSeconds: 30}
+	binding := contracts.Binding{ServiceID: "original", Endpoint: "https://old.example", Provider: "fixture/v1", OptionsJSON: `{"pool":"original"}`}
 	if err = w.Control.CheckpointEffect(effect.ID, Object{"binding": binding, "sandbox_id": "original-sandbox", "execution_id": "original-session/original-run"}); err != nil {
 		t.Fatal(err)
 	}

@@ -41,7 +41,10 @@ type Checkpoint = contracts.Checkpoint
 type Artifact = contracts.Artifact
 type Result = contracts.Result
 
-type Client struct{ config Config }
+type Client struct {
+	config  Config
+	binding Binding
+}
 
 func New(config Config) (*Client, error) {
 	if !regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]*$`).MatchString(config.ServiceID) {
@@ -81,10 +84,14 @@ func New(config Config) (*Client, error) {
 		return nil, errors.New("sandbox API key must be explicitly configured")
 	}
 	config.Endpoint = strings.TrimRight(config.Endpoint, "/")
-	return &Client{config: config}, nil
+	options, err := json.Marshal(Options{Image: config.Image, Profile: config.Profile, CPU: config.CPU, Memory: config.Memory, LeaseSeconds: config.Lease.Seconds(), RequestTimeoutSeconds: config.RequestTimeout.Seconds()})
+	if err != nil {
+		return nil, err
+	}
+	return &Client{config: config, binding: Binding{Provider: Provider, ServiceID: config.ServiceID, Endpoint: config.Endpoint, OptionsJSON: string(options)}}, nil
 }
 func (c *Client) Binding() Binding {
-	return Binding{ServiceID: c.config.ServiceID, Endpoint: c.config.Endpoint, Image: c.config.Image, Profile: c.config.Profile, CPU: c.config.CPU, Memory: c.config.Memory, LeaseSeconds: c.config.Lease.Seconds(), RequestTimeoutSeconds: c.config.RequestTimeout.Seconds()}
+	return c.binding
 }
 func (c *Client) checkDestination(expected Binding) error {
 	actual := c.Binding()

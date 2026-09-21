@@ -45,9 +45,14 @@ func TestUnavailableServiceNeverRetries(t *testing.T) {
 	if err != nil || result.State != "unknown" || count.Load() != 1 {
 		t.Fatal(result, err, count.Load())
 	}
-	if result.Binding != c.Binding() || planned.Binding != result.Binding || result.Binding.Image != testImage || result.Binding.Profile != "code" || result.Binding.CPU != "1" || result.Binding.Memory != "512Mi" || result.Binding.LeaseSeconds != 600 || result.Binding.RequestTimeoutSeconds != 30 {
+	var options Options
+	if err = json.Unmarshal([]byte(result.Binding.OptionsJSON), &options); err != nil {
+		t.Fatal(err)
+	}
+	if result.Binding != c.Binding() || planned.Binding != result.Binding || result.Binding.Provider != Provider || options.Image != testImage || options.Profile != "code" || options.CPU != "1" || options.Memory != "512Mi" || options.LeaseSeconds != 600 || options.RequestTimeoutSeconds != 30 {
 		t.Fatal(result.Binding, planned)
 	}
+
 	data, err := json.Marshal(result)
 	if err != nil || strings.Contains(string(data), "synthetic-secret") {
 		t.Fatal("binding leaked secret", err)

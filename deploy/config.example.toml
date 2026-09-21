@@ -12,11 +12,15 @@ worker = ["node", "/absolute/path/to/loom/services/model/worker.mjs"]
 # Authorization = "LOOM_PROVIDER_AUTHORIZATION"
 
 [sandboxes.code]
+provider = "opensandbox/v1"
 endpoint = "http://127.0.0.1:18088"
 api_key_env = "LOOM_SANDBOX_API_KEY"
 
 [profiles.code]
 service = "code"
+
+# These options belong only to opensandbox/v1, not to the Runtime contract.
+[profiles.code.options]
 image = "python@sha256:97bb82da414a3216a18949f7d4a9c2a2860296027a05e2dcdcb6a9801d019fc5"
 profile = "code"
 cpu = "1"

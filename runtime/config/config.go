@@ -7,25 +7,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/pelletier/go-toml/v2"
-	sandbox "loom/runtime/adapters/opensandbox"
-	"loom/runtime/contracts"
 	"loom/runtime/execution"
 	"loom/runtime/work"
 )
 
 type Config struct {
-	Execution *execution.Config                       `toml:"execution,omitempty"`
-	Models    map[string]ModelService                 `toml:"models"`
-	Profiles  map[string]contracts.TargetRequirements `toml:"profiles"`
-	Sandboxes map[string]SandboxService               `toml:"sandboxes"`
+	Execution *execution.Config         `toml:"execution,omitempty"`
+	Models    map[string]ModelService   `toml:"models"`
+	Profiles  map[string]SandboxProfile `toml:"profiles"`
+	Sandboxes map[string]SandboxService `toml:"sandboxes"`
 }
 type ModelService struct {
 	Parameters map[string]any    `toml:"parameters"`
@@ -35,7 +31,12 @@ type ModelService struct {
 	Worker     []string          `toml:"worker"`
 	HeadersEnv map[string]string `toml:"headers_env"`
 }
+type SandboxProfile struct {
+	Service string         `toml:"service"`
+	Options map[string]any `toml:"options"`
+}
 type SandboxService struct {
+	Provider   string `toml:"provider"`
 	Endpoint   string `toml:"endpoint"`
 	APIKeyEnv  string `toml:"api_key_env,omitempty"`
 	APIKeyFile string `toml:"api_key_file,omitempty"`
@@ -152,58 +153,12 @@ func (c *Config) resolveModel(def work.ModelDefinition, credentials bool) (*Mode
 	}
 	return &ModelDeployment{Model: native, APIKey: key, Worker: append([]string(nil), service.Worker...)}, nil
 }
-func (c *Config) ResolveSandbox(def *contracts.TargetRequirements) (contracts.TaskExecutor, error) {
-	if def == nil {
-		return nil, nil
-	}
-	return c.ResolveSavedSandbox(sandbox.Binding{ServiceID: def.Service, Image: def.Image, Profile: def.Profile, CPU: def.CPU, Memory: def.Memory, LeaseSeconds: float64(def.LeaseSeconds), RequestTimeoutSeconds: float64(def.RequestTimeoutSeconds)})
-}
-
-// ResolveSavedSandbox retains the saved execution requirements, and rejects
-// changed destinations before even constructing a client capable of querying it.
-func (c *Config) ResolveSavedSandbox(binding sandbox.Binding) (contracts.TaskExecutor, error) {
-	service, ok := c.Sandboxes[binding.ServiceID]
-	if !ok {
-		return nil, fmt.Errorf("sandbox service %q is not configured on this host", binding.ServiceID)
-	}
-	if binding.Endpoint != "" && binding.Endpoint != trimOrigin(service.Endpoint) {
-		return nil, errors.New("saved sandbox endpoint does not match this host's service binding")
-	}
-	lease, err := seconds(binding.LeaseSeconds)
-	if err != nil {
-		return nil, err
-	}
-	timeout, err := seconds(binding.RequestTimeoutSeconds)
-	if err != nil {
-		return nil, err
-	}
-	if binding.Profile == "" || binding.CPU == "" || binding.Memory == "" {
-		return nil, errors.New("explicit sandbox execution requirements are missing")
-	}
-	key, err := credential(service.APIKeyEnv, service.APIKeyFile)
-	if err != nil {
-		return nil, err
-	}
-	return sandbox.New(sandbox.Config{ServiceID: binding.ServiceID, Endpoint: service.Endpoint, APIKey: key, Image: binding.Image, Profile: binding.Profile, CPU: binding.CPU, Memory: binding.Memory, Lease: lease, RequestTimeout: timeout})
-}
-func trimOrigin(s string) string {
-	if len(s) > 0 && s[len(s)-1] == '/' {
-		return s[:len(s)-1]
-	}
-	return s
-}
 func endpoint(s string) error {
 	u, err := url.Parse(s)
 	if err != nil || u == nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
 		return errors.New("model endpoint must be an HTTP(S) URL without credentials, query or fragment")
 	}
 	return nil
-}
-func seconds(n float64) (time.Duration, error) {
-	if n <= 0 || math.IsNaN(n) || math.IsInf(n, 0) || n >= float64(math.MaxInt64)/float64(time.Second) {
-		return 0, errors.New("sandbox duration must be explicit, positive and fit a duration")
-	}
-	return time.Duration(n * float64(time.Second)), nil
 }
 func secret(name string) (string, error) {
 	if name == "" {
@@ -240,20 +195,4 @@ func credential(env, filename string) (string, error) {
 		return "", errors.New("credential file is empty")
 	}
 	return value, nil
-}
-
-func (c *Config) ResolveTargets(targets map[string]work.TargetDefinition) (map[string]contracts.TaskExecutor, error) {
-	result := map[string]contracts.TaskExecutor{}
-	for name, target := range targets {
-		profile, ok := c.Profiles[target.Profile]
-		if !ok {
-			return nil, fmt.Errorf("capability_missing: Target %s profile %s is unavailable", name, target.Profile)
-		}
-		executor, err := c.ResolveSandbox(&profile)
-		if err != nil {
-			return nil, err
-		}
-		result[name] = executor
-	}
-	return result, nil
 }

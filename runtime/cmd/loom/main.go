@@ -33,6 +33,7 @@ func command() *cobra.Command {
 	home, _ := os.UserHomeDir()
 	var authorityPath, configPath string
 	root := &cobra.Command{Use: "loom", Short: "Durable control Runtime", SilenceErrors: true, SilenceUsage: true}
+	root.AddCommand(facilityCommand())
 	root.PersistentFlags().StringVar(&authorityPath, "authority", filepath.Join(home, ".local/state/loom/authority.sqlite"), "host authority database")
 	root.PersistentFlags().StringVar(&configPath, "config", filepath.Join(home, ".config/loom/config.toml"), "deployment configuration")
 	add := func(name, usage string, n int, fn func(*cobra.Command, []string, *authority.Authority) (any, error)) *cobra.Command {
@@ -208,12 +209,12 @@ func command() *cobra.Command {
 				return nil, err
 			}
 			if name == "recover" {
-				r.ResolveSandbox = host.ResolveSavedSandbox
+				r.ResolveSandbox = sandboxResolver(host).ResolveSavedSandbox
 				r.Execution = host.Execution
 				return r.Recover(cmd.Context(), w)
 			}
 			if name == "query-remote" || name == "cancel-effect" || name == "inspect-allocation" || name == "release-allocation" {
-				r.ResolveSandbox = host.ResolveSavedSandbox
+				r.ResolveSandbox = sandboxResolver(host).ResolveSavedSandbox
 				if name == "inspect-allocation" {
 					return r.Allocation(cmd.Context(), w, args[1], args[2], "inspect")
 				}

@@ -10,15 +10,18 @@ import (
 // ServiceID names a host resolver; Endpoint pins the concrete origin used for
 // this attempt, so old native IDs cannot drift to a different service.
 type Binding struct {
-	ServiceID             string  `json:"service_id"`
-	Endpoint              string  `json:"endpoint"`
-	Image                 string  `json:"image"`
-	Profile               string  `json:"profile"`
-	CPU                   string  `json:"cpu"`
-	Memory                string  `json:"memory"`
-	LeaseSeconds          float64 `json:"lease_seconds"`
-	RequestTimeoutSeconds float64 `json:"request_timeout_seconds"`
+	Provider  string `json:"provider"`
+	ServiceID string `json:"service_id"`
+	Endpoint  string `json:"endpoint"`
+	// OptionsJSON is canonical, non-secret provider configuration. Its schema
+	// belongs to Provider (including its version), not to the Runtime.
+	OptionsJSON string `json:"options_json"`
 }
+
+// ProviderFactory constructs a client without remote effects. The composition
+// root supplies factories; neither configuration nor Runtime imports adapters.
+// Credentials stay outside the durable Binding and all Work data.
+type ProviderFactory func(Binding, string) (TaskExecutor, error)
 type Request struct {
 	SandboxID           string
 	AllocationRequestID string

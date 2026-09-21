@@ -6,7 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	sandbox "loom/runtime/adapters/opensandbox"
+	"context"
+	"loom/runtime/contracts"
 	"loom/runtime/work"
 )
 
@@ -67,25 +68,76 @@ func TestReleaseFacilityBindingDoesNotRewriteServiceConfiguration(t *testing.T) 
 		t.Fatal("missing deployment binding ignored")
 	}
 }
-func TestQueryUsesSavedBindingWithoutModelCredentials(t *testing.T) {
+
+type fixtureExecutor struct{ binding contracts.Binding }
+
+func (f *fixtureExecutor) Binding() contracts.Binding { return f.binding }
+func (*fixtureExecutor) Execute(context.Context, contracts.Request, func(contracts.Checkpoint) error) (contracts.Result, error) {
+	return contracts.Result{}, nil
+}
+func (*fixtureExecutor) Query(context.Context, string, string, contracts.Binding) (map[string]any, error) {
+	return nil, nil
+}
+func (*fixtureExecutor) Cancel(context.Context, string, string, contracts.Binding) (map[string]any, error) {
+	return nil, nil
+}
+func (*fixtureExecutor) Release(context.Context, string) error { return nil }
+
+func TestProviderInversionAndSavedBindingWithoutModelCredentials(t *testing.T) {
 	t.Setenv("CONFIG_TEST_KEY", "host-secret")
-	c := Config{Sandboxes: map[string]SandboxService{"remote": {Endpoint: "http://127.0.0.1:1/", APIKeyEnv: "CONFIG_TEST_KEY"}}}
-	binding := sandbox.Binding{ServiceID: "remote", Endpoint: "http://127.0.0.1:1", Image: "fixture@sha256:" + strings.Repeat("a", 64), Profile: "code", CPU: "2", Memory: "1Gi", LeaseSeconds: 120, RequestTimeoutSeconds: 5}
-	got, err := c.ResolveSavedSandbox(binding)
+	c := Config{Sandboxes: map[string]SandboxService{"remote": {Provider: "process-test/v1", Endpoint: "https://original.example/", APIKeyEnv: "CONFIG_TEST_KEY"}}, Profiles: map[string]SandboxProfile{"code": {Service: "remote", Options: map[string]any{"pool": "prepared", "isolation": "process"}}}}
+	calls := 0
+	factory := func(b contracts.Binding, key string) (contracts.TaskExecutor, error) {
+		calls++
+		if key != "host-secret" {
+			t.Fatal("credential missing")
+		}
+		return &fixtureExecutor{b}, nil
+	}
+	resolver := c.SandboxResolver(map[string]contracts.ProviderFactory{"process-test/v1": factory})
+	targets, err := resolver.ResolveTargets(map[string]work.TargetDefinition{"code": {Profile: "code"}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.Binding() != binding {
-		t.Fatal("saved execution requirements changed")
+	binding := targets["code"].Binding()
+	if binding.Provider != "process-test/v1" || binding.OptionsJSON != `{"isolation":"process","pool":"prepared"}` {
+		t.Fatal(binding)
 	}
-	binding.Endpoint = "http://127.0.0.1:2"
-	if _, err = c.ResolveSavedSandbox(binding); err == nil {
-		t.Fatal("saved destination drift accepted")
+	c.Profiles["code"] = SandboxProfile{Service: "replacement", Options: map[string]any{"pool": "other"}}
+	executor, err := resolver.ResolveSavedSandbox(binding)
+	if err != nil || executor.Binding() != binding {
+		t.Fatal("saved requirements changed", err)
 	}
-	binding.Endpoint = "http://127.0.0.1:1"
-	binding.LeaseSeconds = 0
-	if _, err = c.ResolveSavedSandbox(binding); err == nil {
-		t.Fatal("missing limits silently defaulted")
+	original := binding
+	for _, mutate := range []func(*contracts.Binding){
+		func(b *contracts.Binding) { b.Provider = "other/v1" },
+		func(b *contracts.Binding) { b.Provider = "" },
+		func(b *contracts.Binding) { b.ServiceID = "missing" },
+		func(b *contracts.Binding) { b.Endpoint = "https://replacement.example" },
+		func(b *contracts.Binding) { b.OptionsJSON = "null" },
+		func(b *contracts.Binding) { b.OptionsJSON = "" },
+	} {
+		binding = original
+		mutate(&binding)
+		before := calls
+		if _, err = resolver.ResolveSavedSandbox(binding); err == nil || calls != before {
+			t.Fatal("bad binding reached factory", binding, err)
+		}
+	}
+	// Rebinding the same service name cannot redirect an old operation.
+	c.Sandboxes["remote"] = SandboxService{Provider: "other/v1", Endpoint: original.Endpoint}
+	if _, err = resolver.ResolveSavedSandbox(original); err == nil {
+		t.Fatal("provider drift accepted")
+	}
+	c.Sandboxes["remote"] = SandboxService{Provider: original.Provider, Endpoint: original.Endpoint}
+	if _, err = c.SandboxResolver(nil).ResolveSavedSandbox(original); err == nil {
+		t.Fatal("unregistered provider accepted")
+	}
+	if _, err = c.SandboxResolver(map[string]contracts.ProviderFactory{original.Provider: func(b contracts.Binding, _ string) (contracts.TaskExecutor, error) {
+		b.OptionsJSON = "{}"
+		return &fixtureExecutor{b}, nil
+	}}).ResolveSavedSandbox(original); err == nil {
+		t.Fatal("factory binding drift accepted")
 	}
 }
 func TestOldDefaultsAndSecretBearingEndpointsReject(t *testing.T) {

@@ -22,7 +22,7 @@ type humanOutput string
 type addCommand func(string, string, int, func(*cobra.Command, []string, *authority.Authority) (any, error)) *cobra.Command
 
 func usageCommands(root *cobra.Command, add addCommand, configPath *string, open func(*authority.Authority, string) (*work.Work, error)) {
-	var setup onboarding.Setup
+	setup := onboarding.Setup{SandboxFactories: sandboxFactories()}
 	setupCmd := &cobra.Command{Use: "setup", Short: "Configure model and remote Sandbox once", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, _ []string) error {
 		setup.ConfigPath = *configPath
 		setup.Input = cmd.InOrStdin()
@@ -34,7 +34,9 @@ func usageCommands(root *cobra.Command, add addCommand, configPath *string, open
 	flags.StringVar(&setup.Model, "model", "", "model ID in Pi catalog")
 	flags.StringVar(&setup.ModelFile, "model-file", "", "custom portable native Pi model JSON")
 	flags.StringVar(&setup.ModelEndpoint, "model-endpoint", "", "override model API base URL")
-	flags.StringVar(&setup.SandboxEndpoint, "sandbox-endpoint", "", "remote OpenSandbox origin")
+	flags.StringVar(&setup.SandboxProvider, "sandbox-provider", "", "versioned task provider (opensandbox/v1)")
+	flags.StringVar(&setup.SandboxOptions, "sandbox-options", "", "provider options JSON file without credentials (omit to use installed preset)")
+	flags.StringVar(&setup.SandboxEndpoint, "sandbox-endpoint", "", "remote Sandbox endpoint")
 	flags.StringVar(&setup.ModelKeyEnv, "model-key-env", "", "existing model credential environment variable")
 	flags.StringVar(&setup.SandboxKeyEnv, "sandbox-key-env", "", "existing Sandbox credential environment variable")
 	flags.StringVar(&setup.ModelKeyFile, "model-key-file", "", "existing private model credential file")
@@ -244,8 +246,8 @@ func hostBinding(host *config.Config) func(*controller.Runtime, *work.Work) erro
 			active.Model, active.APIKey, active.ModelCommand = resolved.Model, resolved.APIKey, resolved.Worker
 			return nil
 		}
-		r.Targets, err = host.ResolveTargets(w.Definition.Targets)
-		r.ResolveSandbox = host.ResolveSavedSandbox
+		r.Targets, err = sandboxResolver(host).ResolveTargets(w.Definition.Targets)
+		r.ResolveSandbox = sandboxResolver(host).ResolveSavedSandbox
 		return err
 	}
 }

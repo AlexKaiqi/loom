@@ -22,7 +22,7 @@ class Prerequisites(unittest.TestCase):
             prefix = root / 'installation'
             workspace = root / 'workspace'
             started = time.monotonic()
-            result = subprocess.run([sys.executable, str(ROOT/'scripts/install.py'), '--prefix', str(prefix),
+            result = subprocess.run([sys.executable, str(ROOT/'scripts/install.py'), '--deployment', 'docker', '--prefix', str(prefix),
                 '--workspace-root', str(workspace)], capture_output=True, text=True, timeout=25,
                 env=dict(os.environ, PATH=str(tools)+os.pathsep+os.environ.get('PATH', '')))
             self.assertNotEqual(result.returncode, 0)

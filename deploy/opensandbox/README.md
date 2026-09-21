@@ -1,6 +1,6 @@
 # OpenSandbox deployment
 
-Loom's Go Runtime uses the official Go SDK and a separately deployed official server image. It never launches Docker from the Runtime. The supported deployment uses server v0.2.3 and execd v1.1.0, both digest-pinned in `versions.json`. No Loom sandbox image, Python proxy or custom Docker API proxy is built. The Go SDK is pinned to official commit `ff4d1bc269cf6a9be03592649bed19633bf45222`. See [the Sandbox contract](../../docs/loom-design-book.html#chapter-7).
+The optional `opensandbox/v1` task adapter uses the official Go SDK and a separately deployed official server image. The CLI composition root registers it; Runtime and configuration packages depend only on provider contracts. It never launches Docker from the Runtime. The supported deployment uses server v0.2.3 and execd v1.1.0, both digest-pinned in `versions.json`. No Loom sandbox image, Python proxy or custom Docker API proxy is built. The Go SDK is pinned to official commit `ff4d1bc269cf6a9be03592649bed19633bf45222`. See [the Sandbox contract](../../docs/loom-design-book.html#chapter-7).
 
 The `code` profile uses upstream bubblewrap isolated sessions and upstream seccomp configuration. `execd.toml` preserves execd's built-in syscall deny list and adds socket/socketpair/connect denial. This closes access to the privileged execd HTTP endpoint from task code. The Runtime verifies this restriction inside each session before dispatching user code. Task processes have uid/gid 65534, zero effective/permitted/ambient capabilities and `no_new_privs=1`.
 

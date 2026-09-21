@@ -100,8 +100,8 @@ class GoAcceptance(CLIFixture):
         try:
             image = json.loads((ROOT / "deploy/opensandbox/versions.json").read_text())["code"]
             endpoint = "http://127.0.0.1:" + str(server.server_port)
-            self.config.write_text('[sandboxes.sandbox-main]\napi_key_env="LOOM_TEST_SANDBOX_KEY"\nendpoint=' + json.dumps(endpoint) + '\n')
-            binding = {"service_id": "sandbox-main", "endpoint": endpoint, "image": image, "profile": "code", "cpu": "1", "memory": "512Mi", "lease_seconds": 600, "request_timeout_seconds": 30}
+            self.config.write_text('[sandboxes.sandbox-main]\nprovider="opensandbox/v1"\napi_key_env="LOOM_TEST_SANDBOX_KEY"\nendpoint=' + json.dumps(endpoint) + '\n')
+            binding = {"service_id": "sandbox-main", "endpoint": endpoint, "provider": "opensandbox/v1", "options_json": json.dumps({"image": image, "profile": "code", "cpu": "1", "memory": "512Mi", "lease_seconds": 600, "request_timeout_seconds": 30}, sort_keys=True, separators=(",", ":"))}
             with closing(sqlite3.connect(work / ".loom/state.sqlite")) as db, db:
                 db.execute("INSERT INTO rounds(id,owner,input_seq,state) VALUES('query-round','old-owner',1,'blocked')")
                 db.execute("INSERT INTO effects(id,round_id,key,kind,request,digest,status,receipt) VALUES('query-effect','query-round','old','tool.exec',?,'fixture','unknown',?)", (json.dumps({'environment':'sandbox'}), json.dumps({"sandbox_id": "missing-sandbox", "execution_id": "missing-session/missing-run", "binding": binding}),))
