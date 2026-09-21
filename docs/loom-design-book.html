@@ -34,7 +34,7 @@
 @media print{.context-cycle{grid-template-columns:repeat(4,minmax(0,1fr));break-inside:avoid}.context-cycle strong{font-size:10pt}.context-cycle p{font-size:8pt}}
 
 .codebar{gap:10px}.codebar>span{min-width:0;overflow-wrap:anywhere}.codebar>button{flex:0 0 auto}
-</style><meta content="context-control-2026-09-21" name="document-revision"/><style>
+</style><meta content="user-level-local-execution-2026-09-21" name="document-revision"/><style>
 /* Independent resources are outside the Work state group. */
 .independent-resource{margin-top:16px;padding:18px 20px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:5px;background:var(--paper)}
 .independent-resource>strong{display:block;font-size:16px;margin:5px 0 8px}
@@ -42,10 +42,10 @@
 .independent-resource small{display:block;font-size:11px;color:var(--muted)}
 @media(max-width:800px){.independent-resource{padding:15px}.independent-resource>strong{font-size:15px}}
 </style></head>
-<body><aside class="sidebar"><div class="wordmark">LOOM</div><div class="brand-sub">FLEXIBLE HARNESS / DURABLE WORK</div><nav aria-label="章节目录"><a data-chapter="chapter-1" href="#chapter-1"><span>01</span>为什么需要这个底座</a><a data-chapter="chapter-2" href="#chapter-2"><span>02</span>总体架构与运行分工</a><a data-chapter="chapter-3" href="#chapter-3"><span>03</span>核心对象与状态归属</a><a data-chapter="chapter-4" href="#chapter-4"><span>04</span>Work 目录与长期推理面</a><a data-chapter="chapter-5" href="#chapter-5"><span>05</span>本版固定技术基线</a><a data-chapter="chapter-6" href="#chapter-6"><span>06</span>最小数据与协议契约</a><a data-chapter="chapter-7" href="#chapter-7"><span>07</span>执行目标与内容交接</a><a data-chapter="chapter-8" href="#chapter-8"><span>08</span>推进、等待与恢复</a><a data-chapter="chapter-9" href="#chapter-9"><span>09</span>不变量索引</a><a data-chapter="chapter-10" href="#chapter-10"><span>10</span>验收与反例</a><a data-chapter="chapter-11" href="#chapter-11"><span>11</span>重建、发布与替换规则</a><a data-chapter="chapter-12" href="#chapter-12"><span>12</span>必要理由与技术依据</a></nav><div class="side-bottom"><strong>规范 1.6 · 基线 3</strong>2026-09-21<br/>多样 Harness · 同一底座<br/>本书是唯一规范入口。<div class="progress"><div id="read-progress"></div></div></div></aside>
+<body><aside class="sidebar"><div class="wordmark">LOOM</div><div class="brand-sub">FLEXIBLE HARNESS / DURABLE WORK</div><nav aria-label="章节目录"><a data-chapter="chapter-1" href="#chapter-1"><span>01</span>为什么需要这个底座</a><a data-chapter="chapter-2" href="#chapter-2"><span>02</span>总体架构与运行分工</a><a data-chapter="chapter-3" href="#chapter-3"><span>03</span>核心对象与状态归属</a><a data-chapter="chapter-4" href="#chapter-4"><span>04</span>Work 目录与长期推理面</a><a data-chapter="chapter-5" href="#chapter-5"><span>05</span>本版固定技术基线</a><a data-chapter="chapter-6" href="#chapter-6"><span>06</span>最小数据与协议契约</a><a data-chapter="chapter-7" href="#chapter-7"><span>07</span>执行目标与内容交接</a><a data-chapter="chapter-8" href="#chapter-8"><span>08</span>推进、等待与恢复</a><a data-chapter="chapter-9" href="#chapter-9"><span>09</span>不变量索引</a><a data-chapter="chapter-10" href="#chapter-10"><span>10</span>验收与反例</a><a data-chapter="chapter-11" href="#chapter-11"><span>11</span>重建、发布与替换规则</a><a data-chapter="chapter-12" href="#chapter-12"><span>12</span>必要理由与技术依据</a></nav><div class="side-bottom"><strong>规范 1.9 · 基线 4</strong>2026-09-21<br/>多样 Harness · 同一底座<br/>本书是唯一规范入口。<div class="progress"><div id="read-progress"></div></div></div></aside>
 <main class="page" id="top">
 <header class="cover">
-<div class="eyebrow"><span>LOOM / DESIGN BOOK</span><span class="status">规范 1.6 · 基线 3</span></div>
+<div class="eyebrow"><span>LOOM / DESIGN BOOK</span><span class="status">规范 1.9 · 基线 4</span></div>
 <h1>让 Harness 更灵活。<br/><em>让工作持续推进。</em></h1>
 <p class="lede">Loom 为可编写、可修改、可扩展的 Harness 提供中立、持久、可恢复的运行基础。普通代码定义工作如何推进；不同 Work 独立推进或按需协作。工作以文件和持久记录存在，由事件驱动，按需加载并恢复继续。</p>
 <div class="cover-meta"><a class="primary-link" href="#chapter-1">理解系统目标 ↓</a><a href="#chapter-4">目录结构</a><a href="#chapter-5">技术选型</a><a href="#section-4-6">最简 Harness</a><button class="secondary" id="print-book" type="button">打印本书</button></div>
@@ -88,11 +88,11 @@
 <h3 id="section-1-5">范围与判断边界</h3>
 <p>Loom 不是一套固定 Agent 策略，也不是通用动态插件组合平台。它不在 Runtime 内预设业务计划、父子任务关系或通用完成判断。<strong>默认在持久交接后整体重新加载 Harness，不要求在活跃进程内逐项替换或撤销组件。</strong> 同一 Work 更换版本仍须处理状态兼容和未结责任；具体 Harness 可以使用内部插件或生命周期库，但这不是其他 Harness 的接入前提。</p>
 <p><strong>Harness 的灵活性是核心目标；不同 Harness 共存与 Work 独立推进是基本能力，多 Work 协作是可选的推进方式。</strong> Work 可以彼此无关；协作也可以使用同一种 Harness。不要求每个任务拆分，不以团队、角色或工作流图重新组织底座。协作契约见<a href="#section-8-4">第 8.4 节</a>。</p>
-<p>首期必须验证普通代码策略可编写、修改和替换，不同 Harness 可在同一底座推进；同时验证文件化工作状态、事件唤醒、卸载与恢复，并复用共同投影和模型适配。任务执行采用 Provider 契约与 Linux 隔离基线，验证同 Work 双 Linux 目标；macOS、Simulator、真机和媒体流按实际需要接入，不能用扩充平台数量代替核心验收。</p>
-<p>隔离、效果托管、持久提交与完整记录，是使上述能力可靠成立的保障，详见后续契约。本书不承诺任意进程快照、未知效果自动重放或跨宿主共享 SQLite，也不自建第二套模型循环。具体技术选型见<a href="#chapter-5">第 5 章</a>；重建和发布规则见<a href="#chapter-11">第 11 章</a>。</p>
+<p>首期必须验证普通代码策略可编写、修改和替换，不同 Harness 可在同一底座推进；同时验证文件化工作状态、事件唤醒、卸载与恢复，并复用共同投影和模型适配。<strong>默认发行在 macOS 与受支持的 Linux 上提供普通用户可直接使用的 Runtime、Work 执行能力和本地轻量 Sandbox，安装、运行与更新不要求宿主 root 或管理员预置执行设施。</strong> 先验证本地单／双 Target；容器、远程环境、Simulator、真机和媒体流按实际需要接入，不能代替基础安装与运行验收。支持范围及依赖交付见<a href="#section-5-5">第 5.5 节</a>。</p>
+<p>访问管控、效果托管、持久提交与完整记录，是使上述能力可靠成立的保障，详见后续契约。本书不承诺任意进程快照、未知效果自动重放或跨宿主共享 SQLite，也不自建第二套模型循环。具体技术选型见<a href="#chapter-5">第 5 章</a>；重建和发布规则见<a href="#chapter-11">第 11 章</a>。</p>
 </section>
 <section class="chapter contract" id="chapter-2"><div class="chapter-kicker">C / SYSTEM CONTRACT</div><h2>02. 总体架构与运行分工</h2><p class="chapter-lede">Harness 定义工作方式；Runtime 托管持久运行；Sandbox 独立执行。</p>
-<p>系统分为三个平面：<strong>Runtime 控制面、Work 数据与策略面、任务 Sandbox 执行面</strong>。Work 是持久存在的工作实例，每个 Work 绑定自己的 Harness 版本，临时加载的是执行进程。<strong>Userspace 是三个平面按授权使用的独立任务资源，不是 Work 的子目录或 Sandbox 的附属存储。</strong> 投影—模型适配提供共同模型路径，任务执行可独立、远程接入。</p>
+<p>系统分为三个平面：<strong>Runtime 控制面、Work 数据与策略面、任务 Sandbox 执行面</strong>。Work 是持久存在的工作实例，每个 Work 绑定自己的 Harness 版本，临时加载的是执行进程。<strong>Userspace 是三个平面按授权使用的独立任务资源，不是 Work 的子目录或 Sandbox 的附属存储。</strong> 投影—模型适配提供共同模型路径，任务执行可本地或远程接入。<strong>三个平面区分职责与授权，不要求分别安装或部署。</strong> 默认复用本机普通用户级设施，按执行角色应用不同管控范围。</p>
 <div aria-labelledby="architecture-caption" class="architecture purpose-architecture" role="figure">
 <div class="arch-caption" id="architecture-caption"><span class="small-label">ONE RUNTIME / MANY HARNESSES</span><span>示意状态，不表示实现已经通过验收。</span></div>
 <div class="arch-top"><span>使用者输入 · 工具结果 · 跨 Work 事件</span><span class="arrow">↓ 持久受理；按责任找到需要推进的 Work</span></div>
@@ -103,13 +103,13 @@
 <div class="work-card"><span class="work-state">活跃推进</span><h4>Work B</h4><strong>持续跟踪策略 · vB</strong><p>响应输入、更新判断与等待</p><div>Surface · 策略版本<br/>资源引用 · 事实与继续依据</div></div>
 <div class="work-card waiting"><span class="work-state">持久等待</span><h4>Work C</h4><strong>指定 Harness · vC</strong><p>当前不需要专属 Agent 进程</p><div>订阅与唤醒责任由 Runtime 托管<br/>事件到来后加载继续</div></div>
 </div>
-<p class="fleet-note">Work 持久存在；A、B 的活跃执行使用共享 Linux 设施中的受限进程。不同 Work 不共享可写控制身份。</p>
+<p class="fleet-note">Work 持久存在；A、B 的活跃执行使用当前宿主的普通用户级受控进程。逻辑身份和权限分别绑定，不要求不同系统账户；获准资料可以共享，控制能力不能混用。</p>
 <div class="shared-capabilities">
 <div class="arch-card"><span class="arch-connector">共同模型路径 / 不固定投影策略</span><h4>投影 → 模型适配</h4><p>Surface + 获准事实 → Harness 投影<br/>Pi 适配与模型—工具局部循环</p><small>实际输入与继续依据留存。模型请求、工具动作仍经 Runtime 授权和持久托管。</small></div>
-<div class="arch-card"><span class="arch-connector">独立执行层 / 可远程接入</span><h4>任务 Sandbox</h4><p>具名 Target → 确定 Allocation<br/>按宿主配置选择 Provider；隔离进程、容器或 VM</p><small>任务代码、数据和产物显式交接。Sandbox 不拥有 Work 的核心记忆与控制资料。</small></div>
+<div class="arch-card"><span class="arch-connector">独立执行层 / 本地默认可用</span><h4>任务 Sandbox</h4><p>具名 Target → 确定 Allocation<br/>默认本地轻量进程；容器／远程后端按需接入</p><small>与 Work 复用无特权启动设施，分别限制访问范围。任务内容显式交接，不开放控制账本或管理凭据。</small></div>
 </div>
 <div class="arch-storage"><div><span class="small-label">FILE-FIRST WORK</span><strong>Harness · Surface · 资源版本引用</strong><span>本 Work 的文件、选择与推进状态</span></div><div><span class="small-label">DURABLE CONTINUATION</span><strong>账本 · 原始记录 · 已确认继续依据</strong><span>支持事件唤醒、正常接续和异常核对</span></div></div><div class="independent-resource"><span class="small-label">INDEPENDENT USERSPACE / AUTHORIZED BINDINGS</span><strong>Userspace：用户的项目、数据与产物</strong><p>多个 Work 可使用同一资源，一个 Work 也可使用多个资源。任务目标得到获准副本或确定产物；保存副本进度不自动更新共享项目。</p><small>Userspace 不随 Work 结束或 Sandbox 释放而删除，不要求搬入 Loom 管理目录。</small></div>
-</div><p>这里的隔离指可验证的文件、进程、网络、权限和资源边界，不要求不同物理机器；共享内核的受限进程也不能宣称具有独立虚拟机的隔离强度。单机不是产品上限，多实例部署仍须满足单 Work 的排他写入与责任约束。</p>
+</div><p>这里的<strong>管控</strong>指对文件、进程、通信、工具能力及资源使用的可验证约束，隔离是落实这些约束的手段，不是让 Work 彼此成为封闭孤岛。允许按授权共读资料、读取对方发布内容和定向交付；不要求不同物理机器、系统账户、容器或虚拟机。共享内核仍有共同故障域，不能宣称独立内核的保护强度。多实例部署继续满足单 Work 的排他写入与责任约束。</p>
 <p><strong>共用底座，不等于共用一份策略。</strong> Work 各自携带 Harness、Surface 和持久状态；Runtime 用相同契约托管它们的生命周期。Sandbox 与模型组件提供可复用能力，不把某种业务推进方式反向写进 Runtime。</p><div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -139,11 +139,7 @@
 <td>Provider 编解码、原生消息、活跃模型—工具循环与原生继续点</td>
 <td>不自行裁剪、归档或摘要上下文，不拥有 Work 调度与授权</td>
 </tr>
-<tr>
-<td>Work 执行设施</td>
-<td>共享 Linux 环境、按 Work 身份执行、受限文件视图、进程与资源限制</td>
-<td>不以工作目录代替隔离，不默认开放控制端点或任务资源</td>
-</tr>
+<tr><td>Work 执行设施</td><td>macOS／Linux 原生用户级启动、角色能力绑定、受控文件与通信范围、子进程跟踪及清理</td><td>与本地任务执行复用设施但分别授权；工作目录、同一 UID 或提示词不代替实际限制</td></tr>
 <tr>
 <td>任务执行适配器 / Provider</td>
 <td>取得或归还执行资源、执行获准操作、报告能力与原生状态、交付文件或观测</td>
@@ -154,23 +150,23 @@
 <td>Work 模板组装、Harness 分支/worktree、fork 与交互入口</td>
 <td>不绕过 Runtime 的责任和授权，不把 Git 分支语义放入内核</td>
 </tr>
-<tr>
-<td>宿主部署设施</td>
-<td>身份映射、服务绑定、凭据与物理授权配置</td>
-<td>不随 Work 导出，不由模型或 Harness 自报</td>
-</tr>
+<tr><td>宿主用户配置／可选部署设施</td><td>用户级服务与资源绑定、凭据引用、授权策略；按需连接外部执行服务</td><td>默认不要求管理员权限；配置不由 Harness 自授，也不随 Work 导出</td></tr>
 </tbody>
 </table></div>
 <p>Harness 决定为何推进及使用什么能力；Runtime 决定是否获准、如何保存责任并交接；Pi 负责活跃的模型—工具局部循环；Sandbox 负责实际任务执行。所有模型请求与工具调用经 Runtime 授权和效果托管后才下发，Harness、Work Bash 和模型都不能绕过该边界访问管理端点。</p>
 <h3 id="section-2-1">任务执行契约与依赖方向</h3>
 <p>Runtime 核心只依赖 Loom 拥有的任务执行契约，不依赖某个 Sandbox SDK 的类型、异常或状态枚举。厂商 SDK、管理地址、凭据和原生状态映射集中在受控适配器。该边界是代码与语义边界，不要求新建一个常驻微服务，也不要求重新发明远程执行协议。</p>
-<p>任务 Provider 由宿主显式选择；Runtime、配置解析和公共契约不依赖任何具体 Provider。组装入口注册适配器工厂，适配器依赖 Runtime 拥有的契约并复用成熟 SDK。普通代码优先使用预置工具链中的进程 Provider；OpenSandbox 是容器等环境的参考适配器，不是所有任务必须使用的底座；Docker 只是该参考部署的一种承载方式。新增 Provider 只增加适配器、宿主配置与组合注册，不修改 Runtime 核心。只有满足已声明能力、授权、内容交接和责任语义的后端才可替换；统一接口不承诺操作系统命令兼容、活跃进程迁移或未知效果跨 Provider 重试。</p>
+<p>任务 Provider 由宿主配置显式绑定；Runtime、配置解析和公共契约不依赖任何具体 Provider。组装入口注册适配器工厂，适配器依赖 Runtime 拥有的契约并复用成熟实现。<strong>官方默认发行注册并配置内置 <code>local-process/v1</code>，提供可直接使用的 <code>local-dev</code> Profile；普通任务不需要用户先选择或部署后端。</strong> 这是发行组装的明确默认，不是 Runtime 内的隐式回退。Docker、远程进程与 Sandbox、VM 等按需接入；OpenSandbox 继续作为可选参考适配器，不恢复为所有任务的必需底座。新增 Provider 只增加适配器、宿主配置与组合注册，不修改 Runtime 核心。只有满足已声明能力、授权、内容交接和责任语义的后端才可替换；统一接口不承诺操作系统命令兼容、活跃进程迁移或未知效果跨 Provider 重试。</p>
 <h3 id="section-2-2">资源授权与控制角色</h3>
 <p><strong>同一 Work 的资源授权上限，不等于所有进程具有相同的有效权限。</strong> Harness 可请求投影提交、获准效果、订阅与等待；启用<a href="#section-6-8">受限 Work 创建或交付能力</a>时，也只可在授予的范围内请求。Work Bash 不持有该策略控制通道。两者都不能扩大宿主授予 Work 的资源范围，也不能直接改写账本、认领别的 Work、任意设置消费游标或声明某个外部效果已经成功。</p>
 <p>控制能力绑定 Work、Round、执行世代、实际策略版本和允许的操作集合，由 Runtime 创建并撤销，不由调用者自报。本版本地协议使用 Runtime 创建的专有继承通道（第 5、6 章）；通道本身不自动证明其不可被复制。Runtime 执行设施负责启动模型可用的 Work Bash，建立不继承控制能力的独立工具角色；不能只依赖 Harness 主动降权。Harness 自行启动的普通子程序仍属于 Harness 策略域，不因为程序名是 Bash 就变成工具域。</p>
 <p>Harness 是获得有限委托的策略程序，不是宿主的可信管理员。即使策略错误或恶意，Runtime 仍须验证授权、执行世代、请求绑定和状态转换。Harness 的自述只保存为有来源的策略声明；外部结果与基础设施状态由对应受控适配器记录其实际观察，不把调用者自述升级为 Runtime 已核验的事实。</p>
 <p><strong>效果记账以 Runtime 接受的调用为边界。</strong> 一次授权 Shell 调用内部的任意 HTTP 请求或业务写入，不自动成为逐项可核对的 Effect。要求更细粒度保证时，必须显式将相关外部访问收敛到受控适配器或出口；不能一面开放任意网络，一面承诺逐项外部效果审计。</p>
 <p>Loom 不自建模型厂商编解码、第二套模型循环、版本控制引擎、容器引擎、浏览器或桌面自动化引擎。内部任务执行契约只统一授权、责任与必要操作语义；适配器优先使用已有 SDK 和协议。业务计划、父子任务关系、固定 DAG 和通用业务完成判断不属于 Runtime。</p>
+<h3 id="section-2-3">默认管控模型：按授权协作，而非完全封闭</h3>
+<p><strong>Runtime 以安装用户身份运行；“宿主授权”指使用者在受信配置或交互入口授予应用的能力，不等于操作系统 root。</strong> Runtime 决定请求是否获准，原生轻量沙箱约束 Harness、模型可用 Bash 及其子进程的实际访问。不能只检查一次“允许 Bash”，就把该用户原有的全部文件、凭据与通信能力传进去。</p>
+<p>默认边界保护 Runtime 账本、执行与授权配置、模型及 Provider 凭据、运行中的策略快照和未授权私人资料。Work 之间可以获准共读资源、读取指定 Surface 或产物，并通过受控事件协作；授权读取不等于消费输入，获准共享也不取消写入协调。扩大访问由宿主确认，不能由任务修改自身策略文件获得。</p>
+<p>本地默认信任宿主操作系统、当前用户及 Loom 的受信控制组件；管控对象是 Loom 启动的普通策略／工具代码及其派生进程。它不承诺抵御已控制该登录账户的非受控程序、宿主管理员、内核漏洞或独立内核级攻击。没有 root 也不自动证明安全：声明范围内的越权访问、控制通道冒用和残留写入仍须被拒绝。更强的多租户、内核或硬资源隔离由满足要求的可选后端提供，不能反向成为普通 Work 的安装前提。</p>
 </section><section class="chapter contract" id="chapter-3"><div class="chapter-kicker">C / SYSTEM CONTRACT</div><h2>03. 核心对象与状态归属</h2><p class="chapter-lede">Harness 是可替换策略，Work 是持久单元；其他对象服务于它们的运行与接续。</p>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
@@ -293,6 +289,7 @@
 <h3 id="section-4-5">必要状态不等于必须新建目录</h3>
 <p>资源声明属于可移植配置，实际使用的确定内容与范围绑定记录或检查点。必要文件依赖可复用受控 Git 内容库保存获准快照，非文件原生产物复用不可变记录；外部存储提供可验证保留保证时也可保留引用。<strong>保存必要快照不等于接管整个 Userspace。</strong> 不要求每次复制完整项目，但必须保留继续所需字节与语义，不能只留下可能失效的路径、分支名或 URL；导出按<a href="#section-8-6">第 8.6 节</a>验证依赖完整性。</p>
 <p>接收、校验和发布候选是必要步骤，暂存目录名由实现决定，不成为独立权威状态源。未发布不等于可任意删除：被未结责任、活跃传输或提交过程依赖的对象必须有持久记录和保留保护。只能清理确认无必要引用的临时副本；任何必要结果的唯一副本都不得仅以“缓存”或“暂存”名义保存。</p>
+<p>文件版本的收敛目标是<strong>一套受控 Git 内容树及必要元数据清单</strong>，覆盖 Work 快照与资源副本；tar 只承担传输／导出编码，不继续作为另一套文件版本身份。原生响应、模型输入和日志仍是不可变记录。切换按<a href="#section-11-6-content">第 11.6 节 P2</a>处理持久格式及全部历史引用，不能只替换当前副本而留下两套生产内容机制。</p>
 <h3 id="section-4-6">最简参考 Harness：模型主动控制上下文</h3>
 <p><strong>本节约束随底座交付的参考 Harness，不定义新的 Runtime 业务内核。</strong> 使用普通代码完成投影、上下文选择、工具配置与事件响应；共同接入层负责持久交接，<code>pi-ai</code> 负责模型接口适配，既定 Pi agent-core 承担局部循环。参考策略先验证普通工作能否自然推进，再作为私人助手、卡片制作等场景的起点；不要求每个功能新建 Work。</p>
 <div aria-label="上下文控制闭环" class="context-cycle">
@@ -387,12 +384,7 @@ sqlite3 -readonly -header -column "$FACTS_DB" \
 <td><code>.loom/records/</code> 存原生载荷和实际输入，SQLite 保存类型与引用；不是额外搭建一个对象存储服务</td>
 <td>对象存储可替换后端，必须保留摘要、保留保护、耐久确认与导出完整性</td>
 </tr>
-<tr>
-<td><strong>B05</strong></td>
-<td><strong>Linux 受限进程；角色 UID、namespace、cgroup v2</strong></td>
-<td>多 Work 复用 Linux 环境；Harness 和 Work Bash 分身份。复用成熟启动/隔离设施，不要求每 Work 一台 VM</td>
-<td>成熟 launcher 的具体库可在实现中选定并锁定；边界与负向测试不可换。macOS 宿主承载 Linux 环境</td>
-</tr>
+<tr><td><strong>B05</strong></td><td><strong>原生无特权进程管控：集成锁定的 Anthropic Sandbox Runtime；底层 macOS Seatbelt、Linux Bubblewrap</strong></td><td>Runtime 与执行启动器以普通用户运行；本地执行通过锁定的 SRT CLI／库落实受控文件视图、进程／IPC／网络限制与代理式网络控制：macOS 动态生成 Seatbelt profile，Linux 使用无特权 user namespace、移除网络 namespace 并叠加必要 seccomp 规则。角色能力不同，不要求不同宿主 UID</td><td>SBPL／策略生成、网络代理、平台兼容与违规诊断由上游维护，不由 Loom 自建替代实现；锁定版本记入发布锁，其 Beta 状态与上游 API 演进记入支持矩阵。不引入 root helper、setuid／setcap 提权或必须的 cgroup 委派；整组硬配额不在本地默认能力内，按支持能力显式表达。见 <a class="cite" href="#src-sandbox-runtime">[S16]</a>、5.3、5.5</td></tr>
 <tr>
 <td><strong>B06</strong></td>
 <td><strong>JSON-RPC 2.0；本地继承的双向通道</strong></td>
@@ -405,12 +397,7 @@ sqlite3 -readonly -header -column "$FACTS_DB" \
 <td><code>pi-ai</code> 负责模型 API；Pi agent-core 复用局部循环。投影与上下文选择归 Harness，不接入完整 coding-agent 的默认工具或自动 compaction；每次调用均经过 Runtime 确认屏障</td>
 <td>替换 Pi 只在模型组件边界发生；保留原始格式与旧继续依据。不引入其独立 Work 账本或调度</td>
 </tr>
-<tr>
-<td><strong>B08</strong></td>
-<td><strong>Provider 依赖倒置；SSH 进程与 OpenSandbox SDK 适配器</strong></td>
-<td>厂商类型只在各自 <code>adapters/&lt;provider&gt;</code> 中出现。复用现成生命周期与执行协议，不自建容器控制器</td>
-<td>Provider 接口允许新增其他后端；旧效果始终使用原 Provider 与 Allocation 核对</td>
-</tr>
+<tr><td><strong>B08</strong></td><td><strong>Provider 依赖倒置；内置 local-process/v1，其他后端可选</strong></td><td>默认安装自带可用本地 Provider 和工具链。原生执行机制／厂商 SDK 只在执行层或各自适配器出现；Docker、远程进程、OpenSandbox、VM 不成为核心依赖</td><td>保留工厂注册、保存的 Provider 绑定与旧效果原目的地核对；默认组装不写入 Runtime 通用逻辑，不按失败结果切换后端</td></tr>
 <tr><td>B09</td><td>隔离工作副本 + 显式文件交接</td><td>从独立 Userspace 的确定版本准备副本；按工具边界保存各自进度，不把交接默认为合入共享目标</td><td>持久卷是经验证的能力扩展；不能降低副本隔离、条件更新和恢复保证</td></tr>
 <tr>
 <td><strong>B10</strong></td>
@@ -441,33 +428,62 @@ PRAGMA foreign_keys = ON;
 <p>本版 Git 配置基线为 <code>core.fsync=all</code>、<code>core.fsyncMethod=fsync</code>；未支持这些设置的版本不能仅忽略警告后继续。持久对象先通过 Runtime 管理的保留引用保护，再提交 SQLite 权威引用；禁止未经协调的自动 GC/maintenance 删除候选或未结责任所需内容。具体捕获可以使用 Git plumbing，不能用一条 <code>git add .</code> 代替范围与字节保证。<a class="cite" href="#src-git-durable">[S4]</a></p>
 <p>普通文件的 <code>fsync</code> 不自动使父目录项耐久；本版发布流程同时处理必要的文件、目录与底层存储确认。无论 Git、SDK 或文件 API 返回何种成功，最终保证只覆盖验收过的故障模型。<a class="cite" href="#src-fsync">[S5]</a></p>
 <p>内容物理分片和压缩算法可以调整；上述原始字节捕获仅针对底座内容库，不改变 Userspace 业务仓库的配置、提交或分支。默认支持普通文件、目录与符号链接，保留字节、相对路径、链接目标及可执行语义，链接不被隐式解引用为授权。空目录或 Git 未表达的必要元数据由版本清单补充。ACL、扩展属性、大小写冲突、设备文件、活跃数据库等需显式能力；必要语义不支持时拒绝捕获或导入，不静默丢弃。UID 与宿主授权不随内容复制。</p>
+<p><strong>捕获必须有稳定来源。</strong> 对仍会继续的受控执行域，先确认所有相关写入者暂时静止或失去对应写能力，再捕获并恢复同一执行域；最终交付与冲突接管要求终止性的 fence 确认。也可读取受控不可变暂存或经验证的原子文件系统快照。比较捕获前摘要、实际 Git 内容及元数据摘要、捕获后摘要，并核对物理根身份，用于发现冲突；三者一致不能替代稳定来源证据，也不能排除扫描期间的 ABA 往返修改。无法建立稳定边界时拒绝发布，不把不受控活体目录的两次扫描冒充原子快照。</p>
 <h3 id="section-5-3">5.3 本地控制通道与受限进程</h3>
 <p>Runtime 创建双向字节通道并仅向该次 Harness 进程注入端点；本版约定由启动器暴露为 <strong>FD 3</strong>。Wire 使用 UTF-8、每行一个完整 JSON-RPC 2.0 对象，字符串内部换行必须转义；不使用 batch。<code>stdout/stderr</code> 是日志而非控制协议。握手帧上限为 64 KiB；后续最大帧大小由双方能力与宿主上限取较小值。超限拒绝，不截断；大载荷通过受控文件发布或分块传输形成不可变记录后使用引用，不能通过放大控制帧绕过资源限制。</p>
 <p>同宿主的受信模型适配器可协商 <code>record.file/1</code>：Runtime 在该角色的握手会话中绑定私有记录目录，正文按摘要、字节长度和媒体类型引用；双方校验字节，采用不可覆盖的原子发布。目录位置是本次宿主通道配置，不进入便携 Work 配置，也不授予外部事实确认权。凭据和私有模型传输头仍只在受信控制通道传递，不能进入正文记录。此能力不开放给 Harness 或模型可用的 Bash；Harness 仅向其获准输出目录写候选，由 Runtime 发布，原生轮次通过已有只读来源视图交给策略。跨宿主传输可采用受控对象读写或分块接口，保持同样的引用、校验与确认语义。</p>
 <p>首消息是版本握手，失败后不得接受任何状态变更。Work、Round、epoch、策略版本与允许操作集合由 Runtime 绑定通道；消息中的同名字段只能用于交叉检查，不产生身份或权限。Work Bash 由独立执行设施启动，不继承 FD 3 或策略进程访问能力；Harness 子程序继承到的能力仍受同一委托限制。</p>
-<p>隔离基线固定 <strong>每 Work/角色的独立有效 UID、受限文件挂载视图、进程访问隔离、显式网络策略、无宿主管理 capabilities、cgroup v2 资源与子进程清理</strong>。启动设施如 systemd 或等价成熟 launcher 是部署依赖，具体实现必须记录，且不能把单个配置开关当安全证明。命令开始前完成边界建立；范围内的必要写入者未停止或失去写能力时，拒绝冲突接管。<a class="cite" href="#src-isolation">[S6]</a></p>
+<p><strong>控制角色由通道与访问策略区分，不固定为不同宿主 UID。</strong> 启动器在任何不受信代码运行前建立文件、进程／IPC 与网络限制，并清理继承 FD、环境变量和不需要的代理／管理连接。本地执行组件自身的动态配置通道（如 SRT 的 control FD）不得占用 FD 3 或干扰该通道；默认按次独立调用并以独立配置文件表达授权，不依赖运行中改写文件范围。Harness 与 Work Bash 可属于同一安装用户，但 Bash 不能读取策略进程内存、取得 FD 3、修改授权配置或替换运行中的策略快照。Linux 的 <code>/proc</code>、Unix socket 与调试路径，macOS 的进程访问与 Mach／本地服务入口，都按所用机制验证，不能只依赖路径名、文件 mode 或连接方自报身份。<a class="cite" href="#src-isolation">[S6]</a></p>
+<p>文件范围分别声明读取与写入；允许必要系统库和只读工具链，但不继承整个 HOME、私人资料、凭据或全局启动配置的访问权。任务可写范围不得包含 Runtime 安装目录、策略启用入口及共享控制文件。执行代码及其子进程受到同一上限约束；必要的获准资源共享不要求额外系统账户。命令开始前建立边界，相关写入者未停止或失去实际写能力时拒绝冲突接管。授权变更在后续操作与新执行中重新核验；对已运行进程，只有实际撤回对应能力，或停止后按新策略重新加载，才能确认撤权完成。不能只改配置就声称旧 FD、已有连接或写入能力已消失。</p>
+<p><strong>访问安全与硬资源配额分别报告。</strong> 本地默认提供并发准入、输出边界、超时及按原执行身份停止／核对；可用的进程级限制如实记录其作用范围。整组 CPU、内存、进程数或磁盘硬配额只在后端实际支持并经验证时声明，不把 cgroup v2 或 systemd 委派设为安装前提，也不将进程级限制冒充整组配额。任务要求缺失的硬能力时返回 <code>capability_missing</code>，不能默默忽略或向用户索取 root 来补齐。<a class="cite" href="#src-userlevel-limits">[S15]</a></p>
 <h3 id="section-5-4">5.4 模型组件：固定 Pi，但只复用需要的部分</h3><p>投影、事实选择、正文折叠与预算提示的职责分开：Harness 生成输入内容，Runtime／受控接入层提供预算事实与验证反馈，<code>pi-ai</code> 处理模型 API，agent-core 提供局部循环。参考 Harness 在每个安全的请求边界应用模型已保存的模板选择；不能让 Pi 的 coding-agent 自动 compaction 成为未经声明的第二套上下文策略。参考实现与对照测试分别见<a href="#section-4-6">第 4.6 节</a>、<a href="#section-10-3">第 10.3 节</a>。</p>
 <p>本版选择 Pi 的模型 API 与 agent-core 局部循环，在受控 TypeScript/Node 组件内适配；不把其完整交互 CLI、默认 Shell、扩展装载、自动上下文压缩或独立持久调度接入 Runtime。组件持有获准的模型服务连接，不向 Harness 或 Work Bash 传递管理凭据。</p>
 <p>Pi 文档提供自定义模型调用函数、工具钩子和继续入口，但“能订阅事件”不等于“事件处理会阻塞下一次效果”。因此，本版要求使用所锁定版本中<strong>可等待确认的屏障</strong>：发送每次模型请求前、执行每次工具前、继续依赖结果前，均等待 Runtime 持久确认；不能仅在事后监听事件写日志。<a class="cite" href="#src-pi">[S7]</a></p>
 <p>默认工具顺序执行；并行仅在 Runtime 已确认独立资源、明确效果身份和无冲突后启用。模型状态保存与继续阶段按版本报告并验证；<code>continue()</code> 只能推进既有状态，不能自动重试结果未知的请求。需要补充适配 hook 时在适配层实现并锁定；无法建立必要屏障就不宣称该版本已符合本书，不另写第二套模型循环弥补。</p>
-<h3 id="section-5-5">5.5 Sandbox Provider 与部署选择</h3>
-<div class="table-wrap"><table><thead><tr><th>场景</th><th>执行方式</th><th>生命周期</th></tr></thead><tbody>
-<tr><td>Work 内 Harness、Bash、文件查询</td><td>共享 Linux 设施中的受限进程；独立角色与文件视图</td><td>设施共享，按需启动进程</td></tr>
-<tr><td>普通代码、构建、测试</td><td>预置工具链 + 独立工作副本 + 受限进程；参考 <code>ssh-process/v1</code></td><td>不逐次创建容器或 VM；按工具边界保存内容</td></tr>
-<tr><td>Browser / Computer Use</td><td>预制环境中的独立会话，通过成熟浏览器/桌面服务接入</td><td>连续复用会话；重启不伪装为延续</td></tr>
-<tr><td>需要独立内核</td><td>成熟服务提供的 microVM、模板或快照</td><td>按所需内核隔离能力显式选择</td></tr>
+<h3 id="section-5-5">5.5 默认安装、本地执行与可选 Provider</h3>
+<p><strong>一次普通用户安装就提供完整本地闭环：Runtime、Work 执行、最简参考 Harness、共同模型组件和轻量任务 Sandbox。</strong> 安装、首次启动、更新与卸载均不要求宿主 root／sudo，不创建专用系统账户，不安装特权 daemon 或提权 helper，不修改系统级防火墙和安全策略，也不以 Docker socket、root SSH 或管理员预置资源为隐含前提。模型服务配置与使用者对资料的授权仍需提供，但不是部署执行设施。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>使用场景</th><th>默认或可选路径</th><th>实际边界</th></tr></thead><tbody>
+<tr><td>Runtime 与 Work</td><td>默认随发行提供；macOS／Linux 当前用户级进程</td><td>Work 是创建出的持久实例，不是单独安装的服务；活跃时加载 Harness 与工具，等待时卸载</td></tr>
+<tr><td>普通文件、代码、构建与测试</td><td>默认 <code>local-process/v1</code>：基础工具链＋授权副本＋原生轻量沙箱</td><td>与 Work 复用启动设施，使用不同权限范围；不经 localhost SSH，不逐次创建容器／VM</td></tr>
+<tr><td>特定镜像、系统库或运行环境</td><td>可选 Docker／OCI 或 OpenSandbox 适配器</td><td>使用时再准备服务／镜像与连接；缺少它们不影响本地默认能力</td></tr>
+<tr><td>远端算力、异构系统或独立内核</td><td>可选远程进程、Sandbox、VM 或设备后端</td><td>声明实际平台、访问与资源保证；不要求 Loom 取得远端 root 登录</td></tr>
+<tr><td>Browser／Computer Use 与媒体</td><td>可选成熟浏览器、桌面或设备会话</td><td>按功能申请用户许可；普通 Work 不预先申请屏幕录制、辅助功能或全盘访问</td></tr>
 </tbody></table></div>
-<p>不把最强隔离的成本施加到所有任务上。共享设施不表示共享权限：Work 控制数据、任务内容、其他 Work 与宿主管理凭据仍是不同可见范围。模型继续调用普通 Bash，选择 Work 或具名任务 Target，不需要学习部署命令。</p>
-<p><strong>普通代码参考 Provider：OpenSSH + systemd + NsJail。</strong> Provider 通过 SSH exec/SFTP 访问预置 Linux 设施，固定主机公钥及私有密钥引用；systemd transient unit 提供原生执行身份、资源上限、超时与进程组生命周期；NsJail 提供 UID、挂载/PID/网络命名空间与无额外 capabilities 的任务视图。Loom 不新增执行 daemon、RPC 服务、调度池或虚拟化实现。管理命令是受信适配器的组装细节，不作为模型工具暴露。</p>
-<p>每次执行在不可复用的原生 unit 名下运行，先固定请求身份与远端目录，再创建 unit；远端失联不重发创建或用户脚本。实际受限进程先输出就绪证据并阻塞于只读控制门，Runtime 确认 <code>prepared</code> 后才放行 Bash。原 unit、完整输出和工作副本在效果未知时保留；核对、取消只触及原绑定。取消和超时不证明业务结果；复制输出前须确认原进程域无存活写入者，确认内容保存后才释放资源。不能只以 Shell 退出码代替进程域 fencing。</p>
-<p><code>ssh-process/v1</code> 的宿主 Options 固定 <code>user</code>、<code>host_key</code>、<code>state_directory</code>、<code>nsjail</code>、<code>nsjail_sha256</code>、<code>memory_bytes</code>、<code>processes</code>、<code>cpu_percent</code>、<code>lease_seconds</code> 与 <code>request_timeout_seconds</code>。Endpoint 为不含凭据的 <code>ssh://host[:port]</code>；本版管理身份为 root，固定 Ed25519 主机公钥，控制端私钥仅从宿主私有引用读取。它是设施管理授权，不属于任务身份。工具链目录只包含可公开读取的程序；控制状态不得位于这些目录。分配与执行目录使用不可重用的请求摘要，已完成内容交接的释放保留身份标记；原生期限在断连后仍生效。实际安装版本与测量证据记录在发布材料中，不把本书中的就绪定义替换为单纯的进程启动时间。</p>
-<p>普通任务默认无网络，不挂载 Work 控制目录、SSH 凭据、systemd 控制接口或其他任务目录；只读资源以只读挂载落实。预置工具链由部署管理员管理，不让任务借安装工具获得宿主管理权限。需要联网、GUI、设备或独立内核的能力必须选择经过相应验收的 Profile/Provider，不自动降级或扩大普通进程权限。</p>
-
-<p>OpenSandbox 适配器调用官方 Go SDK；其 Linux/Docker 部署仍作为真实参考验证环境。Provider 可以使用受限进程、预热环境或快照恢复，也可以使用容器或 VM；选择由任务要求与宿主授权决定，不由 Runtime 固定。每个已交付 Provider 分别锁定服务端、SDK 与环境版本；镜像摘要仅是使用镜像的 Provider 的要求。管理连接与凭据由宿主配置解析，实际使用的非秘密目的地随效果保存。官方仓库已提供 Go SDK，并把 Sandbox 生命周期与执行 API 分开。<a class="cite" href="#src-opensandbox">[S8]</a></p>
-<p>关闭会导致未知外部效果重放的 SDK 自动重试；只读查询和按同一身份确认幂等的传输可以重试。服务端支持某操作不等于提供 Loom 的所有耐久与恢复保证；适配器仍须补齐第 7、8 章的原目的地绑定、结果留存与交接确认。</p>
-<p><strong>环境准备与执行命令是两个生命周期。</strong> 环境可以事先准备并由显式 Allocation 复用；一次 Bash 不意味着必须创建一个容器。复用仍需每次执行的身份、权限、内容版本与实际 fencing；无法核对的旧执行不得在复用中消失。Runtime 不自建预热池、虚拟化或远程执行服务。</p>
-<p><strong>Work 设施与任务 Sandbox 分别部署。</strong> Linux 可直接安装 Runtime、Pi 组件及受控 NsJail launcher，使用宿主预先委派的 cgroup v2；不需要 Docker daemon。macOS 使用部署好的 Linux 设施，或显式选择 Docker 承载一个共享 Linux 设施。所有 Work 共用设施，角色隔离仍逐次执行；安装器不自动切换为无隔离 Shell。直接安装要求管理员配置的私有执行绑定、root 控制器和必要工具，安装时校验，失败不激活。它不等于自动提供任务 Provider。</p>
-<p>原规范把参考部署提升为必需组件，导致容器镜像与资源字段渗入公共契约。本版修正这项设计错误；没有因此降低文件可见性、资源限额、原目的地恢复或未知效果要求。直接启动上游 execd 并不足以满足这些要求：共享根视图与资源控制必须由其部署补齐，在经过真实隔离验收前不作为已支持的轻量 Provider；普通进程路径使用具备所需边界的成熟 systemd/NsJail 组合。</p>
+<p>上述分类按实际环境与能力需求选择，不把“重任务”与 Docker 划等号。普通计算任务可以本地执行；依赖特殊环境的小任务也可以显式选择远端。默认本地执行是正式配置的受控路径，<strong>不是失败后退回未受限宿主 Shell 的兜底</strong>。</p>
+<h4 class="subsection-title" id="section-5-5-install">默认发行负责准备自己的运行依赖</h4>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>依赖类别</th><th>交付责任</th></tr></thead><tbody>
+<tr><td>Loom 自身运行</td><td>发行包提供或在用户目录按锁定版本准备 Runtime、实际 SQLite 引擎、Pi／Node、参考 Harness 及所用解释器、原生启动组件和必需支持程序。构建发行版所需 Go 编译器、开发 SDK 不成为普通用户的使用依赖</td></tr>
+<tr><td>基础 Work 工具</td><td>安装完成后普通文件工具、Bash、Git、<code>sqlite3</code>、参考 Python 运行时可用；可以验证后复用系统程序，不满足时用用户级发行产物补齐。记录实际路径、版本及来源，不能依赖首次执行才触发管理员安装的占位程序</td></tr>
+<tr><td>项目与可选后端</td><td>项目库在获准副本、虚拟环境或任务缓存中安装；额外编译器、浏览器、SDK、Docker 和远端服务按需准备。安装项目依赖不授予宿主系统包管理或全局工具链写权</td></tr>
+</tbody></table></div>
+<p>安装器校验来源／摘要和适用平台，在用户目录完成准备、自检后才激活；更新失败保留旧发行、配置和持久数据，不静默执行破坏性迁移。可选自启动仅使用用户级机制；systemd、launchd 系统服务和管理员委派均不是运行前提。卸载默认只移除发行产物，不级联删除 Work、Userspace 或已确认记录。具体安装目录不加入 Work 的可移植配置。</p>
+<p>本版默认平台范围是 macOS 原生与受支持的 Linux 配置；发布锁逐项声明 OS 版本、架构、内核／宿主策略、启动器及测试证据。macOS 不以 Linux VM 或 Docker 为前置；Linux 的无特权 namespace／必要过滤能力须实测。宿主禁用必需机制时准确报告不支持或未就绪，不以 <code>sudo sysctl</code>、关闭系统保护或自动不受限执行作为正常安装步骤；仍可提供不启动不受信代码的状态查看与导出，但不能声称默认执行已可用。只有通过本地端到端验收的组合才能列为支持。<a class="cite" href="#src-isolation">[S6]</a></p>
+<h4 class="subsection-title" id="section-5-5-local">本地 Provider：直接启动、原身份核对</h4>
+<p>默认组装注册 <code>local-process/v1</code> 并建立 <code>local-dev</code> Profile。初始 Work 模板显式声明 <code>targets.default.profile = "local-dev"</code>；Target 缺省规则不变，无 <code>default</code> 时仍拒绝缺省路由。现有 Work 的 Profile 不因安装或升级被改写。Work 执行设施与任务 Provider 复用无特权启动机制，但分别应用策略域／工具域的访问范围。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>本地绑定项</th><th>规定</th></tr></thead><tbody>
+<tr><td><code>provider</code></td><td><code>local-process/v1</code>；是适配器版本，不增加 Runtime 通用 Provider 字段</td></tr>
+<tr><td><code>service_id</code>／<code>endpoint</code></td><td>服务身份在宿主配置中固定；endpoint 使用 <code>local://&lt;host-scope-id&gt;</code> 标识持久宿主作用域，不是网络监听地址。该身份跨 Runtime 重启保留，不随 Work 导出为新宿主身份；不能把另一台机器的 localhost 当原目的地</td></tr>
+<tr><td><code>options_json</code></td><td>沿用既有规范化 JSON 绑定。v1 必需 <code>policy_ref</code>、<code>toolchain_ref</code>（宿主侧确定、可核验的非秘密策略／工具链引用），及正整数 <code>timeout_seconds</code>；字段由本地适配器验证。实际 Work／副本范围仍由通道与资源绑定交叉核验，不由这些引用自授。可选硬配额以支持能力和明确选项表达，不成为通用字段</td></tr>
+</tbody></table></div>
+<p>无网络服务也有 Allocation：记录这次使用的本地资源、策略、工具链和副本身份，不代表必须创建机器。先持久保存申请与 Effect 身份、原绑定和执行内容；受信启动器建立限制并报告就绪，用户代码在受控放行前不运行。Runtime 持久记录 <code>attempted</code> 并授予派发许可后才放行，不能由 Shell 自述替代该屏障。参数和 stdin 原样交接；输出按实际 <code>separate</code>／<code>combined</code> 通道语义留存，非零退出也是原生结果。</p>
+<p>启动器可以在一次活跃执行期间使用用户级监督进程，不引入独立安装、常驻的执行服务。默认不允许脱离监督的后台任务；支持异步或长期服务时，必须保留独立执行身份和已登记生命周期。查询／取消使用原宿主作用域、启动世代及原生进程创建证据，不能只靠 PID 或向整个用户账户发送信号；PID 复用、父 Shell 退出、超时或控制进程消失均不证明结果或清理完成。监督不能确认原执行域及必要写入者已停止时，保存未知并阻塞冲突接管，不自动重跑命令。正常等待仍须能够在保存后释放专属进程。</p>
+<p>默认任务不直接外联；需要联网时可在<strong>同一本地 Provider</strong> 内明确授予目的地／服务能力，不必换成重量后端。用户态受控代理与原生网络限制可复用成熟实现，不能仅设置代理环境变量而放开任意直连或本地管理 socket。模型服务由受控模型组件连接，不向普通任务交出密钥。文件交接在本机可以直接捕获和保存，不强制上传／下载；稳定捕获、耐久确认与引用提交顺序不变。</p>
+<p>默认本地执行集成锁定的 Anthropic Sandbox Runtime（SRT）：本地适配器把 Work 的授权映射为按次独立配置，通过 SRT 官方 CLI 或库建立边界；SBPL／策略生成、网络代理、平台兼容与违规诊断由上游维护，Loom 不自建替代实现。接入约束：多 Work 不得共享同一可变管理实例或配置，每次执行使用独立配置边界，一方改写不改变另一方运行中的有效范围；文件范围在包装时编译，授权变更通过对相应执行边界的重启生效，不宣称对已运行进程即时撤权；SRT 默认读取范围宽于 Work 需要，Loom 必须以配置显式收紧到获准资源，并保护 Runtime 账本、授权配置与未授权私人资料；不为单个工具的全局默认开启 AppleEvents、桌面自动化或宽泛系统服务兼容，这些按能力显式授予。SRT 不提供整组硬配额，其网络边界是 OS 级的（Linux 移除网络 namespace，macOS 仅放行本地代理端口），代理环境变量只是路由方式，不能当作边界本身。<a class="cite" href="#src-sandbox-runtime">[S16]</a></p>
+<h4 class="subsection-title" id="section-5-5-execution">Work 执行设施：本地与受控部署双模式</h4>
+<p>
+Work 执行设施由 <code>[execution]</code> 配置显式声明模式：<code>local</code> 是默认发行路径，复用锁定的 SRT 启动机制按角色编译访问范围；既有受控 Linux 设施（nsjail＋cgroup 委派＋保留 UID 段）保留为显式部署路径。两模式互不隐含回退，未配置时准确报告 <code>not_ready</code>，不以无边界宿主 Shell 兜底；同一部署不得留下两条未定义优先级的默认执行路线。</p>
+<p>
+local 模式不使用 UID 段：按 B05，角色能力差异由能力表达，不以不同宿主 UID 分隔。执行域绑定原宿主作用域、宿主启动世代、域／尝试世代及原生执行对象；<strong>身份证据必须跨 exec、父 Shell 退出和 Runtime 重启存续</strong>，覆盖所有仍有相关写能力的后代。作用域目录、命令行、PID 和 PGID 只是定位信息，不能单独证明身份或停止；仅增加创建时间也不能替代核对至发信号期间防复用的保证。信号必须作用于受管理的原执行对象或等价的已验证边界，不得误伤复用身份或其他 Work。宿主授权库承载该物理执行引用，不另立责任真相，不将物理身份导出为新宿主授权；<code>ExecutionIdentity</code> 的 UID 段语义仅属设施模式。</p>
+<p>
+local 模式区分两个信任域。策略域（harness）承载策略控制通道，与受控模型组件同属用户自任代码：以普通用户直接运行，按原执行身份受监督（创建证据登记、冻结、停止与恢复核对），不得假借沙箱替代授权核对。工具域（Work Bash 与任务 Sandbox）在锁定的 SRT 内运行：fd3 控制通道在沙箱内结构性不存在（SRT 子进程仅继承标准流，验收含实测断言），Unix socket 与网络默认拒绝，Work Bash 只写 surface／harness 执行副本，任务 Sandbox 只写任务视图；事实、来源与资源视图是只读副本；Runtime 账本、授权库、凭据与模型配置不在任何工具域的允许范围。规范挂载路径（/work、/facts 等）是设施模式约定；local 模式的协议载荷与子进程一律使用真实宿主路径，Harness 经协议取得路径，不硬编码规范路径。SIGKILL／SIGSTOP／SIGCONT 是可用动作，其返回值或 leader 状态不是全域确认；恢复须从保存的身份重新核对实际范围。整组硬配额不在 local 模式声明（见 5.3 与 <a class="cite" href="#src-userlevel-limits">[S15]</a>），进程级监督能力如实报告。</p>
+<p>观测明确区分仍在运行、确认停止、身份不匹配和证据不足。所依赖的身份证据或成员观测缺失／失真，例如仅凭命令行无作用域匹配、所用 <code>ps</code> 不可用／截断／失败、权限不足或无法观察脱离进程组的后代，且无其他可靠证据时，不能当作空执行域；已经可能放行的执行，其域身份／停止状态保持 unknown，阻止冲突接管及相关可变副本的最终交付／回写；不覆盖已确认的 native_result，也不阻止原生结果保存或无关事实读取。只有持久屏障证明从未放行，才可据此判为未启动。<strong>冻结、终止 fence 与清理分别确认</strong>：冻结必须覆盖本次内容的全部相关写入者，不能以 kill 替代；fence 确认是最终交付和冲突接管前置条件；必要结果已保存后，清理失败独立留作待办，不遮蔽已保存结果、不触发原命令重放。默认无特权路径若不能满足这些判据，须修复或如实报告不可用，不通过换成必需执行服务来规避 C17。</p>
+<p>
+本地端到端验收以 <code>tests/go_acceptance/test_local_targets.py</code> 复用 Targets 契约为系统验收入口；组件级通过不替代该入口。</p>
+<h4 class="subsection-title" id="section-5-5-optional">可选后端不反向规定默认安装</h4>
+<p>Docker／OCI、远程进程、OpenSandbox、VM 和设备适配器按需注册；依赖、凭据与配置只影响使用该后端的目标。OpenSandbox 继续使用官方 Go SDK，并在交付该适配器时运行真实服务、双目标及故障验收；其 Linux／Docker 参考部署不成为每次 Loom 安装的要求。容器镜像字段、厂商 CPU 单位与租约留在各自 options，公共契约不重新耦合到它们。<a class="cite" href="#src-opensandbox">[S8]</a></p>
+<p>连接现有 Docker daemon 或远端服务属于显式授权；不可把传统 Docker socket 的高权限能力伪装成“无 root”，更不能把它传给任务。需要 rootless 容器或外部平台部署时，由对应后端说明前提，不隐含为 Loom 核心安装义务。SSH 后端若提供，校验主机密钥、固定原连接与原生执行身份，使用最小权限远端账户；不用 root 登录作为公共要求。<a class="cite" href="#src-userlevel-limits">[S15]</a></p>
+<p>旧 <code>ssh-process/v1</code> 等已保存绑定不能自动改成 <code>local-process/v1</code>，也不能套用新 options 重新执行。已有未结责任保留原版本的核对能力；无法核对时保持明确阻塞，按第 11.5 节处理后再退役。此处改变默认部署，不清空旧责任，也不静默重定义旧适配器版本。</p>
+<p>关闭会重放未知效果的自动重试；只读查询与具有已验证幂等性的传输可按原身份重试。环境准备与执行命令仍是两个生命周期：环境可预置或复用，每次命令仍有独立身份、授权和交接。具体后端选用不能替代能力 Ready、真实写入停止及恢复证据；Loom 不自建通用容器控制器、预热池或远程执行平台。</p>
 <h3 id="section-5-6">5.6 版本固定的三个尺度</h3>
 <p><strong>规范版本</strong>确定行为和公共字段；<strong>基线版本</strong>确定上表组件与路线；<strong>发布锁</strong>确定源码 commit、编译器/运行时、直接与传递依赖、嵌入引擎、协议、镜像摘要和测试环境。常规补丁升级不必改写产品目标，但必须产生新发布锁并重跑受影响测试。</p>
 <p>本书不编造尚未生成的 lockfile 或“已测试版本组合”。首个实现发布必须提供完整锁定与兼容矩阵才可声明可复现构建；重建者不能用 <code>latest</code>、漂移标签或只记录“Go + Pi”充当发布身份。模型服务实际 ID、语义参数与可用版本逐请求留存，不承诺云端模型输出逐字节可重复。</p>
@@ -583,7 +599,7 @@ PRAGMA foreign_keys = ON;
 <tr>
 <td><code>dispatch_state</code></td>
 <td><code>prepared</code> / <code>attempted</code></td>
-<td><code>prepared</code> 尚未发放派发许可；<code>attempted</code> 在可能调用远端前持久记录，不保证远端已收到</td>
+<td><code>prepared</code> 尚未发放派发许可；<code>attempted</code> 在可能调用本地或远端执行目标前持久记录，不保证目标已收到</td>
 </tr>
 <tr>
 <td><code>resolution</code></td>
@@ -603,7 +619,8 @@ PRAGMA foreign_keys = ON;
 <tr><td><code>content_delivery</code></td><td><code>not_required</code> / <code>pending</code> / <code>confirmed</code> / <code>failed</code> / <code>unknown</code></td><td>确认本次必要内容已持久保存；不表示业务验收通过或已经合入共享目标</td></tr>
 </tbody>
 </table></div>
-<p>派发协调器先以条件更新把 prepared 变为 attempted，持久化后才调用适配器；竞争者不得再发放同一次许可。崩溃发生在写 attempted 之后、远端调用之前，也保守核对，不能因为“很可能没执行”而重新发出。恢复只能安全派发仍是 prepared 且原执行者已被隔离的请求。</p>
+<p>派发协调器先以条件更新把 prepared 变为 attempted，持久化后才放行用户命令或执行可能产生该 Effect 的外部操作；竞争者不得再发放同一次许可。受控域准备可在命令放行前进行，但创建 Allocation 等本身有外部效果的操作须使用自己的已保存申请／Effect 身份及派发屏障，不能作为无责任的准备动作。崩溃发生在写 attempted 之后、目标调用之前，也保守核对，不能因为“很可能没执行”而重新发出。恢复只能安全派发仍是 prepared 且原执行者已被隔离的请求。</p>
+<p>该许可是<strong>本次实际调用的新鲜条件更新结果</strong>，绑定当前 owner／epoch，不能持久化为一个可重放的 <code>granted=true</code> 后再次使用。任何工作流引擎恢复或 step 重试，必须先重新核对领域 Effect：已确认则返回原结果；<code>attempted + unresolved</code> 只按原身份核对、等待或保持 unknown；只有本次确实赢得 <code>prepared → attempted</code> 更新的调用才可放行。数据库事务的恰好一次提交不等于外部命令恰好一次执行；关闭自动 retry 也不替代此屏障。</p>
 <p>confirmed_not_executed 只能来自可验证的未接受/未执行证据，不是错误字符串推断。再次执行须建立明确的新效果或经原生幂等契约核对原请求，保留关系；本版不自动重试非幂等模型或工具效果。手工请求新尝试也不能改写旧未知效果。</p>
 <p>Round 的状态至少区分 <code>ready</code>、<code>running</code>、<code>recovering</code>、<code>blocked</code>、<code>handed_off</code>。崩溃转 recovering/blocked；handed_off 表示剩余责任已被明确接管，不表示业务完成、效果都成功或所有资源已归还。</p>
 <h3 id="section-6-4">6.4 必需操作，而不是任意账本写接口</h3>
@@ -675,7 +692,7 @@ PRAGMA foreign_keys = ON;
 </tr>
 </tbody>
 </table></div>
-<p>上层的 register、export、import、fork 由 Runtime 管理入口按第 8 章执行，不向普通 Work Bash 暴露。Harness 动态创建 Work 只能走第 6.8 节的获准能力，复用组装与注册而不获得管理权限。适配器回报原生结果使用独立受控角色，不存在 Harness 可调用的任意 <code>effect.succeeded</code>。方法名分组是本版公共操作词汇；操作载荷采用本章的版本化类型，厂商原生详情放入不可变引用。</p>
+<p>上层的 register、export、import、fork 由 Runtime 管理入口按第 8 章执行，不向普通 Work Bash 暴露。Harness 动态创建 Work 只能走第 6.8 节的获准能力，复用组装与注册而不获得管理权限。适配器回报原生结果使用独立受控角色，不存在 Harness 可调用的任意 <code>effect.succeeded</code>。方法名分组是本版公共操作词汇；操作载荷采用本章的版本化类型，厂商原生详情放入不可变引用。可选的持久定时操作见<a href="#section-6-10">第 6.10 节</a>，不进入本表必需集合。</p>
 <h3 id="section-6-5">6.5 一次效果受理示例</h3>
 <p>下面的 JSON 用示例身份和示例摘要表达结构，不是可直接对真实服务执行的请求。<code>payload_ref</code> 事先通过受控对象写入保存；真正的 Work/epoch 与权限由通道验证。</p>
 <div class="codebar"><span>CONTRACT / EXAMPLE</span><button aria-label="复制代码块" class="copy-code" type="button">复制</button></div><pre><code class="language-json">{
@@ -725,14 +742,14 @@ resource = "shared-reference"
 access = "read"
 
 [targets.default]
-profile = "linux-dev"
+profile = "local-dev"
 userspaces = ["app", "reference"]
 
 [targets.backend]
-profile = "linux-service"
+profile = "local-dev"
 userspaces = ["app"]
 </code></pre>
-<p><code>harness.path</code> 与 <code>surface.path</code> 必需，绑定第 4 章逻辑根；<code>harness.argv</code> 是非空参数数组，直接执行、不隐式经过 Shell。Python 仅为示例，解释器与依赖由执行环境提供并锁定。执行目录是确定 Harness 快照根，不是可变候选源码。<code>model.service</code> 是逻辑服务名；<code>model.parameters</code> 只接受已支持的显式参数，不静默忽略。</p>
+<p><code>harness.path</code> 与 <code>surface.path</code> 必需，绑定第 4 章逻辑根；<code>harness.argv</code> 是非空参数数组，直接执行、不隐式经过 Shell。示例使用默认发行已准备的 Python；其他语言的解释器与依赖按实际环境提供并锁定，不要求预装所有语言。执行目录是确定 Harness 快照根，不是可变候选源码。<code>model.service</code> 是逻辑服务名；<code>model.parameters</code> 只接受已支持的显式参数，不静默忽略。两个目标可以使用同一个已安装 <code>local-dev</code> Profile，但分别取得 Allocation 与副本；实际平台是当前宿主，不承诺把 Linux 命令翻译成 macOS 命令。</p>
 <div class="table-wrap" tabindex="0"><table><thead><tr><th>字段</th><th>本版语义</th></tr></thead><tbody>
 <tr><td><code>userspaces.&lt;alias&gt;</code></td><td>可省略或有多个；alias 为 Work 内非空具名引用，不是目录名。不同 Work 可引用同一资源；不同 alias 也不能绕过同一实际写入范围的冲突检查</td></tr>
 <tr><td><code>resource</code></td><td>必需逻辑资源名，由宿主解析到实际资源身份；不接受宿主绝对路径、凭据或管理 URL。在初始化/开始使用前，显式选定并留存来源版本，不自动跟随之后变化的分支</td></tr>
@@ -766,19 +783,32 @@ userspaces = ["app"]
 <p>反馈作为带来源的运行状态注入，不能被 Surface 冒充或改写；采用所选模型协议支持的表达方式，不依赖厂商专属预算标签。Loom 生成的反馈与 Provider 自行注入的信息区分记录。每次真正派发的模型请求包含哪些反馈、使用哪份投影及参数必须留存；反馈自身计数可以预留有界开销后复核，不形成自引用哈希。</p>
 <p>请求顺序是：固定合法来源 → Harness 验证并发布候选投影 → 接入层形成预算/诊断与实际请求 → 校验容量和必要原生关系 → 持久保存请求身份与全部实际输入 → 派发。反馈不消费用户输入，压力本身不代表任务完成；原生请求中的消息角色和工具关系不能被“插入一条提醒”破坏。</p>
 <p>在窗口内的压力请求允许模型继续或编辑；超出硬限制的请求不发送，保存可修复状态与原因。已发送请求遭 Provider 拒绝时记录真实错误，未得到明确结果时保持未知，不一概当作未执行后重试。工具呈现范围和任何对照策略的压缩决定都经 Harness 明示，并与完整原始记录区分。</p>
+<h3 id="section-6-10">6.10 可选持久定时（延迟自投递）</h3>
+<p>本节把“到点继续”表达为 Runtime 托管的持久责任，复用既有受理事务、责任扫描与输入路径，不新增常驻调度服务、cron daemon、第二套任务历史或工作流模型；时间计算使用实现语言的成熟库，日历式重复后续接入成熟解析器而非自行实现。启用时 <code>session.hello</code> 声明 <code>timer.plan/1</code>；未实现或未启用时返回 <code>capability_missing</code>，不得降级为脚本轮询、脱离监督的后台进程或宿主 crontab。该能力只表达一件事：<strong>在不早于指定时刻，向声明者自己的 Work 交付一条已固定内容的输入。</strong> 到期交付经 <code>input.accept</code> 的既有受理路径进入账本，来源为受控的定时来源，不能伪造其他来源；它不是“到点执行一段命令”，也不是“到点启动一个新的 Agent”。tick 的 payload 可以是结构化对象，也可以简单到一段文本；到期后如何推进、是否调用模型、业务条件是否仍成立，均归 Harness 判断。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>操作</th><th>允许调用方 / 必需输入</th><th>受理语义</th></tr></thead><tbody><tr><td><code>timer.put</code></td><td>有效 Harness 及其薄 CLI 客户端；Work 内稳定计划名、<code>at</code>/<code>after</code> 二选一、可选 <code>every</code>、payload 或 payload ref</td><td>登记受理即持久确认，返回计划 ID、版本与换算后的绝对到期时刻，回执说明交付对象与恢复行为。<code>after</code> 在首次成功受理时换算并固定；同身份重试返回原计划，不得从当前时刻重新计时</td></tr><tr><td><code>timer.update</code> / <code>timer.cancel</code></td><td>计划所属 Work 的有效 Harness；计划 ID 与预期版本</td><td>条件更新原子生效并推进版本；改期是原子更新，不是先取消再创建，不出现两期都不存在的空档。版本不符返回明确冲突</td></tr><tr><td><code>timer.list</code></td><td>计划所属 Work 的有效 Harness</td><td>返回本 Work 的计划、版本、绝对到期时刻与状态；只读取，不消费任何输入</td></tr></tbody></table></div>
+<h4 class="subsection-title" id="section-6-10-admission">两次受理与取消边界</h4>
+<p>定时存在两个不同的受理时刻：<strong>登记受理</strong>是 Runtime 承诺未来交付并持久保存计划；<strong>tick 输入受理</strong>是到期事件成为 Work 的持久输入。取消边界取后者：tick 受理前，取消、改期与到期受理按事务先后竞争，先提交者生效；已过计划到期时刻但尚未受理的期次仍可取消。tick 已受理后，计划操作返回“已交付”，附原输入身份，不能把已受理输入从账本抹掉；此后“不用再提醒”是新的业务输入，由 Harness 决定后续动作，已发生的外部效果不因取消定时而撤销。</p>
+<h4 class="subsection-title" id="section-6-10-identity">期次身份与恰好一次的边界</h4>
+<p>每个应交付期次以 <strong>当前 Work、计划身份、计划版本与计划到期时刻</strong> 稳定标识，不用实际扫描时刻，也不逐次生成新身份。同名同原始声明返回原计划；同名不同内容明确冲突，要求改用更新操作；已触发或已取消的计划不因再次登记而复活；传输重试沿用既有请求身份。到期受理在当前 Work 账本的一个事务中保存该期次的 tick 输入并结算期次交付：事务前崩溃没有受理，之后按原身份重受理；事务后崩溃重试命中原输入；内存通知或缓存丢失由既有待办扫描重新发现。<strong>每个应交付期次最终恰好形成一条逻辑 tick 输入；通知与交付尝试可以重复。</strong> 该输入引发的模型、工具与外部效果继续遵守既有 Effect 契约与幂等要求，本能力不把“恰好一次”扩大到任意外部动作：发送端缺少幂等键或可靠查询时保持未知，不自动重发。</p>
+<h4 class="subsection-title" id="section-6-10-interval">固定周期、补齐与上限</h4>
+<p>固定 <code>every</code> 锚定原计划的期次序列（如 10:00、10:30、11:00），不随某期处理结束时刻漂移；“处理完再等 30 分钟”是另一类业务策略，由 Harness 用单次计划表达。每一期 tick 受理与该期交付结算在同一事务完成；即使 Harness 处理失败，计划与后续期次仍存在。Runtime 停机跨过多个期次时按计划逐期补齐，<strong>默认不静默合并漏掉的期次</strong>；批量上限只限制单次处理量，不得把交付游标直接跳到现在；“合并过期检查”只能是另行声明的显式语义。登记时强制最小间隔、活跃计划数量与允许范围；超限、缺少时区的本地时刻、过短间隔等在受理时明确拒绝，过载表现为可见积压或阻塞，不静默丢弃。</p>
+<h4 class="subsection-title" id="section-6-10-time">时间承诺与持久性</h4>
+<p>计划时间、tick 受理时间与 Work 开始处理时间是三个分别记录的事实。发现延迟受扫描节拍与负载影响；tick 到达而 Work 正在推进时进入待办，不启动第二个策略写入者，也不打断当前原生调用。不承诺亚秒精度。持久层保存绝对时刻；内存等待可使用单调时钟，但它不是跨进程恢复身份。宿主睡眠、关机或 Runtime 未运行期间只能恢复后补交，不承诺墙钟时刻立即推进，也不为此要求阻止休眠或提权。</p>
+<h4 class="subsection-title" id="section-6-10-boundary">边界与宿主外部生产者</h4>
+<p>计划只交付给声明者自己的 Work，不开放跨 Work 定时；tick 不携带永久权限，到期后的访问、发送与执行按当时有效授权检查。定时状态保存在 Runtime 账本，不依赖任何 Surface 文件存亡；Surface 中关于计划的文字只是笔记，折叠、归档或改写不影响已受理计划，登记也不必等到 Round 末尾的检查点才生效。到期发生在 handoff 期间时，沿用第 8.4 节新输入规则，不能被较早 Round 的交接误消费。CLI 与模型工具是同一受理能力的两个入口，不构成第三套语义；经 Work Bash 暴露时只授予管理当前 Work 定时的窄能力，不交出完整控制通道。宿主 cron／launchd 经 CLI 受理入口（如 <code>loom ask</code>）是合法的外部生产者，但保证弱一档：触发时 Runtime 不可用则该期缺失，重试身份必须绑定期次；不得把它宣传成与 Work 内持久定时同级的保证，也不为修补该路径引入额外常驻服务。</p>
 </section><section class="chapter contract" id="chapter-7"><div class="chapter-kicker">C / SYSTEM CONTRACT</div><h2>07. 执行目标与内容交接</h2><p class="chapter-lede">Userspace 是独立任务资源；工作副本供执行使用；Target 与 Allocation 决定在哪里执行。</p>
-<h3 id="section-7-1">Work 执行域</h3>
-<p>同一部署默认复用一套 Linux Work 环境及实际文件系统。增加 Work 不要求增加容器或虚拟机，活跃时启动受限进程，等待时释放专属进程。macOS 宿主通过成熟 Linux 运行设施提供此环境，不假定 macOS 原生具备 Linux 隔离机制。</p>
-<p>复用 Unix 身份、ACL、受限文件视图及进程/网络隔离设施；对 Harness 与模型可用的 Work Bash 建立可验证的角色隔离，而不只按 Work 共享身份。本版使用分离的角色 UID 并组合进程与文件隔离；具体启动设施按第 5 章锁定和验证。工具角色必须不能取得策略控制通道、读写策略进程内存或替换正在执行的策略快照。</p>
-<p>ACL、软链、私有路径名或单一 FD 都不能独自证明完整隔离。继承 FD、进程调试与 FD 复制、管理端点、父目录替换和残留子进程必须纳入负向测试。网络按显式能力授权，Work 不默认获得任意外联或 Sandbox 管理权限。共享环境具有共同故障域，CPU、内存和进程限制由成熟资源设施执行。</p>
+<h3 id="section-7-1">Work 执行域：当前用户权限内的管控</h3>
+<p>同一部署默认复用当前 macOS／Linux 宿主的原生执行设施，Runtime、Harness 与工具进程不需要宿主 root。增加 Work 不创建系统账户、容器或 VM；活跃时启动受控进程，等待时保存状态并释放专属执行。Work 的上下文与责任边界不等于一套独占操作系统环境。</p>
+<p>Harness 与模型可用的 Work Bash 使用不同能力集合：策略通道只交给对应 Harness，Bash 由受信启动器独立启动；同一 UID 不因此混用控制权。实际读取／写入、进程访问、网络和 IPC 按第 5 章落实，覆盖任意普通代码与后代，不依赖模型自律。授权文件可以位于多个目录，包括获准的其他 Work Surface 或产物；不开放对方控制数据、未授权私人记录或活跃策略身份。</p>
+<p>共享授权不等于共享写入所有权。先核验实际资源、访问范围和稳定读取版本，再按既有事件或文件契约协作；修改自己的 Surface、读取对方获准资料与交付事件可以正常发生，无需退出管控。ACL、软链、路径名或单一 FD 都不能单独证明边界；进程调试／FD 复制、父目录替换、环境注入、管理 socket 与残留子进程纳入负向测试。缺少执行管控时拒绝运行，不在本地偷偷使用未受限 Shell。</p>
 <h3 id="section-7-2">任务执行域</h3>
-<p>任务执行面不限定为 Linux 容器。Sandbox 在本文中表示受控的任务执行域，可以由容器、虚拟机、专用机器或受控设备会话承载；这些实现不具有相同的隔离强度，也不要求暴露相同的功能。平台、CPU 架构、Shell、工具链、设备与图形能力均按明确要求核验。取得物理设备使用权不自动证明已获得安全沙箱。</p>
-<p>网络、设备和权限由 Work 要求与宿主授权共同决定。只在可证明隔离的配置下提供任务域 root 或安装能力，不得因此获得承载该域的管理权限、Work 控制目录、其他任务资源或 Provider 凭据；对于不能提供同等隔离的后端，必须拒绝不满足其信任要求的工作负载。</p>
+<p>任务执行面不限定为 Linux 容器。<strong>默认 Sandbox 是本地轻量受控进程及其授权资源视图</strong>；也可由容器、VM、远程机器或受控设备会话承载。Work 与任务执行可以复用无特权启动器，但分别配置访问范围。各后端不具有相同隔离强度，也不必暴露相同功能；平台、架构、Shell、工具链、设备与图形能力按实际要求核验，不因名字叫 Sandbox 就假设拥有完整隔离。</p>
+<p>网络、设备和访问权限由 Work 要求与宿主用户授权共同决定。默认本地只在获准工作副本、虚拟环境或任务缓存中安装依赖，不获得宿主 root、全局包管理权限、Work 控制目录或 Provider 凭据。可选容器／VM 若提供实例内 UID 0 或系统包安装，必须明确其命名空间／机器边界并验证不能扩展到宿主；这不是本地默认能力或接入前提。功能需要屏幕、辅助功能或特定资料权限时，按需请求相应用户许可，不能把这类许可混同为管理员提权。</p>
 <p>活跃推进可以复用获准任务实例，不要求每条命令新建 Sandbox。<strong>Userspace 独立于 Work 和 Sandbox；属于 Work 继续状态的是资源使用绑定、确定内容引用及其已保存变更，而不是共享项目的所有权。</strong> 资源可以位于获准的本地或远端持久存储，内容确认不要求回传到 Runtime 主机。文件目标只获得与原资源、工作副本、Work、Target、Allocation、epoch 和范围绑定的内容；无通用文件系统的设备仅接收获准产物与操作。</p>
 <h3 id="section-7-3">Target、资源分配与能力</h3>
 <p>一个 Work 可以有零个或多个具名 Target。Target 是逻辑角色，Profile 表达要求，宿主配置把获准要求解析到 Provider 和资源池，Allocation 记录某一次实际分配。Profile 引用必须解析成可追溯的要求快照；同名 Profile 后续变化不得改写已有分配的历史。</p>
 <p><strong>宿主 Profile 与保存的绑定分开。</strong> 宿主 <code>profiles.&lt;name&gt;</code> 包含服务名与 <code>options</code>，选用服务显式声明版本化 <code>provider</code>。Runtime 保存 <code>provider</code>、<code>service_id</code>、<code>endpoint</code> 与规范化 JSON 字符串 <code>options_json</code>；options 的字段由该 Provider 验证，不包含凭据。镜像、CPU 的厂商单位和容器租约不再是公共必填字段。凭据仅在宿主侧装配适配器时传入。</p>
-<p>首次解析固定完整绑定；查询、取消和归还只装配保存的 Provider 与参数，不重新读取当前 Profile。服务名对应的 Provider 或端点改变时，在任何网络请求前拒绝；缺失注册、未知版本、参数不完整和工厂返回其他绑定也拒绝，不回退到其他 Provider。旧格式绑定缺少 Provider 身份时明确拒绝，以原版本核对未完成责任，不自动猜测厂商或重放。</p>
+<p>首次解析固定完整绑定；查询、取消和归还只装配保存的 Provider 与参数，不重新读取当前 Profile。本地也保存完整绑定，<code>endpoint</code> 是第 5.5 节规定的宿主作用域标识而非必需网络地址。服务名对应的 Provider 或端点改变时，在任何本地启动或网络请求前拒绝；缺失注册、未知版本、参数不完整和工厂返回其他绑定也拒绝，不回退到其他 Provider。旧格式绑定缺少 Provider 身份时明确拒绝，以原版本核对未完成责任，不自动猜测厂商或重放。</p>
 <p>同一个 Provider 可以分配多个目标，多个 Profile 也不要求多个 Provider。后端内部的容器、VM、构建宿主、模拟器或设备池可以组合，但 Runtime 必须得到足以确定真实执行目的地的资源身份；不能让一次设备操作依赖后端隐含的“当前设备”。</p>
 <p>任务执行契约保持小型公共核心：取得资源、查询原有申请或分配、归还使用权、报告能力与原生结果。Exec、文件交接、屏幕捕获、UI 输入、浏览器或设备控制、媒体流和服务连接属于可选、版本化能力；不能要求每个 Provider 都实现全部方法，也不能把不支持伪装为空成功。每个被使用的能力仍须满足原有 Effect 身份与未知状态规则。</p>
 <p><strong>后端支持、本次可用和 Work 获准，是三个独立条件。</strong> 初始化成功不替代设备、工具链或权限核验。Runtime 将实际平台、能力、限制与就绪依据发布为只读事实供 Harness 选择工具；模型仍需知道 Linux 与 macOS 的命令、路径和设备差异，统一契约不隐藏这些任务语义。真实设备目标可以没有 Bash；Bash 只是具有对应 Shell 能力时的工具入口。</p>
@@ -876,6 +906,8 @@ A1 与 B1 均可保存、恢复和交付，不要求先修改共享分支。
 <p>收到 A、B 的结果是否足够、是否冲突、要不要接受或再委托，均由 Harness 在推进时判断。它保存已采用的交付身份、版本、判断和依据，纳入策略继续状态与检查点；条件未满足则再次交还执行权。业务汇合可以是普通代码或库，不要求 Runtime 提供任意谓词、<code>all_of/any_of</code> 解释器或 DAG 调度。</p>
 <p>交接只结算本轮明确处理的输入。若新输入在判定等待后、订阅登记或 <code>round.handoff</code> 期间到达，必须保持待处理并再次触发推进，不能被“进入等待”覆盖。接收方卸载或重启后，仍从持久责任和已记录交付继续。</p>
 <p>跨 Work 允许至少一次投递，目标按稳定来源与事件身份原子幂等受理；目标输入持久化后才确认交付或推进对应游标，不假装拥有跨库全局事务。同一事件可按原身份、原内容、原目标补交；重复通知不等于重复输入，更不授权再次运行未知的模型或工具效果。历史保留不得删除未结责任的唯一依据。</p>
+<h4 class="subsection-title" id="section-8-4-timer">定时等待：到点是输入来源，不是进程内回调</h4>
+<p>启用<a href="#section-6-10">第 6.10 节</a>能力时，“到点继续”与本节的事件等待共用同一等待模型：到期 tick 是账本里的持久事实与待办输入，不是回调或内存定时器；Work 登记后保存继续依据并交接，等待期间专属进程仍可归零。Runtime 托管到期筛选与交付；tick 到达而 Work 正在推进时进入待办，交接期间到达时按本节新输入规则保持待处理。到点的业务含义——继续做什么、条件是否仍成立——由 Harness 判断，Runtime 不解释间隔的用途。未启用该能力时，等待仍只依赖既有订阅与输入受理，不要求任何 Work 为等待时间而常驻。</p>
 <h4 class="subsection-title" id="section-8-4-delivery">显式交付与接受，不默认共享完整历史</h4>
 <p>交付说明对应哪次委托、哪个输入基线和哪些确定版本的产物；摘要只是读取入口，不替代必要的原始内容与证据。引用不自动授予访问权，跨 Work 读取与接收事件分别授权，读取文件不等于消费输入。接收方需要的内容沿用既有 Retention 保护或保存获准副本，不因来源 Work 结束而丢失恢复依据。</p>
 <p><strong>发布产物、业务完成、接受结果是不同判断。</strong> Work 可以多次发布，Harness 的完成声明只按其来源记录；Runtime 确认内容和交付，不替业务验收。接收方针对明确委托及结果版本决定采用、拒绝或继续验证，重复事件不得使同一接受决定无意重复应用。</p>
@@ -941,11 +973,7 @@ A1 与 B1 均可保存、恢复和交付，不要求先修改共享分支。
 <td>可接续检查点可以在 Round 内，但只覆盖实际捕获的文件和支持的继续阶段</td>
 <td>第 8 章</td>
 </tr>
-<tr>
-<td><strong>C09</strong></td>
-<td>Harness/Bash 不具宿主管理能力；目录名、普通 FD、调用者声明不构成授权证明</td>
-<td>第 2、5.3、7 章</td>
-</tr>
+<tr><td><strong>C09</strong></td><td>默认 Runtime／Harness／工具在普通用户权限下运行；角色能力分别受控，允许明确授权的跨 Work 访问；目录名、同一 UID、普通 FD 或调用者声明不构成授权</td><td>第 2.2—2.3、5.3、7 章</td></tr>
 <tr>
 <td><strong>C10</strong></td>
 <td>同 Work 多 Target 不默认共享写入或网络；原 Allocation 身份跨重建保留</td>
@@ -966,13 +994,13 @@ A1 与 B1 均可保存、恢复和交付，不要求先修改共享分支。
 <td>验收声明受真实源码、依赖、环境与故障范围约束；未测和跳过不算通过</td>
 <td>第 10、11 章</td>
 </tr>
-<tr><td>C14</td><td>协作是可选策略；创建身份稳定，交付绑定委托与确定内容。Runtime 管受理、交付与唤醒，Harness 管业务依赖和结果接受</td><td><a href="#section-6-8">第 6.8 节</a>、<a href="#section-8-4">第 8.4 节</a></td></tr><tr><td>C15</td><td>Userspace 独立于 Work 和 Sandbox；多 Work 可保存各自副本，只有共享目标更新才检查该目标前序。恢复、fork、结束或归还不隐式回退或删除共享资源</td><td><a href="#section-4-1">第 4.1 节</a>、<a href="#section-7-5">第 7.5 节</a>、<a href="#section-8-5">第 8.5 节</a></td></tr><tr><td>C16</td><td>预算由 Runtime/接入层报告，业务选择归 Harness；参考策略由模型主动调整。折叠与归档不改事实和责任，实际输入及运行反馈可追溯；读取权限在查询前落实</td><td><a href="#section-4-6">第 4.6—4.7 节</a>、<a href="#section-6-9">第 6.9 节</a></td></tr></tbody>
+<tr><td>C14</td><td>协作是可选策略；创建身份稳定，交付绑定委托与确定内容。Runtime 管受理、交付与唤醒，Harness 管业务依赖和结果接受</td><td><a href="#section-6-8">第 6.8 节</a>、<a href="#section-8-4">第 8.4 节</a></td></tr><tr><td>C15</td><td>Userspace 独立于 Work 和 Sandbox；多 Work 可保存各自副本，只有共享目标更新才检查该目标前序。恢复、fork、结束或归还不隐式回退或删除共享资源</td><td><a href="#section-4-1">第 4.1 节</a>、<a href="#section-7-5">第 7.5 节</a>、<a href="#section-8-5">第 8.5 节</a></td></tr><tr><td>C16</td><td>预算由 Runtime/接入层报告，业务选择归 Harness；参考策略由模型主动调整。折叠与归档不改事实和责任，实际输入及运行反馈可追溯；读取权限在查询前落实</td><td><a href="#section-4-6">第 4.6—4.7 节</a>、<a href="#section-6-9">第 6.9 节</a></td></tr><tr><td>C17</td><td>默认安装提供 Runtime、Work 与本地轻量 Sandbox，不依赖提权、容器或远程服务；平台管控能力不足须明确拒绝，不能静默降级。可选后端不影响基础使用</td><td><a href="#section-5-5">第 5.5 节</a>、第 10—11 章</td></tr><tr><td>C18</td><td>定时是延迟自投递的持久责任：登记即持久接管，取消边界在 tick 输入受理，期次身份含计划到期时刻，每个应交付期次恰有一条逻辑 tick；只交付给声明者自己的 Work，tick 不携带永久权限，漏期默认逐条补齐</td><td><a href="#section-6-10">第 6.10 节</a>、<a href="#section-8-4">第 8.4 节</a></td></tr></tbody>
 </table></div>
 <h3 id="section-9-1">保留的开发原则</h3>
 <p>优先普通文件、代码、Shell 与成熟格式；限制权限，不限制策略语言。<strong>优先通过持久交接和整体重建简化生命周期，不为未要求的热替换或任意组合强加实现纪律。</strong> 复用存储、版本控制、隔离和执行基础设施；Loom 不因“控制一切”而重写这些底座。公共抽象只覆盖已确认的共同契约，不以预设扩展点代替普通代码的表达能力。先明确不变量与反例，再以测量优化性能；吞吐收益不能交换耐久、隔离或可追溯性。</p>
 <p>失败不能被编辑成成功；测试数量、应用声明和 Agent 自述不能替代直接观测。新增目录、服务或公共对象必须有独立责任、授权或生命周期理由；不为名字建立空壳子系统。</p>
 </section><section class="chapter contract" id="chapter-10"><div class="chapter-kicker">C / SYSTEM CONTRACT</div><h2>10. 验收与反例</h2><p class="chapter-lede">先证明 Harness 能按工作需要调整，且工作能够持久推进；再验证运行保障与规模能力。</p>
-<div class="acceptance-focus"><span class="small-label">PRIMARY SYSTEM ACCEPTANCE</span><p><strong>不修改 Runtime，即可按工作需要编写、修改和替换 Harness，并保持工作连续。</strong> 用两种普通语言和实质不同的策略在同一底座上推进各自 Work，复用投影—模型适配结构；保存后卸载，事件到来时分别恢复正确版本与状态。修改或启用一种策略不改变其他 Work 的策略与继续依据。</p><p>这是 A01、A02、A14、A15 与 A27 的组合验收。仅更换名称、Prompt 或启动参数，不足以证明底座允许用代码改变投影、上下文、工具或事件策略；单个 Agent 闭环也不能替代。并发和规模另按 A21 及第 10.2 节验证，不以“同时启动”代替策略灵活性。</p></div>
+<div class="acceptance-focus"><span class="small-label">PRIMARY SYSTEM ACCEPTANCE</span><p><strong>不修改 Runtime，即可按工作需要编写、修改和替换 Harness，并保持工作连续。</strong> 用两种普通语言和实质不同的策略在同一底座上推进各自 Work，复用投影—模型适配结构；保存后卸载，事件到来时分别恢复正确版本与状态。修改或启用一种策略不改变其他 Work 的策略与继续依据。</p><p>这是 A01、A02、A14、A15 与 A27 的组合验收，必须在 A36 的普通用户默认安装环境中完成。仅更换名称、Prompt 或启动参数，不足以证明底座允许用代码改变投影、上下文、工具或事件策略；单个 Agent 闭环也不能替代。并发和规模另按 A21 及第 10.2 节验证，不以“同时启动”代替策略灵活性。</p></div>
 <p>这些是必要的产品性质，不是已通过声明。具体规模、负载、预算与环境在实施前明确，不以演示或现有组件检查替代系统验证。</p>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
@@ -998,22 +1026,13 @@ A1 与 B1 均可保存、恢复和交付，不要求先修改共享分支。
 <td>控制角色</td>
 <td>从 Work Bash 连接、继承或复制策略控制通道失败；错误 Harness 伪造来源、写入游标、越权请求或提交虚假外部成功均不生效</td>
 </tr>
-<tr><td>A05</td>
-<td>隔离与授权</td>
-<td>Work 可读获准内容而不能越权写；任务 root、软链、chmod、父目录替换及后台进程不能跨域</td>
-</tr>
+<tr><td>A05</td><td>访问管控与授权共享</td><td>同一宿主用户下获准跨 Work 读取／共读、自己的 Surface 修改与事件交付成功；未授权文件、账本和凭据访问被拒绝。软链、chmod、父目录替换、环境／启动文件、后台进程和本地管理服务不能扩大权限；启用实例内 root 的后端另测跨宿主边界</td></tr>
 <tr><td>A06</td>
 <td>环境与回收</td>
 <td>实际平台、能力、文件/设备绑定与要求一致；初始化成功但能力缺失仍拒绝执行；归还未知不伪造成功，也不阻止已持久结果入账；等待时 Work 活跃占用应可归零</td>
 </tr>
-<tr><td>A07</td>
-<td>Provider 边界</td>
-<td>Runtime 核心与持久通用数据不引用厂商 SDK 类型；具体 SDK 在适配器内；实际调用须经过选定实现，残留直连、隐式默认后端或宿主回退均能由测试检出；缺少能力明确失败</td>
-</tr>
-<tr><td>A08</td>
-<td>多目标路由</td>
-<td>同一个真实 Provider 分配两个 Linux 目标；按名称分别执行并验证内容/输出来源；无 default 时缺省失败；旧目标重建后查询、取消与迟到结果仍绑定原分配</td>
-</tr>
+<tr><td>A07</td><td>Provider 边界</td><td>Runtime 核心与持久通用数据不引用厂商 SDK 类型；默认本地实现由组装入口注册并显式绑定。实际调用经过选定适配器；残留直连、未声明的后端切换或不受限宿主回退能由测试检出，缺少能力明确失败</td></tr>
+<tr><td>A08</td><td>多目标路由</td><td>在受支持 macOS／Linux 上，用同一真实本地 Provider 分配两个目标，按名称执行并验证副本和输出来源；无 default 时缺省失败。目标重建后查询、取消与迟到结果仍绑定原分配；其他 Provider 使用时另做相应平台测试</td></tr>
 <tr><td>A09</td>
 <td>取得与归还</td>
 <td>资源申请回执丢失、重复核对、清理失败、池化归还及旧会话残留均有独立证据；不重复创建未知资源，不把归还使用权当作物理销毁或计费终止</td>
@@ -1054,14 +1073,14 @@ A1 与 B1 均可保存、恢复和交付，不要求先修改共享分支。
 <td>系统规模</td>
 <td>分别验证多种 Harness 并存下的等待驻留规模、活跃吞吐、多 Work 事件交付和长期恢复；不为等待 Work 保留必需的活跃 Agent 对象；单 Surface 闭环不能替代</td>
 </tr>
-<tr><td>A22</td><td>发布与锁定</td><td>Go、驱动与实际 SQLite 引擎、Git、Node/Pi、实际 Provider 服务/SDK/环境均有具体版本或摘要；拒绝未解析 latest、缺失锁和不支持必需 hook 的组合</td></tr><tr><td>A23</td><td>协议与配置兼容</td><td>两种 Harness 语言对同一协议握手；未知版本/必需能力拒绝，RPC id 变化不改变幂等。验证 schema 2 的多资源引用、Target 选择与 userspace.binding/1；旧 schema 1 只能显式迁移或拒绝，不把旧路径静默当资源授权</td></tr><tr><td>A24</td><td>模型屏障</td><td>强制在模型请求前、工具执行前、结果确认前阻塞；数据库确认未返回时真实调用计数不得增加；流监听不能替代屏障</td></tr><tr><td>A25</td><td>数据与字节</td><td>忽略文件、CRLF、属性 filter、空目录/必要模式和符号链接均按声明保存；摘要不符、越界链接、未支持必要元数据拒绝</td></tr><tr><td>A26</td><td>唯一规范与默认实现</td><td>从本书构建闭环；Work 默认目录无 userspace/，项目不必搬入 Loom；一个 Work 可绑定多个资源，多个 Work 可绑定同一资源。没有第二套资源真相、context 目录或必需队列；字段与确认语义以本书为准</td></tr>
+<tr><td>A22</td><td>发布与锁定</td><td>Go、驱动及实际 SQLite 引擎、Git、Node/Pi、参考解释器、原生启动器／策略／过滤配置和本地工具链均有版本或摘要；可选 Provider 仅在交付时附服务／SDK／环境锁。拒绝 latest、缺失必需依赖或必需能力未经验证的组合</td></tr><tr><td>A23</td><td>协议与配置兼容</td><td>两种 Harness 语言对同一协议握手；未知版本/必需能力拒绝，RPC id 变化不改变幂等。验证 schema 2 的多资源引用、Target 选择与 userspace.binding/1；旧 schema 1 只能显式迁移或拒绝，不把旧路径静默当资源授权</td></tr><tr><td>A24</td><td>模型屏障</td><td>强制在模型请求前、工具执行前、结果确认前阻塞；数据库确认未返回时真实调用计数不得增加；流监听不能替代屏障</td></tr><tr><td>A25</td><td>数据与字节</td><td>忽略文件、CRLF、属性 filter、空目录/必要模式和符号链接均按声明保存；摘要不符、越界链接、未支持必要元数据拒绝</td></tr><tr><td>A26</td><td>唯一规范与默认实现</td><td>从本书构建闭环；默认安装后可创建 Work 并使用本地受控执行，不需另部署 Work／Sandbox 服务。Work 目录无 userspace/，项目不搬入 Loom；多 Work 与多资源引用保持。无第二套资源真相、context 目录或必需队列；公共字段与确认语义以本书为准</td></tr>
 <tr>
 <td>A27</td>
 <td>Harness 修改与启用</td>
 <td>授权范围内可读取真实版本、接口、能力与试跑结果；修改候选不影响运行快照，失败不自动启用；交接后新 Round 加载选定版本，原 Round 恢复不偷换；不兼容状态须迁移或拒绝接续；无需重启共享 Runtime，其他 Work 不受版本切换影响，未知效果仍按原身份核对</td>
-</tr><tr><td>A28</td><td>可选 · 受限 Work 创建</td><td>同一创建在身份保存后、注册中、初始输入保存后及回执前崩溃，恢复得到同一 Work，初始输入不重复；新 Work 未初始化完不得调度。内容变更冲突、越权创建和额度重置均拒绝，源 Harness 退出不丢已受理责任</td></tr><tr><td>A29</td><td>可选 · 委托与交付</td><td>结果早于订阅仍可补交；直接递送与订阅补交同一事件只受理一次。交付绑定原委托、输入基线和产物版本；V17 的结果不自动接受为 V18，取消或替代后的迟到结果不丢失、不误用；无权引用不能读取，源 Work 结束不丢必要产物</td></tr><tr><td>A30</td><td>可选 · 协作策略与边界</td><td>固定流程与动态委托使用同一受控能力，汇合、验收与整合由普通 Harness 代码决定，无需 Runtime 业务 DAG。接收方卸载后可继续，已采用结果不重复应用；协作不开放共享写入、权限继承或自动级联取消；未启用能力明确拒绝且不影响普通 Work</td></tr><tr><td>A31</td><td>预算与主动控制</td><td>每次请求的估计、实际 usage、输出/整理余量及来源可辨；压力信息及时进入实际输入并留存。未发生模型选择时不自动归档/摘要；超限、巨型工具结果和忽略提醒均按公开规则处理，不循环整理或重放未知调用。</td></tr><tr><td>A32</td><td>参考模板与局部修改</td><td>一个主模板完成资料引用、事实选择、正文折叠与归档；下一安全模型请求采用新版本。无 history 副本或第二可见性账本；缺失/越权引用、未知语法、切断工具链被定位拒绝，失败不暗用旧内容继续业务。</td></tr><tr><td>A33</td><td>查回与历史语义</td><td>正文改引用后失败/未知仍可见；移出完整交互后原记录可定位。读取原文不会再次执行，重新引入仍检查授权和原生消息闭包；重启后的选择与历史实际输入一致。</td></tr><tr><td>A34</td><td>SQLite 读取面与隔离</td><td>获准视图能用标准 sqlite3 查询、分页、查相邻记录并取得原文；无控制写权和隐藏未授权底表。缓存过期、索引覆盖不足、中文短词无命中不能伪装成事实不存在；更正有可追溯来源，撤权在后续读取和投影中生效。</td></tr><tr><td>A35</td><td>参考 Harness 的实际有效性</td><td>分别执行多轮 HTML 制作与长期助手测试，覆盖早期约束、意图变化、知识更正、隐含细节召回、受众隔离及恢复；同时记录任务质量、管理调用、检索重试、费用与延迟。不能仅以 token 降低或单次成功计为通过；判据见第 10.3 节。</td></tr></tbody>
+</tr><tr><td>A28</td><td>可选 · 受限 Work 创建</td><td>同一创建在身份保存后、注册中、初始输入保存后及回执前崩溃，恢复得到同一 Work，初始输入不重复；新 Work 未初始化完不得调度。内容变更冲突、越权创建和额度重置均拒绝，源 Harness 退出不丢已受理责任</td></tr><tr><td>A29</td><td>可选 · 委托与交付</td><td>结果早于订阅仍可补交；直接递送与订阅补交同一事件只受理一次。交付绑定原委托、输入基线和产物版本；V17 的结果不自动接受为 V18，取消或替代后的迟到结果不丢失、不误用；无权引用不能读取，源 Work 结束不丢必要产物</td></tr><tr><td>A30</td><td>可选 · 协作策略与边界</td><td>固定流程与动态委托使用同一受控能力，汇合、验收与整合由普通 Harness 代码决定，无需 Runtime 业务 DAG。接收方卸载后可继续，已采用结果不重复应用；协作不开放共享写入、权限继承或自动级联取消；未启用能力明确拒绝且不影响普通 Work</td></tr><tr><td>A31</td><td>预算与主动控制</td><td>每次请求的估计、实际 usage、输出/整理余量及来源可辨；压力信息及时进入实际输入并留存。未发生模型选择时不自动归档/摘要；超限、巨型工具结果和忽略提醒均按公开规则处理，不循环整理或重放未知调用。</td></tr><tr><td>A32</td><td>参考模板与局部修改</td><td>一个主模板完成资料引用、事实选择、正文折叠与归档；下一安全模型请求采用新版本。无 history 副本或第二可见性账本；缺失/越权引用、未知语法、切断工具链被定位拒绝，失败不暗用旧内容继续业务。</td></tr><tr><td>A33</td><td>查回与历史语义</td><td>正文改引用后失败/未知仍可见；移出完整交互后原记录可定位。读取原文不会再次执行，重新引入仍检查授权和原生消息闭包；重启后的选择与历史实际输入一致。</td></tr><tr><td>A34</td><td>SQLite 读取面与隔离</td><td>获准视图能用标准 sqlite3 查询、分页、查相邻记录并取得原文；无控制写权和隐藏未授权底表。缓存过期、索引覆盖不足、中文短词无命中不能伪装成事实不存在；更正有可追溯来源，撤权在后续读取和投影中生效。</td></tr><tr><td>A35</td><td>参考 Harness 的实际有效性</td><td>分别执行多轮 HTML 制作与长期助手测试，覆盖早期约束、意图变化、知识更正、隐含细节召回、受众隔离及恢复；同时记录任务质量、管理调用、检索重试、费用与延迟。不能仅以 token 降低或单次成功计为通过；判据见第 10.3 节。</td></tr><tr><td>A36</td><td>无提权安装与升级</td><td>在声明支持的 macOS／Linux 上，用无 sudo 的新普通用户，未预置 Docker、SSH 执行服务、专属系统账户或 cgroup 委派，完成安装、创建 Work、参考 Harness、事实查询、本地任务、保存与恢复。工具依赖由发行准备；缺依赖／摘要错误／激活失败不损坏旧版本，卸载不删资料。缺少必需宿主能力时明确报告且不执行；不能将该结果计为支持</td></tr><tr><td>A37</td><td>可选 · 持久定时</td><td>登记返回即持久：登记回执丢失后按原身份查得同一计划，<code>after</code> 重试不改变原到期时间。到期受理事务前后崩溃、通知丢失、Work 卸载与 Surface 重写均不丢已承诺期次；同一期次只形成一条逻辑 tick。取消与到期两种提交顺序都有确定结果；改期无空档；已受理输入不被取消抹掉。漏期逐条补齐不静默合并，批量上限不把游标跳到现在；超限、缺时区与过短间隔受理时可见拒绝。未启用 <code>timer.plan/1</code> 时明确拒绝且不影响普通 Work；tick 不携带永久权限，撤权在到期后的操作中生效</td></tr></tbody>
 </table></div><p>A31 的预算/记录边界及 A33—A34 的事实和权限性质适用于相应公共能力；A32 与 A35 验证随底座交付的最简参考 Harness，不要求所有其他策略照搬其模板或算法。参考实现须提供实测证据；其他 Harness 仍须满足共同的不变量，不能以“自由策略”绕过授权、持久化或完整输入留存。</p>
-<p class="book-notice">A28—A30 按实际启用的 <code>work.create/1</code>、<code>work.deliver/1</code> 能力验收；未启用时标为 unsupported，不对外宣称可用。A02、A17 等基础事件与等待保证仍是必需项，不能借协作可选而跳过。首要系统验收仍是 Harness 的灵活性与工作的持久推进；不要求先采用多 Work 协作。</p>
+<p class="book-notice">A28—A30 按实际启用的 <code>work.create/1</code>、<code>work.deliver/1</code> 能力验收；A37 按实际启用的 <code>timer.plan/1</code> 能力验收；未启用时标为 unsupported，不对外宣称可用。A02、A17 等基础事件与等待保证仍是必需项，不能借协作可选而跳过。首要系统验收仍是 Harness 的灵活性与工作的持久推进；不要求先采用多 Work 协作或持久定时。</p>
 <p>验收从契约出发，直接检查真实文件、数据库、协议请求、模型原生记录和执行环境，并独立复跑核心检查。证据须匹配交付版本；退出码、应用声明、Agent 自述或测试数量不能单独证明完成。同一可写工作区的多 Agent 分工不构成安全隔离。</p>
 <h3 id="section-10-1">10.1 必须独立复跑的故障轨迹</h3>
 <div class="table-wrap" tabindex="0"><table>
@@ -1089,11 +1108,13 @@ A1 与 B1 均可保存、恢复和交付，不要求先修改共享分支。
 <td>V7 生成输入 P1；修改成 V8；清空 views 并退出进程</td>
 <td>P1 仍关联 V7 和实际原生输入；新投影使用 V8；选择可恢复且不依赖 context 目录</td>
 </tr><tr><td>F7 · 共享资源独立</td><td>A、B 同源 V17 各自保存；A 更新共享目标后回执丢失；恢复 B、fork B，再归还 A 的执行资源</td><td>A1/B1 均保留；A 的共享更新只核对原操作，不能重放；B 的恢复/fork 不回退共享目标，基于旧目标的更新冲突；归还不删除项目或 B 的内容</td></tr>
-<tr><td>F8 · 选择修改与恢复</td><td>模型修改 facts fence；分别在文件保存后、候选拒绝后、实际请求持久化后退出</td><td>候选/有效投影身份可区分；新请求不混用版本；非法边界不剪断工具链，原输入与未知效果不被归档消除；恢复不覆盖独立 Userspace</td></tr><tr><td>F9 · 容量与检索边界</td><td>窗口将满时返回大工具结果；随后归档、删除派生视图并重启，再查询旧结果</td><td>原文完整保存，范围与反馈可追溯；硬超限请求未派发；视图可从授权事实重建，旧结果从原记录读出、不重新调用工具，无命中不掩盖覆盖不足</td></tr></tbody>
+<tr><td>F8 · 选择修改与恢复</td><td>模型修改 facts fence；分别在文件保存后、候选拒绝后、实际请求持久化后退出</td><td>候选/有效投影身份可区分；新请求不混用版本；非法边界不剪断工具链，原输入与未知效果不被归档消除；恢复不覆盖独立 Userspace</td></tr><tr><td>F9 · 容量与检索边界</td><td>窗口将满时返回大工具结果；随后归档、删除派生视图并重启，再查询旧结果</td><td>原文完整保存，范围与反馈可追溯；硬超限请求未派发；视图可从授权事实重建，旧结果从原记录读出、不重新调用工具，无命中不掩盖覆盖不足</td></tr><tr><td>F10 · 本地执行与管控变更</td><td>在边界建立／放行前后、命令已运行但结果未保存时杀死 Runtime 或监督进程；另撤回访问，保留子进程或模拟 PID 复用，再恢复并尝试协作读取</td><td>未授予派发许可不得运行；未知命令不重跑。核对原宿主／执行身份，不误杀复用 PID；旧写入未收敛不接管。撤权在新操作中生效，已启动进程按停止／隔离证据确认，不仅改配置；仍获准的无关 Work 读取与交付继续可用</td></tr></tbody>
 </table></div>
 <h4 class="subsection-title" id="section-10-1-cooperation">启用相应协作能力时追加的故障轨迹</h4><div class="table-wrap" tabindex="0"><table><thead><tr><th>轨迹</th><th>注入故障</th><th>恢复后的必要观察</th></tr></thead><tbody><tr><td>F5 · 创建闭环</td><td>分别在目标 ID 已保存、注册未齐、初始输入已保存及源 Work 收到回执前中断；以原 key 查询或续办</td><td>始终核对同一目标；没有第二个 Work 或第二条初始输入，注册未齐不执行；已运行的未知效果不随创建续办重放</td></tr><tr><td>F6 · 等待与迟到结果</td><td>结果先于订阅；接收方 handoff 时再到一条结果；委托由 V17 替代为 V18 后重投旧交付</td><td>持久输入不漏交、不误消费；接收方可卸载后再被唤醒；重复交付不重复采用，旧结果保留但不自动验证新基线</td></tr></tbody></table></div><p>额外在旧 Harness/Bash 持有 FD、后台写入、主进程已退出、资源归还未知、GC 与提交并发等条件下重跑。Mock 只证明协议分支，不证明真实文件隔离、持久存储或远端效果。</p>
-<p><strong>Provider 与安装边界追加验收。</strong> 无镜像字段的第二种受控测试适配器通过同一解析与 Runtime 契约；未知 Provider、改名服务、改变端点、丢失参数、篡改工厂绑定必须在外部效果前失败。真实 OpenSandbox 执行、双 Target、回执丢失与恢复测试继续保留，测试替身不等于发布了第二个生产后端。Linux 直接安装在没有可用 Docker 命令时完成安装与真实受限 Harness 推进，旧版本保留、失败激活不覆盖；Docker 部署单独显式验收。冷分配、已备环境取得、命令派发、内容交接与实际 Ready 分开计时；不得把厂商快照恢复的 10 ms 宣称为 Loom 端到端启动指标。</p>
-<p><strong>快速进程 Provider 必测。</strong> 实际 SSH 主机公钥不匹配时不得上传或执行；实际受限 Bash 不能读取管理文件、跨任务文件、网络或写只读资源。输入与命令原样交接，非零退出仍有完整输出；回执声明 <code>output_stream</code> 为 <code>separate</code> 或 <code>combined</code>，Runtime 不推断厂商的通道语义；后台写入者必须实际消失。分别在创建回执、就绪确认、放行和结果持久化边界故障，确认未重放及原 unit 可核对/取消。断开控制连接后由原生运行时期限约束资源，Loom 未决责任不被期限删除。用两目标和真实 Runtime/模型桥接验证文件副本与未知恢复。预置设施上分别测进程启动、含 SSH/输入交接/就绪证据的 Ready、完整结果交接；保留原始样本与硬件，不能承诺包含镜像下载/工具链准备的 10 ms。</p>
+<h4 class="subsection-title" id="section-10-1-timer">启用持久定时时追加的故障轨迹</h4><div class="table-wrap" tabindex="0"><table><thead><tr><th>轨迹</th><th>注入故障</th><th>恢复后的必要观察</th></tr></thead><tbody><tr><td>F11 · 登记与取消</td><td>分别在计划持久化前、回执前中断；取消提交与到期受理并发；重复取消；同名同内容重试与同名不同内容重登记</td><td>原身份核对返回同一计划或确定的取消结果；同名不同内容冲突且不覆盖旧计划；已受理 tick 不被取消抹掉；已触发或已取消的计划不因重新登记复活</td></tr><tr><td>F12 · 到期与补交</td><td>到期受理事务前、事务后崩溃；Runtime 停机跨多个期次后恢复；tick 受理与期次结算之间中断</td><td>每个应交付期次恰有一条逻辑 tick，同身份重受理返回原输入；停机跨过的期次逐条补齐，游标不跳到现在；内存通知丢失由待办扫描重新发现</td></tr><tr><td>F13 · 周期与过载</td><td>固定周期某期处理失败后继续；到期速率超过受理能力；登记达到活跃计划上限；缺时区与过短间隔登记</td><td>期次序列仍按原锚点推进，单期处理失败不中断计划；积压可见且分批补齐；超限与时区错误受理时明确拒绝，不静默丢弃、不静默合并</td></tr></tbody></table></div><p>定时轨迹另在宿主睡眠恢复、系统时钟跳变和 <code>timer.list</code> 与实际受理并发条件下重跑；内存 Ticker/Timer 的计数与丢失不作为业务期次权威。</p>
+<p><strong>Provider 与默认安装追加验收。</strong> 首先用真实本地 Provider 完成单／双目标、文件交接、回执丢失、协作共享及恢复；无镜像字段的测试适配器通过同一解析和 Runtime 契约。未知 Provider、改名服务、改变本地作用域／远端端点、丢失参数和工厂篡改绑定，必须在执行前失败。OpenSandbox、Docker、远程或设备后端只在实际交付／使用时追加真实验收；测试替身不算生产后端，但没有可选后端也不能使默认安装验收失败。A36 同时验证用户级更新、失败激活保留与数据不误删。</p>
+<p><strong>本地管控必须覆盖成功与拒绝两条路径。</strong> 以同一安装 UID 启动多个 Work，直接观测获准文件／协作通道可用，而控制账本、私人资料、策略 FD／内存、安装与授权配置不可越权读写。尝试绕过代理直连、访问本机管理 socket、脱离监督、保留旧 FD 与复用 PID；不能仅通过修改一行账本断言已停止。并发双 Work 用独立配置边界同时运行：各自的获准读取与协作成功，代理与端口状态互不串用，任何一方的配置改写不改变另一方运行中的有效范围；沙箱包装不得占用或破坏 FD 3 控制通道，被包装进程不能读取或伪造该通道。无硬配额能力时如实报告，明确需要该能力的任务在代码执行前拒绝；无提权提示、不自动改宿主安全配置。缺少管控能力的试验必须得到显式未就绪，而不是未受限命令成功。</p>
+<p>原生输入、stdout／stderr、退出状态和内容交接分别检查；非零退出仍保留完整结果，<code>output_stream</code> 按真实分离／合并语义记录。分别测用户级首次依赖准备、环境取得、进程启动、真实 Ready、命令执行与持久交接，保留原始样本和硬件。不得把预热进程启动或厂商快照的毫秒级数据宣称为 Loom 端到端安装／启动时间。</p>
 <h3 id="section-10-2">10.2 性能、证据与通过条件</h3>
 <p>等待驻留规模、活跃吞吐、事件延迟与长期恢复分别测试；不能把“启动一个 Work 成功”作为系统规模证据。每次性能验收在运行前固定 Work 数量、活跃并发、事件速率、事实/文件体量、持续时间、硬件和阈值；结果注明适用范围。没有声明阈值就不能写“达到目标性能”。本版不捏造尚未测量的吞吐值。</p>
 <p>每条验收保存 <code>test_id</code>、规范/基线版本、源码与发布锁摘要、环境、故障位置、预期断言、实际观测引用、结果和时间。状态只能是 pass、fail、not_run、skipped、unsupported；必需能力只有 pass 可计为通过，可选能力 unsupported 必须不向使用者宣称可用。</p>
@@ -1106,6 +1127,23 @@ A1 与 B1 均可保存、恢复和交付，不要求先修改共享分支。
 <p>运行前固定任务集、允许检索范围、关键断言、重复次数、质量门槛和成本口径；可程序判断的行为直接断言，需人工判断的内容预先确定标准并独立复核。先通过关键约束、权限与动作安全，再比较任务完成质量、来源正确性和检索召回；最后比较有效输入量、真实费用、缓存命中、总延迟、纯管理模型调用、无效编辑、SQL 重试与重新读取次数。不得以省 token 换取关键约束失败，也不把缓存命中当窗口缩小。</p>
 <p>参考目标是普通短任务不增加纯上下文管理模型调用，长任务只在有需要时编辑、折叠或归档；正常任务必需的查资料与纯管理开销分开计数。没有预先门槛、只看模型自述、未测或跳过均不能声称“简单且有效”。</p>
 <p>若 A 经常漏掉更正/约束、不会查回或需要繁复操作，应根据轨迹调整提示、资料入口或增加薄 CLI；确有收益时再采用显式规则或摘要。修改的是参考 Harness 及其验收，不先增加另一套记忆服务；决定与测试证据随发布保存，不保留长篇方案分析。</p>
+<h3 id="section-10-4">10.4 职责替换的专项验收</h3>
+<p>以下 R 条目是<a href="#section-11-6">第 11.6 节</a>重构的追加门槛，不替代 A 条目、F 轨迹和 C 不变量。实施前固定被测源码与依赖、故障注入点、预期数据库事实、原生对象与文件观察；每项记录通过、失败或未验证。新增用例接入现有组件与独立验收入口，不以测试数量或 Agent 自述作为结果。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>ID／阶段</th><th>场景与直接通过条件</th><th>关联契约</th></tr></thead><tbody>
+<tr><td>R01 · P0/P1</td><td>真实执行覆盖 exec 后 argv 不含 scope、长命令行、leader 退出后后代持续写入、setsid／换进程组、身份复用与伪造。独立观察者确认原域及全部相关写能力已终止后才可 fenced；新对象和另一 Work 不受信号影响。注入后端实际依赖的身份／成员观测丢失、损坏或失败（使用 ps 的路径包括报错／截断／权限不足），无其他可靠证据时保持证据不足，不能继续相关副本的最终交付或接管；不要求有可靠原生管理对象的实现依赖 ps。</td><td>C05/C07/C17；A36/F10</td></tr>
+<tr><td>R02 · P0/P1</td><td>冻结并发写入者后实际内容稳定，恢复后同一域继续运行，另一 Work 持续推进；冻结失败不读取或提交不稳定候选；恢复失败保留已保存候选／结果及恢复责任，不继续业务、不抹掉保存事实，也不暗改为 kill。正常及非零退出均保存原生结果。已保存结果后注入清理失败，重启读得同一结果与内容，清理责任仍在且原命令未重跑。所有交接测试通过 RequestHandoff → CompleteHandoff，无 FinishRound 旁路。</td><td>C03/C06/C07；A12/F1/F2</td></tr>
+<tr><td>R03 · P1</td><td>Work 执行设施与本地任务适配器共用 SRT 配置编译、原身份监督及 fence；各任务后端共用阶段推进，不再各自实现整条准备—派发—捕获—交付—清理流程。真实 macOS SRT 与 Linux SRT 跑 R01/R02；交付的 SSH/OpenSandbox 跑适用的原身份、回执丢失和清理故障集。替身通过不算后端验收。</td><td>B05/B08；C17；A36</td></tr>
+<tr><td>R04 · P2</td><td>捕获前、对象及保留引用落稳后事务前、SQLite 提交后回执前分别崩溃。完整候选尚未保存时，旧指针仍有效，交付保持待核对／未确认，不虚构新内容；完整候选及原 Effect 关联已保存时，可核对原候选并续办条件交付；事务已提交时，返回同一已提交内容引用。各分支均不重跑 Shell，已提交引用不得指向不完整闭包；提交／GC 并发不删必要候选或历史。检查 Git 对象、清单、保留引用及 SQLite 实际记录。</td><td>C06/C07；A12/F2</td></tr>
+<tr><td>R05 · P2</td><td>逐字节检查忽略文件、嵌套属性、CRLF、过滤器、二进制、空目录、可执行位、符号链接；捕获中写入、ABA 往返、目录替换、跨根链接必须得到稳定版本或明确拒绝。A/B 同源副本独立保存，旧 generation／epoch／前序被拒绝；共享更新冲突不覆盖另一副本或共享项目。</td><td>A13/A25；F7；C15</td></tr>
+<tr><td>R06 · P2/P3</td><td>对声明自包含的导出，移走原 Work、原资源与缓存并断网，再导入、inspect、fork，加载并核验适用的已确认继续依据；缺少任一必要对象、清单或记录闭包均拒绝。按 8.6 允许保留外部依赖的导出须明示依赖与保留保证，依赖不可用时不得冒充自包含或完整可恢复；恢复执行另核验所声明运行依赖及新宿主授权，不继承物理授权。格式切换预先选择一条验收路径：交付迁移时，转换覆盖全部保留历史及责任引用，原件保留、来源可查；仅支持新 Work 时，新 reader 拒绝旧格式，原件及旧责任仍由旧发行可用地读取／核对，不宣称迁移通过。未结外部责任仍按 8.6 留在原身份，不借导出清空。</td><td>A19；C07/C15；11.5</td></tr>
+<tr><td>R07 · P3 实验</td><td>锁定源码编译并分别验证两类事务：同句柄 RunAsTransaction 回滚时领域写入与该步引擎记录均不提交；提交后丢回执再恢复，读取同一已存输出且回调不重跑。调用方普通事务 enqueue 回滚时领域绑定与入队记录均不提交；提交后丢回执再按原身份重试，不新增领域事实或 workflow，不要求该普通事务回调具有引擎缓存重放语义。不同句柄误接必须被 Loom 拒绝。读出 sqlite_version、WAL、FULL、foreign_keys；检查初始化、重连及并发写入后的实际值。</td><td>B02；S2；C03/C07</td></tr>
+<tr><td>R08 · P3 实验</td><td>在派发 CAS 提交前、提交后调用前、真实外部效果发生后引擎 checkpoint 前逐点中断，并强制 step 重入、双恢复竞争和旧 epoch 请求。提交前无外部痕迹；已 attempted 的恢复只核对原身份，外部非幂等计数不增加。把缓存 granted=true 作为许可的错误实现必须被此用例拒绝；unknown 不得映射为业务成功。</td><td>C05/C07；A24/F1</td></tr>
+<tr><td>R09 · P3 实验</td><td>多个输入形成一个固定 Round 输入集；迟到输入留到下一轮；同身份同内容返回原事实、同身份异内容拒绝；并发唤醒、受理后停机与交接前后停机均不漏交或误消费。若“受理已提交而尚未创建／通知 workflow”的中间态可达，在此杀进程，重启且无新输入到达也必须自动发现责任；若由同一事务消除该间隙，直接检查中间态不可达并在提交前后注入故障。具备原策略、内容及写入排他条件时责任自动推进，否则保留可见阻塞而不丢失。数据库同时检查领域输入绑定、仅结算已处理子集及唯一 workflow 身份；不得加载不匹配原 Round 的策略版本，也不得绕过未确认的 writer fence 或内容耐久边界。</td><td>C03–C07；F1/F2/F6/F7</td></tr>
+<tr><td>R10 · P3 切换</td><td>预注册的旧调度／恢复／队列／引擎检查点／轮询推进五类机制退出生产调用图；DBOS 系统表是唯一引擎历史。保留的 Loom 表只表达领域事实、绑定和责任，不另存一套可推进的引擎游标。冻结范围及所有新增适配、SQL、脚本按同一计数规则比较，净减少生产代码；不能靠移目录、改语言、压行或划为生成代码通过。</td><td>B01/B02/B12；C13</td></tr>
+<tr><td>R11 · P3 切换</td><td>在同一最终版本组合注入“命令已派发但调度回执丢失”“结果已保存但引擎未确认”“结果已交付但清理失败”；同时检查外部效果计数、域身份、内容及两类数据库事实。复跑适用 A/F 全集、A21/10.2 规模与 A36 默认安装；发布前确认无新增必需服务，等待 Work 不常驻专属进程，FD／连接／内存和唤醒延迟满足实验前固定预算。</td><td>C03/C05/C06/C07/C17</td></tr>
+<tr><td>R12 · 暂缓项启用前</td><td>若以后试验 Pi coding-agent SDK：触发高上下文压力仍不自动 compaction；所有文件／命令工具逐效果经过 Runtime；删除 SDK session 缓存后仍从原 checkpoint 继续；隔离验证 Harness 无凭据读权。模型前、工具前、结果采用前分别崩溃通过 A24，并按 A31–A35 验证实际策略效果和新增成本。</td><td>B07；5.3；A24/A31–A35</td></tr>
+</tbody></table></div>
+<p>进程故障、主机故障与掉电是不同故障模型。kill 测试只能证明进程故障恢复；耐久发布声明仍须第 5.1—5.2 节适用的真实存储证据。缺少某平台或可选后端环境时明确标为未验证，不记作通过；默认 macOS／Linux 的必须项不能因此从发布范围中静默删除。</p>
 </section><section class="chapter implementation" id="chapter-11"><div class="chapter-kicker">I / BUILD &amp; EVOLUTION</div><h2>11. 重建、发布与替换规则</h2><p class="chapter-lede">按照明确基线重建底座；尽早验证策略可修改、可替换，以及工作可等待、可恢复。</p><h3 id="section-11-0">11.0 本书的约束与重建目标</h3>
 <p><strong>本 HTML 是 Loom 的单一规范入口，不是另一份 Specification 的展示副本。</strong> 产品要求、架构、当前技术基线、最小契约、重建路径和验收规则都在本书内。实现代码、生成的 schema、依赖锁与测试证据可以存在，但只能落实本书，不能另立产品要求。独立的 architecture、contracts 文档不再是阅读本书的前置条件。</p>
 <div class="table-wrap" tabindex="0"><table>
@@ -1145,14 +1183,14 @@ A1 与 B1 均可保存、恢复和交付，不要求先修改共享分支。
   internal/
     runtime/                输入、Round、Effect、订阅、调度、恢复
     store/                  SQLite 事务、records、Git、保留保护与导出
-    execution/              Work 角色隔离、执行启动与实际 fencing
-    adapters/&lt;provider&gt;/   独立 Provider 适配器；各自导入官方 SDK
+    execution/              原生无特权启动、访问策略与实际写入停止
+    adapters/&lt;provider&gt;/   默认本地与可选后端；各自复用原生机制或 SDK
   model/pi/                 受控 TypeScript 组件；复用 Pi，不复制循环
   harnesses/                参考策略；不是 Runtime 内置业务机制
   tests/                    契约、真实集成、故障、安全和规模验收
 </code></pre>
 <div class="codebar"><span>CONTRACT / EXAMPLE</span><button aria-label="复制代码块" class="copy-code" type="button">复制</button></div><pre><code class="language-text">组装入口 → 配置解析 + Provider 工厂注册
-Runtime → Loom 契约 ← Provider 适配器 → 官方 SDK / 远程协议
+Runtime → Loom 契约 ← Provider 适配器 → 原生本地执行 / 官方 SDK / 远程协议
     ↕ 受控 RPC
 Pi 适配组件 → Pi 模型编解码 / 局部循环
 
@@ -1174,11 +1212,7 @@ Harness → Loom 策略契约；不导入宿主管理 SDK
 <td>本地账本、records、Git 与身份模型</td>
 <td>受理幂等、字节捕获、对象先落稳/事务后引用、GC 保留测试失败时停止</td>
 </tr>
-<tr>
-<td>2</td>
-<td>Linux 角色隔离与协议握手</td>
-<td>Bash 能取得控制能力、旧 owner 能写、未授权路径可达时停止</td>
-</tr>
+<tr><td>2</td><td>macOS／Linux 用户级执行管控、默认安装与协议握手</td><td>需要 root／管理员预置，Bash 能取得控制能力、旧 owner 能写、越权路径可达，或获准共享无法使用时停止</td></tr>
 <tr>
 <td>3</td>
 <td>最简文件 Harness + 另一种普通代码策略 + 共同投影/Pi 接入 + 修改、试跑与启用</td>
@@ -1189,7 +1223,7 @@ Harness → Loom 策略契约；不导入宿主管理 SDK
 <td>多 Work 事件唤醒、卸载与恢复</td>
 <td>等待必须常驻 Agent、恢复加载错误版本、切换忽略状态兼容、输入误消费或需要重放未知效果时停止</td>
 </tr>
-<tr><td>5</td><td>Provider 单/双目标（参考适配器：OpenSandbox）、独立 Userspace 绑定、文件交接与恢复</td><td>副本保存与共享整合混淆、多个 Work 不能独立保存、恢复回退共享项目、旧效果串目标或必要内容只在 Sandbox 时停止</td></tr>
+<tr><td>5</td><td>本地 Provider 单／双目标、独立 Userspace 绑定、文件交接与恢复；可选后端按需追加</td><td>副本保存与共享整合混淆、多个 Work 不能独立保存、恢复回退项目、旧效果串目标或必要内容只在临时执行域时停止；不得以 OpenSandbox 未部署阻塞默认闭环</td></tr>
 <tr>
 <td>6</td>
 <td>完整导出/导入、fork、替换与规模</td>
@@ -1197,16 +1231,17 @@ Harness → Loom 策略契约；不导入宿主管理 SDK
 </tr>
 </tbody>
 </table></div>
-<p>多 Work 的独立事件唤醒与恢复是第 4 步的基础闭环，不要求先实现协作流程。开放 <code>work.create/1</code> 或 <code>work.deliver/1</code> 时，再以相同账本、Effect 和注册路径通过 A28—A30 的适用项及 F5/F6；不增加协作服务、任务树、DSL 或 Work 目录。</p>
-<p>首期不以增加 macOS/设备 Provider 代替以上主路径验收；也不为了等齐所有平台而阻塞 Linux 基线。一个真实支持的 Round 内继续边界是必需的；更细阶段只有在组件真实支持并通过对应故障测试后才开放。</p>
+<p>多 Work 的独立事件唤醒与恢复是第 4 步的基础闭环，不要求先实现协作流程。开放 <code>work.create/1</code> 或 <code>work.deliver/1</code> 时，再以相同账本、Effect 和注册路径通过 A28—A30 的适用项及 F5/F6；不增加协作服务、任务树、DSL 或 Work 目录。开放 <code>timer.plan/1</code> 时，同样以既有受理事务与扫描路径通过 A37 及 F11—F13 并先完成验证，再宣称可用；不新增常驻调度服务、cron daemon、第二套任务历史或宿主 crontab 依赖。</p>
+<p>macOS 原生与受支持 Linux 的本地运行属于默认交付范围，不归入可选设备后端；分别提供无提权安装和管控证据，不以“macOS 先装 Linux”代替原生路径。开发可逐平台推进，未经验证的组合必须标为未支持，不能笼统宣称跨平台默认可用。容器、远程和设备扩展不阻塞已支持本地路径；一个真实支持的 Round 内继续边界仍是必需项，更细阶段经对应故障测试后再开放。</p>
 <p>参考 Harness 从单主模板、普通工具与 SQLite 读取面开始，按第 4.6—4.7 节实现；私人助手只增加受众/资料绑定、记录更正与业务工具等实际需要，卡片制作复用同一运行路径。上线声称参考策略可靠前，完成 A31—A35 和第 10.3 节对照；不以先实现模板语言、CLI 或向量库代替真实任务验证。</p><h3 id="section-11-3">11.3 哪些可以在实现中自由决定</h3>
-<p>包名、函数分解、SQL 表/索引物理布局、TOML/JSON 解析库、成熟隔离 launcher、日志后端、对象文件分片、压缩、缓存分页、连接池和调优数值可以决定并记录。限制是：不能更换第 5 章固定组件路线，不能改变第 6 章公共字段与状态语义，也不能降低不变量或隐式扩大权限。</p><p>第 4.6 节语法与第 4.7 节读取结构是参考 Harness 的可重建约定；替换参考实现需更新其版本与适用测试，不影响其他 Harness 自选语法。模型策略可以不同，但 Runtime 的预算事实、容量限制、原始记录与授权边界不得被策略配置关闭或篡改。</p>
+<p>包名、函数分解、SQL 表/索引物理布局、TOML/JSON 解析库、原生管控的成熟包装库、日志后端、对象文件分片、压缩、缓存分页、连接池和调优数值可以决定并记录。限制是：不能更换第 5 章固定组件路线，不能改变第 6 章公共字段与状态语义，也不能降低不变量或隐式扩大权限。</p><p>第 4.6 节语法与第 4.7 节读取结构是参考 Harness 的可重建约定；替换参考实现需更新其版本与适用测试，不影响其他 Harness 自选语法。模型策略可以不同，但 Runtime 的预算事实、容量限制、原始记录与授权边界不得被策略配置关闭或篡改。</p>
 <p>数据库驱动和 launcher 不被假装成零成本可换：虽然不固定具体库名，每个发布仍须锁定实际依赖并执行相应兼容/隔离测试。不同实现可以具有不同内部 SQL schema；声称相互导入时需提供经验证的版本迁移，不能只因为都叫 SQLite 就声称兼容。</p>
 <p>模型名称、预算、Target 数量、Profile 要求、Userspace 逻辑引用与业务 Surface 组织按 Work 声明；资源真实位置、稳定物理身份、权限、端点和凭据由宿主解析。资源的项目布局、开发分支与合并流程由使用者或 Harness 选择；Runtime 不要求统一仓库或新增常驻资源管理服务。配置不能把未实现、未获准能力变成 Ready。</p>
 <h3 id="section-11-4">11.4 发布锁：产物，不是第二份需求</h3>
-<p>每个正式发布在产物元数据中保存 <code>spec_version</code>、<code>baseline_version</code>、本书内容摘要、源码 commit、工具链、依赖锁摘要、实际嵌入引擎版本、模型组件、实际 Provider、服务/SDK/执行环境摘要、支持的 schema/协议和验收证据索引。Go 依赖使用模块锁，Node 依赖使用一个确定的包管理器锁；容器镜像使用内容摘要而非漂移标签。</p>
-<p>这份机器可读信息回答“这一次到底构建了什么”，不回答“产品应该是什么”。本书规范版本为 <strong>1.6</strong>，技术基线为 <strong>3</strong>；<code>work.toml</code> 结构 <strong>2</strong>、<code>userspace.binding/1</code>、<code>loom/1</code> 及可选协作身份规则保持。新增 <code>context.feedback/1</code> 为协商扩展，参考事实读取结构为版本 1；模板语法随 Harness 版本保存，不产生新的权威状态或强制目录。发布锁还须记录参考 Harness 版本、预算/输出范围策略、SQLite CLI/索引能力及上下文验收证据。既有配置迁移见第 6.7 节。编号是文档身份，不代表已有对应软件发布；当前尚无与本书匹配并通过系统验收的 Runtime 发布锁。</p>
+<p>每个正式发布在产物元数据中保存 <code>spec_version</code>、<code>baseline_version</code>、本书摘要、源码 commit、构建工具链、依赖锁、实际嵌入引擎、模型组件和支持的 schema／协议。另列随发行提供或用户级准备的基础工具、原生启动器／策略／过滤配置、OS／架构／内核与宿主策略兼容矩阵、默认 Profile，以及 A36 与权限／恢复证据。容器或远程后端按实际交付附服务、SDK、环境与镜像摘要，不将镜像变为本地必填项。Go 使用模块锁，Node 使用确定包管理器锁，版本不可漂移。</p>
+<p>这份机器可读信息回答“这一次到底构建了什么”，不另立产品要求。本书规范版本为 <strong>1.9</strong>，技术基线为 <strong>4</strong>；基线 4 的既有约定是普通用户默认安装、原生访问管控与内置本地执行（集成锁定的 Anthropic Sandbox Runtime），撤去 root 控制器、独立宿主 UID 和管理员预置设施的前提，并新增可选持久定时规格（<a href="#section-6-10">第 6.10 节</a>，能力 <code>timer.plan/1</code>，验收为 A37 与 F11—F13）：该规格尚无实现通过其验收，启用前不得对外宣称可用。保留 Provider 依赖倒置与 <code>provider / service_id / endpoint / options_json</code> 绑定核对；<code>work.toml</code> 结构 <strong>2</strong>、<code>loom/1</code>、<code>userspace.binding/1</code>、<code>context.feedback/1</code>、参考读取结构 1 及协作语义不变。旧 Provider 绑定不能按新默认重解释；配置迁移仍按第 6.7 节。参考 Harness 及其模板、预算／输出范围与上下文验收继续锁定。编号仅为设计身份，尚无与本书匹配且通过系统验收的 Runtime 发布锁。</p>
 <p>只要求基于规格重建时，遵循基线并形成自己的完整发布锁；要求复现某个历史发布时，必须使用那个发布的源码、锁和环境。不能把前一种能力宣传成后一种逐字节复现。</p>
+<p>规范 1.9 修正执行身份证据及确认边界，补充第 10.4 节重构验收与第 11.6 节职责替换决策；不是已实现声明。P2 的新持久引用格式与 P3 的 DBOS 尚未激活，以上当前格式声明不代表未来格式兼容；生产切换时按 11.5 完成对应版本与基线修订。</p>
 <h3 id="section-11-5">11.5 更换组件的准入条件</h3>
 <p>组件替换必须先指出触及的 C、B 和验收条目；给出新旧行为差异、数据/协议迁移、失败回退方式及真实验证。满足原契约后更新本书的基线，不同时留下两条未定义优先级的默认路线。</p>
 <div class="table-wrap" tabindex="0"><table>
@@ -1245,15 +1280,43 @@ Harness → Loom 策略契约；不导入宿主管理 SDK
 </tr>
 </tbody>
 </table></div>
-<p>退休旧适配器之前必须结清其责任，或仍提供可用的核对能力；不能只升级依赖就删除处理旧状态所需的代码。基线变更原因只保留会影响未来遵守的理由；会议过程、历史候选排序和逐轮评审不进入本书正文。</p>
-</section><section class="chapter reference" id="chapter-12"><div class="chapter-kicker">REFERENCE / NON-NORMATIVE</div><h2>12. 必要理由与技术依据</h2><p class="chapter-lede">依据放在最后；正文只保留当前成立的设计。</p><p>本章是非规范性技术依据。外部资料用于核对组件性质，不替代本书的目标，也不证明 Loom 已实现任何能力。系统目标是支持灵活、多样的 Harness 持久推进工作；策略实验与比较是演进过程中的使用方式。文件优先、可恢复、事件驱动和执行层分离构成运行方式。Surface、多 Target、技术基线与发布约束在正文中给出。没有源码审计、真实 Sandbox 运行或系统故障验收结果。</p>
-<p>既有选型依据核对日期：<strong>2026-09-20</strong>；本轮上下文控制与事实读取资料核对日期：<strong>2026-09-21</strong>。只保留影响设计的结论和出处，不保留历次讨论或长篇调研；移动分支与产品文档仍须在实现发布时重新锁定和验证。</p>
+<p>退休旧适配器之前必须结清其责任，或仍提供可用的核对能力；不能只升级依赖就删除处理旧状态所需的代码。改用本地默认后端不改写既有 Allocation，也不降低已受理任务明确要求的硬配额；新任务按新的能力报告选择，旧责任按原契约核对。基线变更原因只保留会影响未来遵守的理由；会议过程、历史候选排序和逐轮评审不进入本书正文。</p>
+<h3 id="section-11-6">11.6 职责替换决策与执行顺序</h3>
+<p><strong>目标是让成熟组件接管通用机制，让 Loom 保留自身契约所需的绑定与判断。</strong> 一万行是启动架构审查的预算信号，不是验收线；测试不为缩减预算而删除。每次替换须回答“上游现在负责了什么、原机制在哪里退出、剩余自有逻辑为何必要”，不以封装层增加或代码搬家计作简化。本节是待实施的重构规格，尚无本轮重构通过验收的结论；DBOS 仅为正式实验候选，当前技术基线仍为 4。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>问题</th><th>决定与边界</th><th>完成时必须退出的自有机制</th></tr></thead><tbody>
+<tr><td>执行与恢复事实</td><td>必修。Loom 保留 Effect 派发屏障、原身份／授权映射和交付判定；SRT／原生后端承担平台执行机制。默认保持本地无特权路径，OpenSandbox 可选。</td><td>把观测缺失当停止、退出当清理、清理错误遮蔽结果的路径；重复 SRT 编译、监督和任务阶段编排。</td></tr>
+<tr><td>文件版本</td><td>确定采用统一 Git 内容表示。Git 承担对象、树、版本可达性和 bundle；Loom 保留逻辑副本／前序、采用／Effect 关系和持久交付确认三类绑定。</td><td>tar 作为持久资源版本库，及 Snapshot → tar → 解包 → Git 的中转链；传输 tar 不属于退出项。</td></tr>
+<tr><td>通用持久推进</td><td>正式试验 DBOS；通过 R07–R11 才替换。Loom 保留输入消费边界、未知效果、owner／epoch、内容采用与业务责任；引擎承担调度、步骤恢复和执行历史。</td><td>与引擎重复的 Round 推进、recovering/resume 控制循环、待执行队列、步骤 checkpoint 机械记录及 scheduler 轮询。领域 Round 身份、输入集和业务 checkpoint 仍保留必要绑定。</td></tr>
+<tr><td>授权、RPC、模型与参考策略</td><td>保留现有授权映射、标准 JSON-RPC、Pi AI／agent-core 组合；不引入 Casbin，不整体更换模型架构。Pi coding-agent SDK 暂缓，另以 R12 证明净收益后再决定。</td><td>本轮无强制替换。不得将 model、RPC 与 Harness 全部代码算作 SDK 可消除量。</td></tr>
+</tbody></table></div>
+<p><strong>生产合入顺序：P0 语义修复 → P1 执行收敛 → P2 Git 内容收敛 → P3 通过实验后替换持久引擎。</strong> 先建立可证明的执行边界，才删除内容中转；先固定内容引用，才减少引擎需要协调的状态面。P3 的能力探针与隔离实验可在 P0 契约固定后并行，但不能修改生产存量 Work。执行与引擎都触及 Effect、checkpoint、结果和清理，不能按目录宣称互不相交；生产合入串行，每次重放最终组合故障。</p>
+<h4 class="subsection-title" id="section-11-6-safety">P0 · 修正确认语义，删除交接旁路</h4>
+<p>范围是 Work 执行设施、本地任务适配器、控制器交接和 store 测试。先按 5.5、6.3 修正文档与负向用例，再修“身份／组证据缺失即成功”“fence 未确认仍捕获或回写”“保存成功却被清理错误遮蔽”的路径。未知责任保留原身份与唯一结果；清理单独持久化。删除无生产调用的 <code>FinishRound</code>，全部测试调用改走 <code>RequestHandoff → CompleteHandoff</code>，保留其原断言并追加迟到输入、不完整交接和清理失败反例。退出条件为 R01/R02 的语义集通过，所需正确身份与确认原语在本阶段完成，P1 仅进一步统一实现；不能只让危险路径全部拒绝而没有正常及非零退出的正向证据。</p>
+<h4 class="subsection-title" id="section-11-6-execution">P1 · 一份执行阶段逻辑，后端只提供原语</h4>
+<p>共同逻辑按“保存意图与原绑定 → 建立受控域且未放行 → 保存就绪与身份 → 新鲜派发 CAS → 放行 → 保存已取得的原生观察 → 核对稳定／终止边界 → 保存可确认的完整结果与内容并条件交付 → 返回已保存结果 → 独立清理”推进。未知分支仍按原身份查询／停止，不要求先拿到结果才核对执行域，也不形成 completed；后代仍持有输出流时，不能仅凭 leader 退出宣称 stdout／stderr 已完整。查询、临时冻结／恢复、终止 fence、捕获和资源归还是不同原语；不以通用 success 布尔值抹掉 unknown／身份不匹配／能力缺失。共同流程不在不同后端复制，也不扩展为另一个工作流引擎。</p>
+<p>将本地 SRT 配置编译、身份登记和监督共用给 Work 设施及任务适配器；SSH／OpenSandbox 只保留原生连接、执行对象与能力差异，既有受控 Linux 模式保持显式选择。自有维护成本限于授权到 SRT 的映射、全域身份与写能力确认、平台差异及回执绑定，并随支持矩阵列明；不自己维护 SBPL、网络代理或容器服务。以 R01–R03 及适用 A/F 为退出条件，旧整条阶段编排和重复本地监督实现必须删除。</p>
+<h4 class="subsection-title" id="section-11-6-content">P2 · Git 接管文件内容表示与传输闭包</h4>
+<p>先确定并版本化 <code>git-content/v1</code> 类型引用：包含固定 kind、仓库对象格式和完整不可变 commit OID；commit 的闭包必须同时覆盖内容 tree 与版本化 metadata manifest。禁止使用分支、HEAD、宿主路径或隐含当前仓库作为引用身份。实现前将确切字段、支持的对象格式、封装 tree 布局、清单 schema／规范化规则及拒绝条件补齐到本节并生成协议 schema；不能一边实现一边默认为兼容旧字符串。日志和原生响应继续使用 RecordRef，传输包摘要只证明运输字节。</p>
+<p>从 5.2 规定的稳定来源直接写 Git，删除持久 tar 中转；必要暂存和冻结不能仅为减行删除。内容 tree、清单、封装 commit 与保留引用先落稳，再以 SQLite 一次事务校验 working_copy、Target、generation、前序、epoch 与 Effect 并提交采用／交付绑定。Git 父提交不替代业务前序 CAS；保存某 Work 的副本不自动更新共享项目。导出使用 Git bundle 或等价完整对象闭包，外层仍可用 tar 打包。</p>
+<p>这是持久引用格式变更，必须列明所有引用位置：Work 与资源快照、策略版本、checkpoint、Effect 回执、binding、历史／fork 与导出；更新受影响的数据／协议版本，不机械升级无关配置。首选独立离线、停写后复制转换，保留原件与旧→新来源，验证全部保留历史；不原地篡改原始记录，不给新生产 reader 加双格式兼容。若本阶段不交付完整迁移，只允许新格式 Work，旧 Work 由旧发行保留读取／核对，切换必须明确且不能丢旧责任。R04–R06 及 A12/A13/A19/A25、F2/F7 全过后，才删除旧内容表示。</p>
+<h4 class="subsection-title" id="section-11-6-engine">P3 · DBOS 正式实验与条件替换</h4>
+<p><strong>能力门先于架构实验。</strong> 候选锁定 Go SDK <code>v1.4.0</code>（源码 commit <code>5387dd34db00b1762a2367ab4bf1de935afa09f7</code>），在隔离模块中编译、核对模块摘要和依赖，再验证 R07。此前提及的 <code>v0.14.0</code> 不具备本方案需要的 SQLiteSystemDB／RunAsTransaction，不能把当前在线文档能力套到该旧版；未来换候选版本须重新过能力门。源码能力成立不代表 Loom 集成已可用。<a class="cite" href="#src-dbos">[S17]</a></p>
+<p>每 Work 仍只有一份 <code>state.sqlite</code>。由 Loom 打开并验证的同一个 <code>*sql.DB</code> 同时传给 SQLiteSystemDB 与 datasource；同文件但不同句柄不满足同引擎要求。保留 5.1 的 WAL、FULL、外键和实际引擎版本检查，验证 DBOS 初始化及重连不会改变它们。领域表与 DBOS 系统表可以共处一库，前者保存 Loom 事实，后者独占引擎历史；域内业务 checkpoint 不得再保存可与 DBOS 分别推进的步骤游标。</p>
+<p><strong>workflow 身份绑定 Round，不绑定单条输入。</strong> 一个 Round 可固定一批输入并在原身份下继续；input 身份只用于受理去重。入口 <code>input.accept</code> 原子保存输入事实与待处理责任，并建立引擎可发现的持久唤醒；若采用后续 adopt，必须由唯一领域责任的有限恢复扫描补齐受理至入队的间隙，不另维护可独立推进的权威队列，启动及运行中漏通知均可恢复；从中原子采用固定输入集、创建 Round 及 enqueue 时，优先使用引擎提供的调用方 <code>*sql.Tx</code>，workflow ID 从 Work／Round 稳定导出。新输入到达已有 Round 时只登记为后续责任，不扩张旧输入边界。采用过程不提前消费输入；真实 handoff 只结算其声明已处理的 adopted 子集，剩余输入继续保留，workflow 完成不能自动消费全部输入。若需要唤醒既有 workflow，通知须和领域责任原子保存或可从唯一领域责任补齐，不能新增第二份权威队列。v1.4.0 的外部事务 enqueue 不能在 workflow 内调用，也不能与 ReturnExisting 去重策略混用；重复受理须按领域身份核对。</p>
+<p><strong>RunAsTransaction 用于领域写入与引擎记录的原子确认，不返回可复用的派发资格。</strong> 它在重放时返回已存输出，并且不能嵌套在 RunAsStep 中。外部效果的 step 每次实际进入，先读 Effect；只有普通 SQLite 事务中本次新鲜 CAS 成功并绑定有效 owner／epoch 才能放行，CAS 提交后退出事务再调用原对象。已 attempted 且结果未知时只核对原身份；不因 step 的重试、取消或 workflow 状态变化再次 Execute。旧 epoch 不能新派发或采用内容，但对应原身份的真实迟到回执仍须保存，不因 owner 更换丢弃事实。可重放的事务步骤可保存准备、确定结果与采用事实；实际外部调用不得放入数据库事务回调。领域 Effect 回执、实际输入、内容采用及必要继续依据须有独立于引擎保留策略的引用保护；清理 workflow 历史不得删除仍被领域事实或未结责任依赖的唯一记录。引擎 SUCCESS、ERROR 或 CANCELLED 不是业务完成、未执行或停止的证据，unknown 必须仍有可查询、可接管的持久责任。</p>
+<p>实验开始前固定三条端到端主轨迹：F1 未知效果、旧 writer 仍可写时的接管、内容先落稳后提交／丢回执；再覆盖 R07–R09 的事务、输入批次、并发与重放反例。测量每 Work 引擎启动、连接／FD／内存、恢复和唤醒延迟，按 A21／10.2 的既定负载预注册数值预算，防止为了删 scheduler 而给每个等待 Work 增加常驻引擎负担。已有 SQLite 引擎版本检查是复验项，不作为新增功能收益。</p>
+<p>实验前保存明确的职责／文件／表清单及内容摘要；“显著简化”以五类重复机制完整退出且计入全部新增 glue 后生产代码净减少判定，绝不只报删除行数。最终须同时满足 R07–R11、全部相关 A/F、存量 Work 迁移或明确仅新 Work 方案、无双引擎历史、无额外必需服务。全部通过才按 11.5 修订 B02/B12 及 B01 的职责说明和技术基线，随发布一次切换当前格式；不能将实验路径作为永久开关留在生产。任何必需项不通过，保留原引擎，归档直接证据、失败原因和净成本，移除实验生产接入；P0–P2 的独立收益仍保留。</p>
+<p>引擎切换不自动实现可选协作或持久定时能力：已启用的按 A28–A30／A37 和 F5/F6／F11–F13 回归，未实现的继续标记不可用。迁移须处理 workflow／步骤版本、序列化和旧继续点；无法证明恢复兼容的存量 Work 不能静默换引擎。首次生产写入前可放弃候选；一旦发生真实效果，失败时先停止新派发并保留全部事实，再修复或执行经验证的前向迁移。禁止恢复旧数据库快照、自动切回旧调度器或仅回滚二进制，以免抹掉责任并重放效果；保留的原件用于查证，不作为覆盖当前责任的回退点。</p>
+<h4 class="subsection-title" id="section-11-6-deferred">暂缓 · Pi coding-agent SDK</h4>
+<p>本轮不为缩减行数引入完整 SDK。已有 Pi AI／agent-core 继续承担适用职责；参考 Harness 的策略选择属于产品自有逻辑。以后若有明确策略功能收益，先做 R12 的隔离适配证明：关闭自动 compaction；禁用默认 read/bash/edit 等工具或替换为逐效果 Runtime 代理；SDK session 文件只能作可重建缓存，原生继续依据绑定 Loom checkpoint；凭据解析和传输留在受信模型组件，不能为了复用 SDK 将凭据搬进 Harness。通过后才独立修订 B07／参考 Harness 版本，计算该层实际净收益，不把 model、RPC 或领域屏障列作可直接删除代码。</p>
+</section><section class="chapter reference" id="chapter-12"><div class="chapter-kicker">REFERENCE / NON-NORMATIVE</div><h2>12. 必要理由与技术依据</h2><p class="chapter-lede">依据放在最后；正文只保留当前成立的设计。</p><p>本章是非规范性技术依据。外部资料用于核对组件性质，不替代本书的目标，也不证明 Loom 已实现任何能力。系统目标是支持灵活、多样的 Harness 持久推进工作；策略实验与比较是演进过程中的使用方式。文件优先、可恢复、事件驱动和执行层分离构成运行方式。Surface、多 Target、技术基线与发布约束在正文中给出。本章不构成源码审计、真实 Sandbox 运行或系统故障验收的通过证据。</p>
+<p>既有选型依据核对日期：<strong>2026-09-20</strong>；上下文控制、事实读取及本轮用户级执行依据核对日期：<strong>2026-09-21</strong>。只保留影响设计的结论和出处，不保留历次讨论或长篇调研；移动分支与产品文档仍须在实现发布时重新锁定和验证。</p>
 <div class="source-item" id="src-sqlite"><strong>S1 · SQLite 的提交与部署边界</strong><p><a href="https://www.sqlite.org/wal.html" rel="noopener noreferrer">SQLite：Write-Ahead Logging</a>；<a href="https://www.sqlite.org/pragma.html#pragma_synchronous" rel="noopener noreferrer">PRAGMA synchronous</a>。WAL 需要同宿主共享协调；FULL 与 NORMAL 的掉电耐久不同。本书的每 Work 本地账本及 FULL 是设计选择。</p></div>
 <div class="source-item" id="src-sqlite-fix"><strong>S2 · WAL-reset 修复要求</strong><p><a href="https://www.sqlite.org/wal.html#the_wal_reset_bug" rel="noopener noreferrer">SQLite：WAL-reset bug</a>。官方记载 2026 年发现的竞态及修复/回移版本；本书据此要求实际引擎包含修复，而不是把较新的驱动名当证明。</p></div>
 <div class="source-item" id="src-git-bytes"><strong>S3 · Git 原始字节</strong><p><a href="https://git-scm.com/docs/git-hash-object" rel="noopener noreferrer">Git：hash-object</a>。原始对象写入可不经过属性过滤。Loom 仍须自己确定授权捕获范围和必要元数据。</p></div>
 <div class="source-item" id="src-git-durable"><strong>S4 · Git 持久设置</strong><p><a href="https://git-scm.com/docs/git-config#Documentation/git-config.txt-corefsync" rel="noopener noreferrer">Git：core.fsync / core.fsyncMethod</a>。组件是否加固影响异常关机时的结果；本书采用 all/fsync，配合对象保留及提交顺序。</p></div>
 <div class="source-item" id="src-fsync"><strong>S5 · 目录项耐久</strong><p><a href="https://man7.org/linux/man-pages/man2/fsync.2.html" rel="noopener noreferrer">Linux man-pages：fsync(2)</a>。文件同步与目录项同步分别处理；底层存储是否遵守语义仍需验证。</p></div>
-<div class="source-item" id="src-isolation"><strong>S6 · 成熟进程隔离设施</strong><p><a href="https://raw.githubusercontent.com/systemd/systemd/main/man/systemd.exec.xml" rel="noopener noreferrer">systemd：执行环境官方手册源</a>；<a href="https://raw.githubusercontent.com/systemd/systemd/main/man/systemd.kill.xml" rel="noopener noreferrer">systemd：进程清理官方手册源</a>。用来核对受控启动、文件视图及进程组管理的实现边界，不声称仅使用 systemd 就达到完整隔离。</p></div>
+<div class="source-item" id="src-isolation"><strong>S6 · 无特权原生管控，不要求每个 Work 一套系统</strong><p><a href="https://code.claude.com/docs/en/sandboxing" rel="noopener noreferrer">Claude Code 官方沙箱说明</a>、<a href="https://github.com/containers/bubblewrap" rel="noopener noreferrer">Bubblewrap</a> 与 <a href="https://github.com/anthropics/sandbox-runtime" rel="noopener noreferrer">Anthropic Sandbox Runtime</a> 表明可复用 macOS Seatbelt 与 Linux 无特权机制；Loom 选择用户级默认交付，另行验证权限策略、控制通道及清理，不照搬上游的广泛读取权限或未受限回退。宿主可能限制 user namespace，支持须按真实配置验证，不能从组件存在推得所有机器均可用。</p></div>
 <div class="source-item" id="src-pi"><strong>S7 · Pi 的可用集成边界</strong><p><a href="https://github.com/earendil-works/pi" rel="noopener noreferrer">Pi 官方仓库</a>；<a href="https://raw.githubusercontent.com/earendil-works/pi/main/packages/agent/README.md" rel="noopener noreferrer">agent-core 文档</a>；<a href="https://raw.githubusercontent.com/earendil-works/pi/main/packages/ai/README.md" rel="noopener noreferrer">模型 API 文档</a>。文档给出模型调用、工具钩子与原生状态接口；观察型事件流不自动成为耐久屏障。具体 API、包名、继续格式和 hook 行为以锁定版本验证，不把移动分支当发布依赖。</p></div>
 <div class="source-item" id="src-opensandbox"><strong>S8 · OpenSandbox 的官方 SDK 与 API</strong><p><a href="https://github.com/opensandbox-group/OpenSandbox" rel="noopener noreferrer">OpenSandbox 官方仓库</a>；<a href="https://github.com/opensandbox-group/OpenSandbox/blob/main/sdks/sandbox/go/README.md" rel="noopener noreferrer">Go SDK 文档</a>。官方提供 Go SDK 与生命周期/执行接口；Loom 在适配层增加自己的责任绑定，不复制其平台。</p></div>
 <div class="source-item" id="src-jsonrpc"><strong>S9 · JSON-RPC 不负责业务幂等</strong><p><a href="https://www.jsonrpc.org/specification" rel="noopener noreferrer">JSON-RPC 2.0 Specification</a>。id 关联响应，notification 不提供确认；Loom 的持久请求身份、授权、消息分帧和版本协商是本书补充的协议约束。</p></div>
@@ -1262,10 +1325,13 @@ Harness → Loom 策略契约；不导入宿主管理 SDK
 <div class="source-item" id="src-dsh"><strong>S12 · DSH / Cordis 的借鉴边界</strong><p>借鉴 DSH 的<a href="https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/master/docs/capability-seams.md" rel="noopener noreferrer">能力边界</a>、<a href="https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/master/packages/extensions/tool-cordis/src/index.ts" rel="noopener noreferrer">接口发现</a>与<a href="https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/master/packages/core/agent-loop/src/invariant.ts" rel="noopener noreferrer">行为验证</a>；Loom 采用持久交接后的整体重新加载，不将 <a href="https://arxiv.org/abs/2608.25512v1" rel="noopener noreferrer">Cordis 的动态组合与可撤销实现纪律</a>作为 Harness 的接入前提。</p></div>
 <div class="source-item" id="src-context-control"><strong>S13 · 上下文控制：简单机制仍须验证实际任务</strong><p>采用预算可见、正文可转引用、当前理解可维护与原文可查询的组合，主动控制作为参考默认而非效果定论；代码任务的观察折叠实验不能替代长期助手的更正、时间与召回测试。依据：<a href="https://platform.claude.com/docs/en/build-with-claude/context-windows" rel="noopener noreferrer">Claude 窗口与预算说明</a>、<a href="https://arxiv.org/abs/2508.21433v3" rel="noopener noreferrer">The Complexity Trap</a>、<a href="https://arxiv.org/abs/2410.10813v2" rel="noopener noreferrer">LongMemEval</a>与<a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" rel="noopener noreferrer">上下文工程实践</a>；这些来源不证明 Loom 已有效。</p></div>
 <div class="source-item" id="src-fact-query"><strong>S14 · 事实读取：复用 SQL，不把查询工具当隔离边界</strong><p><a href="https://www.sqlite.org/cli.html" rel="noopener noreferrer">SQLite CLI</a> 提供普通查询；权限与一致快照仍按本书建立，<a href="https://www.sqlite.org/wal.html" rel="noopener noreferrer">WAL</a> 中的已提交内容不能漏掉。<a href="https://www.sqlite.org/fts5.html#the_trigram_tokenizer" rel="noopener noreferrer">FTS5</a> 的分词/子串限制要求验证中文短词，不能由“有索引”推得模型会找到并正确使用原文。</p></div>
+<div class="source-item" id="src-userlevel-limits"><strong>S15 · 无 root 不等于无限保证</strong><p><a href="https://systemd.io/CGROUP_DELEGATION/" rel="noopener noreferrer">systemd 的 cgroup 委派说明</a>用于区分整组资源控制与基本访问管控；<a href="https://docs.docker.com/engine/install/linux-postinstall/" rel="noopener noreferrer">Docker 官方安装后说明</a>明确传统 docker 组具有 root 级权限。Loom 不将这两类设施设为默认依赖，按实际能力与显式连接分别验收。</p></div>
+<div class="source-item" id="src-sandbox-runtime"><strong>S16 · Anthropic Sandbox Runtime</strong><p><a href="https://github.com/anthropics/sandbox-runtime" rel="noopener noreferrer">anthropics/sandbox-runtime</a>（Apache-2.0；v0.0.77，要求 Node ≥ 20.11.0；核对日期 2026-09-21）以 macOS <code>sandbox-exec</code> 动态 Seatbelt profile 与 Linux Bubblewrap 落实文件与网络限制，网络经宿主代理白名单，默认读宽写严、配置在包装时编译，库态管理实例为会话级全局。其 README 标注 Beta Research Preview，API 可能演进；采用即锁定版本并把演进风险记入支持矩阵，上游产品使用不等于 Loom 接入已通过验收。</p></div>
+<div class="source-item" id="src-dbos"><strong>S17 · DBOS Go 的版本与事务边界</strong><p>核对日期 2026-09-21。<a href="https://github.com/dbos-inc/dbos-transact-golang/blob/bfe20fb42a4cdffaa81bb4ab105d8c9eb46de79f/dbos/dbos.go" rel="noopener noreferrer">v0.14.0 固定源码配置</a>没有本方案需要的 SQLite 接入；<a href="https://github.com/dbos-inc/dbos-transact-golang/blob/5387dd34db00b1762a2367ab4bf1de935afa09f7/dbos/dbos.go" rel="noopener noreferrer">v1.4.0 固定源码配置</a>、<a href="https://github.com/dbos-inc/dbos-transact-golang/blob/5387dd34db00b1762a2367ab4bf1de935afa09f7/dbos/datasource.go" rel="noopener noreferrer">datasource</a>及<a href="https://github.com/dbos-inc/dbos-transact-golang/blob/5387dd34db00b1762a2367ab4bf1de935afa09f7/dbos/workflow.go" rel="noopener noreferrer">workflow</a>提供 SQLite、同引擎原子事务和调用方事务 enqueue。恢复可直接返回缓存事务结果，RunAsTransaction 禁止嵌套在 step 内；这些限制决定 Loom 必须保留新鲜派发 CAS。<a href="https://docs.dbos.dev/golang/reference/datasources" rel="noopener noreferrer">官方 datasource 文档</a>用于解释语义，不替代固定源码、依赖锁及 R07–R11 实验。<a href="https://github.com/dbos-inc/dbos-transact-golang/blob/5387dd34db00b1762a2367ab4bf1de935afa09f7/go.mod" rel="noopener noreferrer">该候选 go.mod</a>声明 Go 1.25.0、toolchain go1.26.6 和 modernc.org/sqlite v1.54.0；接入会触及现有工具链／驱动锁，不能沿用旧依赖验证结果。此处没有承诺 API 稳定性或迁移成本。</p></div>
 <h3 id="section-12-1">本书与实现证据的边界</h3>
-<p>本书是规范，不替代逐版本实现与验收证据。发布仍须覆盖：Pi 锁定版本的逐效果屏障与原生继续、模型主动控制的预算余量与错误修复、SQLite 获准读取面、两类真实任务的约束保留和召回、Linux 角色隔离组合、已启用 Provider 的副本稳定捕获、共享资源条件更新与恢复隔离，以及真实存储耐久。文档中的语法和 SQL 示例可检查一致性，但不构成这些系统性质已经通过的证据。</p>
+<p>本书是规范，不替代逐版本实现与验收证据。发布仍须覆盖：Pi 锁定版本的逐效果屏障与原生继续、模型主动控制的预算余量与错误修复、SQLite 获准读取面、两类真实任务的约束保留和召回、macOS／Linux 无提权安装、原生管控与获准协作、本地进程恢复和按实际能力报告的配额、已启用 Provider 的副本稳定捕获、共享资源条件更新与恢复隔离，以及真实存储耐久。文档中的语法和 SQL 示例可检查一致性，但不构成这些系统性质已经通过的证据。</p>
 </section>
-<footer><span>Loom · 灵活 Harness 的持久运行底座<br/><span class="foot-id">DESIGN BOOK / SPEC 1.4 · BASELINE 1 · NOT AN IMPLEMENTATION CERTIFICATE</span></span><a class="back-top" href="#top">回到顶部 ↑</a></footer></main><script>
+<footer><span>Loom · 灵活 Harness 的持久运行底座<br/><span class="foot-id">DESIGN BOOK / SPEC 1.9 · BASELINE 4 · NOT AN IMPLEMENTATION CERTIFICATE</span></span><a class="back-top" href="#top">回到顶部 ↑</a></footer></main><script>
 (function(){
  const nav=[...document.querySelectorAll('nav a[data-chapter]')];
  const chapters=[...document.querySelectorAll('.chapter')];
