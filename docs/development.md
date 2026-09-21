@@ -80,6 +80,33 @@ On a new host, explicitly grant each declared resource with `loom grant-resource
 
 ## Checks
 
+### Code size report
+
+Install [cloc](https://github.com/AlDanial/cloc) (`brew install cloc` on macOS,
+`apt install cloc` on Debian/Ubuntu), then run from the repository:
+
+```sh
+python3 scripts/code_size.py
+# Optional: analyze another Git directory or change the review threshold.
+python3 scripts/code_size.py /path/to/repository --threshold 10000
+```
+
+Open `.local/code-size/index.html` in a browser. It works offline and supports
+expanding directories, filtering paths/categories, and inspecting the largest
+files. `report.json` retains counts and hashes of the measured source bytes.
+The default view compares implementation code (including installation/deployment)
+against 10,000 nonblank, noncomment lines. Tests, this analysis tool, and code
+with recognized generation markers are separate. This is a review prompt, not
+a build gate or a measurement of behavioral complexity.
+
+The input is the current Git working directory, including untracked files not
+ignored by Git; duplicated files count separately. Classification and supported
+extensions are explicit in `scripts/code_size.py`; review the report's exclusions
+when adding languages. Keep custom `--output` directories ignored by Git so a
+subsequent run does not count its own report. Regenerate after source changes.
+
+### Component and system checks
+
 ```sh
 (cd runtime && go test -race ./...)
 .venv/bin/python -m unittest discover -s tests/model -v

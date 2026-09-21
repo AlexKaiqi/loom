@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Loom · 代码体量</title>
+<style>
+:root{font-family:system-ui,sans-serif;color:#24332f;background:#f4f5f1;font-size:15px}
+body{max-width:1120px;margin:40px auto;padding:0 24px}h1{font-size:34px;letter-spacing:-1px;margin:12px 0}
+p{line-height:1.8;color:#5c6863}.eyebrow{letter-spacing:3px;color:#517d6a;font-size:12px}a{color:#26715c}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:28px 0 16px}.card{background:white;border:1px solid #dce3dc;border-radius:12px;padding:20px}.card strong{display:block;font-size:29px;margin:8px 0}.card small{color:#69756f}
+#budget{padding:16px 20px;background:#fbe9d8;border-radius:10px;margin-bottom:24px}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:24px 0 12px}input,select,button{font:inherit;background:white;border:1px solid #cbd6cd;border-radius:7px;padding:9px 12px}input{flex:1;min-width:180px}button{cursor:pointer}button:hover{background:#e7efe8}
+.row{display:grid;grid-template-columns:minmax(160px,1fr) 86px 86px 86px 86px;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid #e5eae3}.row>span:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}.name{overflow-wrap:anywhere}.heading{background:#e7ede5;color:#5c6863;border-radius:8px 8px 0 0;font-size:13px}
+summary{cursor:pointer;list-style:none}summary .name:before{content:'▸ ';color:#71907d}details[open]>summary .name:before{content:'▾ '}.children{margin-left:20px;border-left:1px solid #dce3dc}.file{color:#56675e}.file .name{font-size:13px}summary:hover,.file:hover{background:#edf2ea}.code{font-weight:650;color:#244c3b}#tree{background:white;border:1px solid #dce3dc;border-top:0;border-radius:0 0 10px 10px}.muted{color:#738278;font-size:13px}#largest{padding-left:25px;line-height:2}#largest li{padding-left:6px}footer{margin:28px 0}#excluded{white-space:pre-wrap;font:12px/1.8 ui-monospace,monospace}
+@media(max-width:700px){body{padding:0 12px}.cards{grid-template-columns:1fr 1fr}.row{grid-template-columns:minmax(100px,1fr) repeat(4,52px);font-size:12px;gap:4px;padding:9px 6px}.children{margin-left:10px}}
+</style>
+<div class="eyebrow">LOOM / IMPLEMENTATION SIZE</div>
+<h1>实现有多大？</h1>
+<p>展开目录，查看每个模块与文件的代码体量。代码行不含空行、纯注释行；使用 cloc 的语言规则，属于物理行数，不是语句数或圈复杂度。</p>
+<div class="cards" id="cards"></div><div id="budget"></div>
+<div class="controls"><label>范围 <select id="scope"><option value="implementation">实现代码</option><option value="test">测试</option><option value="tooling">分析工具</option><option value="generated">生成代码</option><option value="all">全部代码</option></select></label><input id="search" type="search" placeholder="筛选目录或文件…" aria-label="筛选目录或文件"><button id="expand">全部展开</button><button id="collapse">全部收起</button></div>
+<p id="selection" class="muted"></p>
+<div class="row heading"><span>目录 / 文件 · 按代码行数降序</span><span>文件数</span><span>代码</span><span>注释</span><span>空行</span></div>
+<div id="tree"></div>
+<h2>当前范围最大的 10 个文件</h2><ol id="largest"></ol>
+<footer><p id="stamp" class="muted"></p>
+<p class="muted">范围：指定 Git 工作目录的已跟踪文件及未被忽略的新文件，读取当前磁盘内容，包含未提交修改。重复文件分别计数。实现包含 Runtime、Harness、模型组件以及安装和部署代码；测试按 tests/test 目录及常见文件名识别，分析工具按本工具路径识别，带常见生成标记的代码单列。依赖、构建目录、文档、模板、配置和依赖锁不计入实现。文件扩展名及分类规则见 scripts/code_size.py；新增语言需更新规则。生成标记识别是启发式的。</p>
+<p class="muted">这是一次文件快照统计，不是系统验收或完整复杂度评估。判断简化优先级还需看职责、重复逻辑和依赖关系。原始行数、文件 SHA-256 与排除清单保存在同目录 report.json；重新运行脚本刷新报告。</p>
+<details><summary>查看未计入的文件</summary><pre id="excluded"></pre></details></footer>
+<script>
+const data = /*REPORT_DATA*/;
+const labels={implementation:'实现代码',test:'测试代码',tooling:'分析工具',generated:'生成代码'};
+const $=id=>document.getElementById(id), n=value=>value.toLocaleString('zh-CN');
+function element(tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e}
+for(const [key,label] of Object.entries(labels)){const t=data.totals[key], card=element('div',undefined,'card');card.append(element('span',label),element('strong',n(t.code)),element('small',`${n(t.files)} 个文件`));$('cards').append(card)}
+const actual=data.totals.implementation.code;
+$('budget').textContent=actual>data.threshold?`已超过 ${n(data.threshold)} 行反思阈值：${(actual/data.threshold).toFixed(2)} 倍，多出 ${n(actual-data.threshold)} 行。建议先检查最大的模块与重复职责。`:`实现 ${n(actual)} 行，反思阈值 ${n(data.threshold)} 行，尚余 ${n(data.threshold-actual)} 行。`;
+$('stamp').textContent=`统计时间 ${new Date(data.created_at).toLocaleString('zh-CN')} · cloc ${data.cloc_version} · ${data.root}`;
+$('excluded').textContent=data.excluded.map(f=>`${f.path} — ${f.reason}`).join('\n');
+function node(name){return {name,files:0,code:0,comment:0,blank:0,children:new Map()}}
+function row(tag,item,isFile){const r=element(tag,undefined,'row'+(isFile?' file':''));r.append(element('span',item.name,'name'));for(const key of ['files','code','comment','blank'])r.append(element('span',n(item[key]),key==='code'?'code':''));return r}
+function render(item,depth=0){if(item.leaf)return row('div',item,true);const d=element('details');d.open=depth===0||Boolean($('search').value);d.append(row('summary',item));const children=element('div',undefined,'children');for(const child of [...item.children.values()].sort((a,b)=>b.code-a.code||a.name.localeCompare(b.name)))children.append(render(child,depth+1));d.append(children);return d}
+function update(){const scope=$('scope').value,query=$('search').value.toLowerCase();const files=data.files.filter(f=>(scope==='all'||f.category===scope)&&f.path.toLowerCase().includes(query));const root=node('所选目录');for(const f of files){let curr=root;const parts=f.path.split('/');for(let i=0;i<=parts.length;i++){curr.files++;for(const key of ['code','comment','blank'])curr[key]+=f[key];if(i===parts.length){curr.leaf=true;break}const part=parts[i];if(!curr.children.has(part))curr.children.set(part,node(part));curr=curr.children.get(part)}}$('tree').replaceChildren(render(root));$('selection').textContent=`当前显示 ${n(root.files)} 个文件，${n(root.code)} 代码行（顶部总览不随筛选变化）`;$('largest').replaceChildren(...files.slice(0,10).map(f=>element('li',`${f.path} — ${n(f.code)} 行`)))}
+$('scope').addEventListener('change',update);$('search').addEventListener('input',update);
+for(const [id,open] of [['expand',true],['collapse',false]])$(id).addEventListener('click',()=>document.querySelectorAll('#tree details').forEach(d=>d.open=open));
+update();
+</script>
+</html>
