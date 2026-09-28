@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"loom/runtime/contracts"
+	"github.com/AlexKaiqi/ondemand-sandbox/execution/contracts"
 	"loom/runtime/rpc"
 	"loom/runtime/store"
 	"loom/runtime/work"

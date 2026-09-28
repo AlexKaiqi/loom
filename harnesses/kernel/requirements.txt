@@ -1,2 +1,0 @@
-python-lsp-jsonrpc==1.1.2
-ujson==6.0.0

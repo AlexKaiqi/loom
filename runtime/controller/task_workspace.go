@@ -1,11 +1,9 @@
 package controller
 
 import (
-	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
-	"loom/runtime/contracts"
+	"github.com/AlexKaiqi/ondemand-sandbox/execution/contracts"
 	"loom/runtime/store"
 	"loom/runtime/work"
 	"os"
@@ -106,32 +104,14 @@ func (c *run) saveAllocation(effect string, ws *taskWorkspace, binding contracts
 	if err != nil {
 		return "", err
 	}
-	err = store.Immediate(c.work.DBPath, func(db *sql.Conn) error {
-		if err := c.work.Control.Guard(db, c.round.ID); err != nil {
-			return err
-		}
-		_, err := db.ExecContext(context.Background(), "INSERT INTO allocations(id,effect_id,target,binding,release_state) VALUES(?,?,?,?,'pending')", id, effect, ws.target, string(body))
-		return err
-	})
+	err = c.work.Control.CreateAllocation(c.round.ID, id, effect, ws.target, string(body))
 	return id, err
 }
+
 func (c *run) allocationObservation(id string, cp contracts.Checkpoint) error {
 	body, err := json.Marshal(cp)
 	if err != nil {
 		return err
 	}
-	return store.Immediate(c.work.DBPath, func(db *sql.Conn) error {
-		result, err := db.ExecContext(context.Background(), "UPDATE allocations SET sandbox_id=COALESCE(NULLIF(?,''),sandbox_id),execution_id=COALESCE(NULLIF(?,''),execution_id),observation=? WHERE id=? AND (COALESCE(sandbox_id,'')='' OR ?='' OR sandbox_id=?)", cp.SandboxID, cp.ExecutionID, string(body), id, cp.SandboxID, cp.SandboxID)
-		if err != nil {
-			return err
-		}
-		n, err := result.RowsAffected()
-		if err != nil {
-			return err
-		}
-		if n != 1 {
-			return errors.New("allocation identity changed")
-		}
-		return nil
-	})
+	return c.work.Control.CheckpointAllocation(c.round.ID, id, cp.SandboxID, cp.ExecutionID, string(body))
 }

@@ -52,9 +52,9 @@ class WorkerTransportError(RuntimeError):
 class WorkerClient:
     """One disposable Node worker, one request at a time; callbacks may use remote tools."""
 
-    def __init__(self, command: list[str] | None = None):
+    def __init__(self, command: list[str] | None = None, role="model"):
         if command is None:
-            worker = Path(__file__).resolve().parents[2] / "services" / "model" / "worker.mjs"
+            worker = Path(__file__).resolve().parents[2] / "components" / "model-resource-hub" / "model-invocation" / "pi" / "worker.mjs"
             if not worker.is_file():
                 raise FileNotFoundError(f"Independent worker fixture is missing: {worker}")
             command = ["node", str(worker.resolve())]
@@ -77,9 +77,9 @@ class WorkerClient:
         self._thread = threading.Thread(target=self._listen, name="worker-test-rpc", daemon=True)
         self._thread.start()
         hello = self._request('session.hello', {'protocol_version': 'loom/1', 'schema_version': 1,
-            'role': 'runtime', 'peer_role': 'model', 'max_frame_bytes': 4 * 1024 * 1024,
-            'required_capabilities': ['model/1']}, 5)
-        if hello.get('protocol_version') != 'loom/1' or hello.get('role') != 'model':
+            'role': 'runtime', 'peer_role': role, 'max_frame_bytes': 4 * 1024 * 1024,
+            'required_capabilities': [role + '/1']}, 5)
+        if hello.get('protocol_version') != 'loom/1' or hello.get('role') != role:
             self.close()
             raise WorkerTransportError('invalid handshake')
 
@@ -135,19 +135,24 @@ class WorkerClient:
         exceptions stop continuation; the Runtime owns reconciling uncertain effects.
         A prepare_turn context uses the original authorized executable tools.
         """
-        with self._lock:
-            self._handlers.update({
-                "tool.execute": lambda p: {"result": handle_tool(p["name"], p["arguments"], p["toolCallId"])},
+        driver_path = Path(__file__).resolve().parents[2] / "components/worksurface/driver/worker.mjs"
+        with WorkerClient(["node", str(driver_path)], role="driver") as driver:
+            def invoke(p):
+                if on_event: on_event({"type": "model_request", **p})
+                result = self.complete(p["context"], model=model, api_key=api_key, timeout=p["timeoutMs"]/1000, options=p["options"])
+                if on_event: on_event({"type":"message_end", "message":result})
+                return {"result":result}
+            driver._handlers.update({
+                "model.invoke": invoke,
+                "tool.execute": lambda p: {"result": handle_tool(p["name"],p["arguments"],p["toolCallId"])},
                 "agent.event": lambda event: {"result": on_event(event) if on_event else None},
                 "agent.shouldStop": lambda turn: {"result": not should_continue(turn)},
                 "agent.prepareTurn": lambda turn: {"result": prepare_turn(turn)},
             })
-            params = self._params({**context, "tools": tools}, model, api_key, timeout, options)
-            params.update(maxTurns=max_turns, hooks=(["shouldStop"] if should_continue else []) + (["prepareTurn"] if prepare_turn else []))
-            try:
-                return self._request("agent.run", params, timeout)
-            finally:
-                self._handlers.clear()
+            params = self._params({**context,"tools":tools},{k:v for k,v in model.items() if k not in ("headers","baseUrl")},api_key,timeout,options)
+            del params["apiKey"]
+            params.update(maxTurns=max_turns,hooks=(["shouldStop"] if should_continue else [])+(["prepareTurn"] if prepare_turn else []))
+            return driver._request("driver.run",params,timeout)
 
     def cancel(self):
         """Request cancellation without claiming the provider rolled back its effect."""

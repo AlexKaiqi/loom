@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"loom/runtime/contracts"
+	"github.com/AlexKaiqi/ondemand-sandbox/execution/contracts"
 	"loom/runtime/store"
 	"math"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -54,8 +55,8 @@ func (c *run) executeTool(ctx context.Context, key string, args Object) (answer 
 		}
 		return nil, store.ErrUnknownEffect
 	}
-	if c.repairMode && args["environment"] != "work" {
-		return Object{"content": []Object{{"type": "text", "text": "Context repair is active. Only Work Bash is available; repair surface/main.md before business execution."}}, "isError": true, "details": Object{"rejected_before_dispatch": true}}, nil
+	if !c.environmentAllowed(args["environment"]) {
+		return Object{"content": []Object{{"type": "text", "text": "The current Harness plan restricts execution in this environment."}}, "isError": true, "details": Object{"rejected_before_dispatch": true}}, nil
 	}
 	if err = c.clearEffects(); err != nil {
 		return nil, err
@@ -220,6 +221,9 @@ func (c *run) executeTool(ctx context.Context, key string, args Object) (answer 
 	if receipt.State != "completed" {
 		return nil, store.ErrUnknownEffect
 	}
+	if receipt.Readiness == nil || !path.IsAbs(receipt.Readiness.Workspace) {
+		return nil, errors.New("execution result missing measured workspace")
+	}
 	if err = c.saveTaskContents(workspace, effect.ID); err != nil {
 		return nil, err
 	}
@@ -231,7 +235,7 @@ func (c *run) executeTool(ctx context.Context, key string, args Object) (answer 
 	if err != nil {
 		return nil, err
 	}
-	view := Object{"exit_code": receipt.ExitCode, "stdout": outputPreview(receipt.Stdout, data["stdout_ref"]), "stderr": outputPreview(receipt.Stderr, data["stderr_ref"]), "artifacts": saved, "target": target, "workspace": "/workspace/task", "resource_paths": resourcePaths(workspace), "output_stream": receipt.OutputStream}
+	view := Object{"exit_code": receipt.ExitCode, "stdout": outputPreview(receipt.Stdout, data["stdout_ref"]), "stderr": outputPreview(receipt.Stderr, data["stderr_ref"]), "artifacts": saved, "target": target, "workspace": receipt.Readiness.Workspace, "resource_paths": resourcePaths(workspace, receipt.Readiness.Workspace), "output_stream": receipt.OutputStream}
 	if receipt.Readiness != nil {
 		view["readiness"] = receipt.Readiness
 	}
@@ -250,10 +254,10 @@ func (c *run) executeTool(ctx context.Context, key string, args Object) (answer 
 	}
 	return result, nil
 }
-func resourcePaths(ws *taskWorkspace) Object {
+func resourcePaths(ws *taskWorkspace, workspace string) Object {
 	paths := Object{}
 	for _, copy := range ws.copies {
-		paths[copy.Alias] = "/workspace/task/" + copy.Alias
+		paths[copy.Alias] = path.Join(workspace, copy.Alias)
 	}
 	return paths
 }
@@ -285,4 +289,26 @@ func (c *run) saveAdapterArtifacts(artifacts []contracts.Artifact) ([]Object, er
 		saved = append(saved, Object{"name": filepath.Base(item.Path), "record_ref": ref})
 	}
 	return saved, nil
+}
+
+func (c *run) environmentAllowed(environment any) bool {
+	value, present := c.projectionPlan["allowed_environments"]
+	if !present {
+		return true
+	}
+	switch allowed := value.(type) {
+	case []any:
+		for _, name := range allowed {
+			if name == environment {
+				return true
+			}
+		}
+	case []string:
+		for _, name := range allowed {
+			if name == environment {
+				return true
+			}
+		}
+	}
+	return false
 }

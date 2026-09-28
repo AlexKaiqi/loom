@@ -169,9 +169,6 @@ func (c *run) harnessCall(ctx context.Context, method string, raw json.RawMessag
 			return nil, err
 		}
 		if method == "model.start" {
-			if plan["execution_mode"] == "context_repair" {
-				return nil, &rpc.Error{Kind: "not_ready"}
-			}
 			if c.round.Checkpoint != nil {
 				return nil, &rpc.Error{Kind: "not_ready"}
 			}

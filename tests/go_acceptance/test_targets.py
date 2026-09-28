@@ -70,8 +70,8 @@ profile="code"
 userspaces=["app","reference"]
 ''')
         work=self.base/'work'
-        self.call('create',work,'--harness',ROOT/'harnesses/kernel','--definition',definition)
-        shutil.copyfile(ROOT/'templates/default/surface/main.md',work/'surface/main.md')
+        self.call('create',work,'--harness',ROOT/'components/worksurface/harness','--definition',definition)
+        shutil.copyfile(ROOT/'components/worksurface/template/surface/main.md',work/'surface/main.md')
         project=self.base/'project';project.mkdir();(project/'state').write_text('initial')
         reference=self.base/'reference';reference.mkdir();(reference/'value').write_text('fixed')
         self.call('grant-resource',work,'app',project)

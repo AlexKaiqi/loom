@@ -32,6 +32,7 @@ class InstallTests(unittest.TestCase):
         # Docker client context remains available; its files are neither copied
         # into evidence nor mounted in the Work facility.
         cls.env.setdefault('DOCKER_CONFIG', str(Path.home() / '.docker'))
+        cls.env['GOPATH'] = subprocess.check_output(['go', 'env', 'GOPATH'], text=True).strip()
         cls.env['HOME'] = str(cls.home)
         cls.env.pop('LOOM_INSTALL_ROOT', None)
         cls.env['INSTALL_MODEL_KEY'] = 'synthetic-installer-model-key'
@@ -87,7 +88,7 @@ class InstallTests(unittest.TestCase):
         self.assertEqual(actual['Config']['Labels']['loom.installation'], info['installation_id'])
         self.assertFalse((current / 'build').exists())
         self.assertEqual(self.invoke('installed-pi', [self.docker, 'exec', info['container'], 'node', '-e',
-            'import("/opt/loom/services/model/node_modules/@earendil-works/pi-ai/dist/index.js").then(m=>{if(typeof m.lazyStream!=="function")process.exit(2)})'], timeout=30).returncode, 0)
+            'import("/opt/loom/components/model-resource-hub/model-invocation/pi/node_modules/@earendil-works/pi-ai/dist/index.js").then(m=>{if(typeof m.lazyStream!=="function")process.exit(2)})'], timeout=30).returncode, 0)
         # Start the controlled HTTP peer inside the facility. The installed CLI,
         # ordinary Python Harness, NsJail and actual Pi adapter remain real.
         shutil.copyfile(ROOT / 'tests/model/provider_fixture.py', self.output / 'provider_fixture.py')
@@ -154,7 +155,7 @@ class InstallTests(unittest.TestCase):
         self.assertNotIn(b'launcher_sha256',config_bytes)
         # This real Node process waits across activation and imports its Pi module
         # afterwards. Its already-selected container/image cannot change under it.
-        script = 'process.stdout.write("ready\\n");process.stdin.once("data",async()=>{const m=await import("/opt/loom/services/model/node_modules/@earendil-works/pi-ai/dist/index.js");if(typeof m.lazyStream!=="function")process.exit(2);process.stdout.write(process.env.HOSTNAME+"\\n");process.exit(0)})'
+        script = 'process.stdout.write("ready\\n");process.stdin.once("data",async()=>{const m=await import("/opt/loom/components/model-resource-hub/model-invocation/pi/node_modules/@earendil-works/pi-ai/dist/index.js");if(typeof m.lazyStream!=="function")process.exit(2);process.stdout.write(process.env.HOSTNAME+"\\n");process.exit(0)})'
         process = subprocess.Popen([self.docker,'exec','-i',old['container'],'node','-e',script],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=self.env,text=True)
         try:
             self.assertEqual(process.stdout.readline(),'ready\n')
@@ -167,7 +168,7 @@ class InstallTests(unittest.TestCase):
             old_hostname=process.stdout.readline().strip()
             self.assertEqual(process.wait(timeout=15),0)
             new_check=self.invoke('new-worker-import',[self.docker,'exec',new['container'],'node','-e',
-                'import("/opt/loom/services/model/node_modules/@earendil-works/pi-ai/dist/index.js").then(()=>console.log(process.env.HOSTNAME))'],timeout=30)
+                'import("/opt/loom/components/model-resource-hub/model-invocation/pi/node_modules/@earendil-works/pi-ai/dist/index.js").then(()=>console.log(process.env.HOSTNAME))'],timeout=30)
             self.assertEqual(new_check.returncode,0,new_check.stdout.decode())
             self.assertNotEqual(old_hostname,new_check.stdout.decode().strip())
             self.assertEqual(self.invoke('old-launcher-after-upgrade',[previous/'bin/loom','--help'],timeout=30).returncode,0)

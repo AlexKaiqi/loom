@@ -154,7 +154,7 @@ c.onRequest("policy.prepare",p=>c.publish(p,({preparation})(p)));
 c.listen();
 '''
         (destination / "worker.mjs").write_text(source)
-        (destination / "manifest.json").write_text(json.dumps({"protocol": 1,
+        (destination / "manifest.json").write_text(json.dumps({"protocol": 1, "driver":"worksurface/v1",
             "events": {"work.objective.set": {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"], "additionalProperties": False}}, "tools": []}))
         return destination
 
@@ -188,15 +188,15 @@ c.listen();
         return path
 
     def configure(self, server=None, *, worker=None, sandbox_endpoint="http://127.0.0.1:1", model_endpoint=None, headers_env=None):
-        worker = worker or [shutil.which("node"), str(ROOT / "services/model/worker.mjs")]
+        worker = worker or [shutil.which("node"), str(ROOT / "components/model-resource-hub/model-invocation/pi/worker.mjs")]
         endpoint = model_endpoint or server.base_url
-        lines = ['[models.model-main]', 'api_key_env="LOOM_TEST_MODEL_KEY"', 'worker=' + json.dumps(worker),
+        lines = ['[drivers]', '"worksurface/v1"=' + json.dumps([shutil.which('node'), str(ROOT / 'components/worksurface/driver/worker.mjs')]), '[models.model-main]', 'api_key_env="LOOM_TEST_MODEL_KEY"', 'worker=' + json.dumps(worker),
             'endpoint=' + json.dumps(endpoint), '[sandboxes.sandbox-main]', 'provider="opensandbox/v1"',
             'api_key_env="LOOM_TEST_SANDBOX_KEY"', 'endpoint=' + json.dumps(sandbox_endpoint)]
         if headers_env:
             lines.append("[models.model-main.headers_env]")
             lines.extend(json.dumps(name) + "=" + json.dumps(env) for name, env in headers_env.items())
-        image = json.loads((ROOT / "deploy/opensandbox/versions.json").read_text())["code"]
+        image = json.loads((ROOT / "components/sandbox/linux_container_execution/loom-profile/versions.json").read_text())["code"]
         lines.extend(['[profiles.code]', 'service="sandbox-main"', '[profiles.code.options]', 'image='+json.dumps(image), 'profile="code"', 'cpu="1"', 'memory="512Mi"', 'lease_seconds=600', 'request_timeout_seconds=30'])
         facility = os.environ.get("LOOM_TEST_CGROUP_ROOT")
         if not facility:

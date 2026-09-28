@@ -4,7 +4,7 @@ Loom imports dependencies rather than vendoring their provider codecs, agent loo
 
 | Component | License | Source / identity |
 | --- | --- | --- |
-| Pi AI / Pi agent core 0.85.1 | MIT | https://github.com/earendil-works/pi; npm distribution integrities in `services/model/package-lock.json` |
+| Pi AI / Pi agent core 0.85.1 | MIT | https://github.com/earendil-works/pi; npm distribution integrities in `components/model-resource-hub/model-invocation/pi/package-lock.json` and `components/worksurface/package-lock.json` |
 | vscode-jsonrpc 9.0.2 | MIT | https://github.com/microsoft/vscode-languageserver-node |
 | Sourcegraph jsonrpc2 0.2.1 | MIT | https://github.com/sourcegraph/jsonrpc2 |
 | python-lsp-jsonrpc 1.1.2 | MIT | https://github.com/python-lsp/python-lsp-jsonrpc; external Python Harness and test observers only |

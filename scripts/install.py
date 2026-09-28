@@ -14,6 +14,7 @@ import time
 import uuid
 
 from design_book import copy_design_book
+from components import copy_assets, vendor_execution
 
 SOURCE = Path(__file__).resolve().parent.parent
 
@@ -31,14 +32,14 @@ def expect_link(path, target):
 
 
 def copy_component(source, target):
-    shutil.copytree(source, target, ignore=shutil.ignore_patterns('node_modules', '__pycache__', '*.pyc', 'evidence'))
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns('node_modules', '.git', '.venv', '__pycache__', '*.pyc', 'evidence'))
 
 
 def assemble(release, docker, installation, roots, state):
     build = release / 'build'
     build.mkdir()
-    for component in ('runtime', 'services/model', 'harnesses', 'templates', 'deploy'):
-        copy_component(SOURCE / component, build / component)
+    copy_assets(SOURCE, build, copy_component)
+    vendor_execution(build / 'runtime')
     design_files = copy_design_book(SOURCE / 'docs', build / 'docs')
     image_tag = 'loom-work:' + release.name
     run([docker, 'build', '--tag', image_tag, '-f', build / 'deploy/work/Dockerfile', build])
@@ -66,8 +67,8 @@ def assemble(release, docker, installation, roots, state):
             raise ValueError('shared Linux facility did not become ready; inspect its Docker logs')
         run([docker, 'exec', container, 'loom-runtime', '--help'], stdout=subprocess.DEVNULL)
         run([docker, 'exec', container, 'node', '--input-type=module', '-e',
-             'await import("/opt/loom/services/model/agent.mjs"); '
-             'const {apiFor}=await import("/opt/loom/services/model/pi.mjs"); '
+             'await import("/opt/loom/components/worksurface/driver/agent.mjs"); '
+             'const {apiFor}=await import("/opt/loom/components/model-resource-hub/model-invocation/pi/pi.mjs"); '
              'if(typeof (await apiFor({api:"openai-completions"})).streamSimple!=="function")process.exit(2)'])
         (release / 'bin').mkdir()
         shutil.copyfile(SOURCE / 'scripts/launcher.py', release / 'bin/loom')

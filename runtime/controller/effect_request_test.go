@@ -2,8 +2,8 @@ package controller
 
 import (
 	"errors"
+	"github.com/AlexKaiqi/ondemand-sandbox/execution/contracts"
 	"loom/runtime/authority"
-	"loom/runtime/contracts"
 	"loom/runtime/store"
 	"loom/runtime/work"
 	"os"
@@ -33,7 +33,7 @@ func TestHarnessEffectRequestPersistsBindingBeforeDispatchAndDoesNotReplay(t *te
 		if err = callback(contracts.Checkpoint{Binding: executor.binding, Phase: "native_result", SandboxID: "sandbox", ExecutionID: "session/run", NativeResult: Object{"exit_code": 0}}); err != nil {
 			return contracts.Result{}, err
 		}
-		return contracts.Result{Binding: executor.binding, OperationID: req.OperationID, Target: req.Target, State: "completed", ExitCode: &code, Released: true}, nil
+		return contracts.Result{Binding: executor.binding, OperationID: req.OperationID, Target: req.Target, State: "completed", ExitCode: &code, Released: true, Readiness: &contracts.Readiness{Workspace: "/custom/task"}}, nil
 	}
 	ref, err := (store.Records{Directory: w.ArtifactsDir()}).Put([]byte(`{"script":"printf once","timeout":10}`), "application/json")
 	if err != nil {
@@ -47,6 +47,14 @@ func TestHarnessEffectRequestPersistsBindingBeforeDispatchAndDoesNotReplay(t *te
 	}
 	if first.(Object)["accepted"] != true || executor.calls != 1 {
 		t.Fatal(first, executor.calls)
+	}
+	effects, err := w.Control.Effects(round.ID)
+	if err != nil || len(effects) != 1 || effects[0].Status != "completed" {
+		t.Fatal("result was not delivered", effects, err)
+	}
+	details := object(object(effects[0].Result["tool_result"])["details"])
+	if details["workspace"] != "/custom/task" {
+		t.Fatal("provider path was inferred", details)
 	}
 	// A new current provider cannot redirect or replay this stable request.
 	c.runtime.Targets = map[string]contracts.TaskExecutor{}

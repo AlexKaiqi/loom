@@ -79,8 +79,8 @@ c.onRequest('policy.start',async p=>{
         work = self.base / 'work'
         definition = self.definition(sandbox=False,harness_argv=["python3","-I","{harness}/worker.py"])
         definition.write_text(definition.read_text().replace('contextWindow=4096', 'contextWindow=65536'))
-        self.call('create', work, '--harness', ROOT / 'harnesses/kernel', '--definition', definition)
-        shutil.copyfile(ROOT / 'templates/default/surface/main.md', work / 'surface/main.md')
+        self.call('create', work, '--harness', ROOT / 'components/worksurface/harness', '--definition', definition)
+        shutil.copyfile(ROOT / 'components/worksurface/template/surface/main.md', work / 'surface/main.md')
         private = self.base / 'private-host-secret'
         private.write_text('host-private-content')
         self.admit(work)

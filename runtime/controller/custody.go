@@ -51,12 +51,7 @@ func (c *run) event(event Object) error {
 		if c.basePlan != nil && !invalidContinuation {
 			next := copyObject(c.basePlan)
 			c.copyProjectionMetadata(next)
-			next["repair_attempts"] = c.repairAttempts
-			if c.repairMode {
-				next["execution_mode"] = "context_repair"
-			} else {
-				delete(next, "execution_mode")
-			}
+			next["policy_state"] = c.policyState
 			// Save the native closed exchange itself. Re-rendering after recovery
 			// happens through the selected strategy before the next dispatch.
 			continuation := copyObject(object(c.lastTurn["context"]))

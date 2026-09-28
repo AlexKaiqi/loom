@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/AlexKaiqi/ondemand-sandbox/execution/contracts"
 	"loom/runtime/authority"
-	"loom/runtime/contracts"
 	"loom/runtime/store"
 	"loom/runtime/work"
 )

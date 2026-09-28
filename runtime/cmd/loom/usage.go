@@ -50,7 +50,7 @@ func usageCommands(root *cobra.Command, add addCommand, configPath *string, open
 			if err != nil {
 				return nil, err
 			}
-			harness = filepath.Join(assets, "harnesses/kernel")
+			harness = filepath.Join(assets, "components/worksurface/harness")
 		}
 		if definition == "" {
 			definition = onboarding.DefaultDefinition(*configPath)
@@ -126,7 +126,7 @@ func usageCommands(root *cobra.Command, add addCommand, configPath *string, open
 		if err != nil {
 			return nil, err
 		}
-		template, err := os.ReadFile(filepath.Join(assets, "templates/default/surface/main.md"))
+		template, err := os.ReadFile(filepath.Join(assets, "components/worksurface/template/surface/main.md"))
 		if err != nil {
 			return nil, err
 		}
@@ -238,6 +238,7 @@ func hostBinding(host *config.Config) func(*controller.Runtime, *work.Work) erro
 			return err
 		}
 		r.Model, r.APIKey, r.ModelCommand = deployment.Model, deployment.APIKey, deployment.Worker
+		r.Drivers = host.Drivers
 		r.ActivateModel = func(active *controller.Runtime) error {
 			resolved, err := host.ResolveModel(w.Definition.Model)
 			if err != nil {

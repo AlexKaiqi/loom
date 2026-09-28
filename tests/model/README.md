@@ -1,11 +1,5 @@
-# Independent Pi worker tests
+# 策略与模型组合验证
 
-These tests drive the public JSON-RPC protocol with native Pi messages and controlled provider HTTP/SSE responses. `rpc_client.py` is a test-only peer using `python-lsp-jsonrpc`; it is not a production Runtime package. Runtime durable custody and composition have separate Go/black-box checks.
+`python -m unittest discover -s tests/model -v` 使用真实 Worksurface Pi 循环、独立单次模型 worker 和受控 HTTP/SSE，检查请求／结果保管顺序、工具未知状态、截断、继续判断与凭据隔离。需要初始化 submodule，并按根开发说明安装 Node 24 与 Python 依赖。
 
-From the repository root, after installing the locked npm dependencies and test-only Python requirements:
-
-```sh
-python -m unittest discover -s tests/model -v
-```
-
-The cases cover provider schemas, native message/image/tool mapping, disabled retries, truncation/length, deadlines, cancellation, worker loss after dispatch, callback custody and ordering, turn budgets, unknown outcomes and credential isolation. The controlled provider is an independent oracle for request count and wire ordering; it is not live-provider compatibility evidence.
+单次模型和目录测试由 Model Resource Hub 维护；投影和循环策略测试由 Worksurface 维护。此目录的 RPC peer、HTTP fixture 仅供组合验证，不能替代 Loom 的持久化或真实 Linux／付费供应商验收。

@@ -88,9 +88,9 @@ def run(args):
         works=[]
         for index in range(plan['works']):
             w=output/('work-'+str(index))
-            fixture.call('create',w,'--harness',node if index%2==0 else ROOT/'harnesses/kernel',
+            fixture.call('create',w,'--harness',node if index%2==0 else ROOT/'components/worksurface/harness',
                          '--definition',definitions[index%2])
-            shutil.copyfile(ROOT/'templates/default/surface/main.md',w/'surface/main.md')
+            shutil.copyfile(ROOT/'components/worksurface/template/surface/main.md',w/'surface/main.md')
             (w/'surface/retained.bin').write_bytes(b'R'*plan['file_bytes_per_work'])
             for n in range(plan['initial_facts_per_work']):
                 fixture.admit(w,'seed-'+str(n),{'text':'bounded load history '+str(n)})

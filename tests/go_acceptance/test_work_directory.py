@@ -201,7 +201,7 @@ class WorkDirectoryAcceptance(CLIFixture):
             work = self.create()
             self.admit(work)
             endpoint = "http://127.0.0.1:" + str(server.server_port)
-            image = json.loads((ROOT / "deploy/opensandbox/versions.json").read_text())["code"]
+            image = json.loads((ROOT / "components/sandbox/linux_container_execution/loom-profile/versions.json").read_text())["code"]
             receipt = {"sandbox_id": "old-sandbox", "execution_id": "old-session/old-run", "binding": {"service_id": "sandbox-main", "endpoint": "http://127.0.0.1:1", "provider": "opensandbox/v1", "options_json": json.dumps({"image": image, "profile": "code", "cpu": "1", "memory": "512Mi", "lease_seconds": 600, "request_timeout_seconds": 30}, sort_keys=True, separators=(",", ":"))}}
             with closing(sqlite3.connect(work / ".loom/state.sqlite")) as db, db:
                 db.execute("INSERT INTO rounds(id,owner,input_seq,state) VALUES('old-round','old-owner',1,'blocked')")

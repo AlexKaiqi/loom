@@ -168,7 +168,7 @@ def main(args):
     try:
         with serving(api), serving(provider):
             fixture.configure(provider, sandbox_endpoint=f"http://127.0.0.1:{api.server_port}")
-            image = json.loads((ROOT / "deploy/opensandbox/versions.json").read_text())["code"]
+            image = json.loads((ROOT / "components/sandbox/linux_container_execution/loom-profile/versions.json").read_text())["code"]
             fixture.config.write_text(fixture.config.read_text().replace('image = "fixture-unused"', 'image = ' + json.dumps(image)))
             fixture.call("run", work, ok=False, timeout=180)
             rounds = query(work, "SELECT * FROM rounds")

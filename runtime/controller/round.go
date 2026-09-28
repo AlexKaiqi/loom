@@ -3,8 +3,8 @@ package controller
 import (
 	"context"
 	"errors"
-	"loom/runtime/execution"
-	"loom/runtime/model"
+	"github.com/AlexKaiqi/ondemand-sandbox/execution/facility"
+	"loom/runtime/driver"
 	"loom/runtime/policy"
 	"loom/runtime/rpc"
 	"loom/runtime/store"
@@ -31,8 +31,7 @@ type run struct {
 	projectedContext      Object
 	projectionPlan        Object
 	basePlan              Object
-	repairMode            bool
-	repairAttempts        int
+	policyState           Object
 	continueDecision      *bool
 	budgetEstimate        int
 	budgetRef             Object
@@ -161,13 +160,10 @@ func (r *Runtime) Run(ctx context.Context, w *work.Work, resume bool) (result Ob
 	if plan == nil {
 		return nil, errors.New("policy did not supply a plan")
 	}
-	current.repairMode = plan["execution_mode"] == "context_repair"
+	current.policyState = object(plan["policy_state"])
 	current.projectedContext = object(plan["context"])
 	if current.projectionPlan == nil {
 		current.projectionPlan = copyObject(plan)
-	}
-	if count, e := number(plan["repair_attempts"]); e == nil {
-		current.repairAttempts = int(count)
 	}
 	if err = current.validateSavedViews(plan); err != nil {
 		return nil, err
@@ -205,7 +201,11 @@ func (r *Runtime) Run(ctx context.Context, w *work.Work, resume bool) (result Ob
 	if current.projectionPlan == nil {
 		current.projectionPlan = plan
 	}
-	messages, err := model.Run(ctx, r.ModelCommand, model.Request{Session: rpc.Session{RecordDirectory: w.ArtifactsDir(), WorkID: w.ID, RoundID: round.ID, Epoch: strconv.FormatInt(round.Epoch, 10), HarnessRef: round.HarnessRef, Operations: []string{"agent.event", "tool.execute", "agent.shouldStop", "agent.prepareTurn"}}, Context: preparedContext, Model: selected, Options: options, APIKey: r.APIKey, Tools: p.NativeTools(), MaxTurns: int(maxTurns), Timeout: time.Duration(seconds * float64(time.Second))}, model.Callbacks{Event: current.event, Tool: current.tool, Continue: current.continueTurn, Prepare: current.prepareTurn})
+	command := r.Drivers[p.Manifest.Driver]
+	if len(command) == 0 {
+		return nil, errors.New("Harness driver is not configured on this host")
+	}
+	messages, err := driver.Run(ctx, command, driver.Request{Session: rpc.Session{RecordDirectory: w.ArtifactsDir(), WorkID: w.ID, RoundID: round.ID, Epoch: strconv.FormatInt(round.Epoch, 10), HarnessRef: round.HarnessRef, Operations: []string{"agent.event", "tool.execute", "agent.shouldStop", "agent.prepareTurn", "model.invoke"}}, Context: preparedContext, Model: modelSemantics(selected), Options: options, Tools: p.NativeTools(), MaxTurns: int(maxTurns), Timeout: time.Duration(seconds * float64(time.Second))}, driver.Callbacks{Invoke: current.invokeModel, Event: current.event, Tool: current.tool, Continue: current.continueTurn, Prepare: current.prepareTurn})
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,7 @@ func (r *Runtime) Run(ctx context.Context, w *work.Work, resume bool) (result Ob
 			}
 			next := copyObject(plan)
 			current.copyProjectionMetadata(next)
-			next["repair_attempts"] = current.repairAttempts
+			next["policy_state"] = current.policyState
 			next["context"] = current.lastTurn["context"]
 			next["model"] = current.lastRequest["model"]
 			next["options"] = copyObject(object(current.lastRequest["options"]))
@@ -288,7 +288,7 @@ func (r *Runtime) Run(ctx context.Context, w *work.Work, resume bool) (result Ob
 }
 
 func (c *run) copyProjectionMetadata(destination Object) {
-	for _, key := range []string{"content_version", "harness_ref", "view_id", "fact_watermark", "resource_views", "sources", "selection", "template_sha256", "safe_boundaries", "protected_fact_ids", "execution_mode", "diagnostic", "previous_projection_ref", "budget_feedback_ref", "budget_estimate"} {
+	for _, key := range []string{"content_version", "harness_ref", "view_id", "fact_watermark", "resource_views", "sources", "selection", "template_sha256", "safe_boundaries", "protected_fact_ids", "policy_state", "allowed_environments", "budget_reserve", "diagnostic", "previous_projection_ref", "budget_feedback_ref", "budget_estimate"} {
 		if value, ok := c.projectionPlan[key]; ok {
 			destination[key] = value
 		} else {
@@ -334,6 +334,9 @@ func (c *run) prepareTurn(ctx context.Context, turn Object) (Object, error) {
 	}
 	if update["model"] != nil {
 		update["model"], err = c.runtime.bindModel(object(update["model"]))
+		if err == nil {
+			update["model"] = modelSemantics(object(update["model"]))
+		}
 	}
 	return update, err
 }

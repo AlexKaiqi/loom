@@ -56,6 +56,7 @@ class DesignBookDelivery(unittest.TestCase):
             source = root / 'source'
             (source / 'design-book').mkdir(parents=True)
             (source / 'loom-design-book.html').write_text('unchanged entry')
+            (source / 'capability-migration.md').write_text('migration scope')
             chapter = source / 'design-book/contract.html'
             chapter.write_text('original contract')
             first = copy_design_book(source, root / 'first')

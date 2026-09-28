@@ -15,13 +15,13 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def sources():
     paths = []
-    for name in ("runtime", "services/model", "harnesses", "tests/go_acceptance", "tests/model", "deploy", "scripts", "templates", "tests/harness", "tests/install", "tests/onboarding", "docs/design-book"):
+    for name in ("runtime", "components/model-resource-hub/model-invocation/pi", "components/worksurface", "tests/go_acceptance", "tests/model", "deploy", "scripts", "components/sandbox", "tests/install", "tests/onboarding", "docs/design-book"):
         for path in (ROOT / name).rglob("*"):
             relative = path.relative_to(ROOT)
-            if not path.is_file() or path.is_symlink() or any(part in {"node_modules", "evidence", "__pycache__", "bin"} for part in relative.parts):
+            if not path.is_file() or path.is_symlink() or any(part in {"node_modules", ".git", ".venv", "evidence", "__pycache__", "bin"} for part in relative.parts):
                 continue
             paths.append(path)
-    for name in ("README.md", "docs/loom-design-book.html", "AGENTS.md", "THIRD_PARTY.md", "install.sh", "Makefile", "go.work", "go.work.sum", "docs/development.md", "deploy/config.example.toml", "deploy/work.example.toml"):
+    for name in ("package.json", "package-lock.json", ".gitmodules", "README.md", "docs/capability-migration.md", "docs/loom-design-book.html", "AGENTS.md", "THIRD_PARTY.md", "install.sh", "Makefile", "go.work", "go.work.sum", "docs/development.md", "deploy/config.example.toml", "deploy/work.example.toml"):
         if (ROOT / name).is_file():
             paths.append(ROOT / name)
     return sorted(set(paths))

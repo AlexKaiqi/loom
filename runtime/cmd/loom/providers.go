@@ -1,10 +1,10 @@
 package main
 
 import (
-	"loom/runtime/adapters/opensandbox"
-	"loom/runtime/adapters/sshprocess"
+	"github.com/AlexKaiqi/ondemand-sandbox/execution/contracts"
+	"github.com/AlexKaiqi/ondemand-sandbox/execution/providers/opensandbox"
+	"github.com/AlexKaiqi/ondemand-sandbox/execution/providers/sshprocess"
 	"loom/runtime/config"
-	"loom/runtime/contracts"
 )
 
 // This is the sole production registration point for concrete task providers.

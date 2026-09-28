@@ -5,9 +5,9 @@ package controller
 import (
 	"context"
 	"errors"
+	sandbox "github.com/AlexKaiqi/ondemand-sandbox/execution/contracts"
+	"github.com/AlexKaiqi/ondemand-sandbox/execution/facility"
 	"loom/runtime/authority"
-	sandbox "loom/runtime/contracts"
-	"loom/runtime/execution"
 	"loom/runtime/store"
 	"loom/runtime/work"
 	"strings"
@@ -22,6 +22,7 @@ type Runtime struct {
 	Model          Object
 	APIKey         string
 	ModelCommand   []string
+	Drivers        map[string][]string
 	Targets        map[string]sandbox.TaskExecutor
 	ResolveSandbox func(sandbox.Binding) (sandbox.TaskExecutor, error)
 }

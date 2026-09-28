@@ -79,12 +79,19 @@ loom fork . CHECKPOINT_ID ~/Loom/exploration
 
 查看历史不执行代码。Fork 使用新 Work 身份、独立副本，不继承宿主权限、活跃输入或旧效果的重放权。原历史与未决责任继续保留。
 
-## 源码入口
+## 能力与源码入口
 
-- `runtime/`：Go 控制端；执行设施、存储、授权和适配器有独立包边界。
-- `services/model/`：独立 Node/Pi 模型组件，通过 FD 3 的 JSON-RPC 通信。
-- `harnesses/kernel/`：参考 Python Harness；`templates/` 提供初始 Surface。
-- `deploy/`：共享 Work 环境、SSH Process 及 OpenSandbox 的独立部署构件。
-- `tests/`：组件、协议、真实环境和组合检查。
+| 能力 | 唯一实现归属 | Loom 使用的公开交接 |
+| --- | --- | --- |
+| 持久工作 | 本仓库 `runtime/` | 输入、授权、事实、检查点、文件保管与恢复 |
+| 模型访问 | [Model Resource Hub](components/model-resource-hub/model-invocation/pi/README.md) | 一次原生模型请求／结果；无 Agent 循环 |
+| 隔离执行 | [OnDemand Sandbox](components/sandbox/execution/README.md) | 执行／查询／取消／释放、原生身份与测得的工作目录 |
+| 参考工作策略 | [Worksurface](components/worksurface/README.md) | 投影、继续判断、Surface 修复、Pi 循环；通过宿主调用模型和工具 |
 
-构建、配置、迁移与验证入口见[开发操作说明](docs/development.md)。
+专用代码、规则、依赖和测试随能力维护。`components/` 是固定提交的 Git submodule；`deploy/work` 只组装 Loom 的发布环境。共享 FD 3 绑定由 [Worker RPC SDK](runtime/worker-rpc/README.md) 提供。控制器只导入沙箱公开 Go 模块，供应商实现仅在 CLI 组合入口注册。
+
+首次获取或切换组合版本后执行 `git submodule update --init --recursive`。子仓库包含私有仓库，需要对应 Git 读取权限；构建 Go 模块时设置 `GOPRIVATE=github.com/AlexKaiqi/ondemand-sandbox`。Docker 安装现在要求宿主 Go 1.25+，先生成锁定依赖快照再送入构建，凭据不进入镜像。
+
+原 `agent.run` 配置需拆成模型 worker 和 `[drivers]` 两个入口，固定 Harness manifest 需声明 `driver = worksurface/v1`；见[配置示例](deploy/config.example.toml)。没有已批准 driver 时拒绝推进，不回退旧模型循环。已有 Work 的活动 Round 继续保留原身份和责任，升级前应完成或显式处理未决 Round，再选择新 Harness。
+
+本次保留 schema-2 Work；设计书中的 schema-3／Temporal 目标仍须独立迁移，见[迁移范围](docs/capability-migration.md)。构建与验证入口见[开发说明](docs/development.md)。

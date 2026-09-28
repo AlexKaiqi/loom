@@ -23,6 +23,7 @@ type Tool struct {
 	schema      *jsonschema.Schema
 }
 type Manifest struct {
+	Driver   string            `json:"driver,omitempty"`
 	Protocol int               `json:"protocol"`
 	Events   map[string]Object `json:"events"`
 	Tools    []Tool            `json:"tools"`

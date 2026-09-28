@@ -21,8 +21,8 @@ class GoAcceptance(CLIFixture):
         work = self.base/'work'
         definition = self.definition(sandbox=False,harness_argv=['python3','-I','{harness}/worker.py'])
         definition.write_text(definition.read_text().replace('contextWindow=4096','contextWindow=65536'))
-        self.call('create',work,'--harness',ROOT/'harnesses/kernel','--definition',definition)
-        shutil.copyfile(ROOT/'templates/default/surface/main.md',work/'surface/main.md')
+        self.call('create',work,'--harness',ROOT/'components/worksurface/harness','--definition',definition)
+        shutil.copyfile(ROOT/'components/worksurface/template/surface/main.md',work/'surface/main.md')
         self.admit(work,'initial',{'text':'original request'})
         fixture=self
         class DuringRequest(ObservedHandler):
@@ -98,7 +98,7 @@ class GoAcceptance(CLIFixture):
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         try:
-            image = json.loads((ROOT / "deploy/opensandbox/versions.json").read_text())["code"]
+            image = json.loads((ROOT / "components/sandbox/linux_container_execution/loom-profile/versions.json").read_text())["code"]
             endpoint = "http://127.0.0.1:" + str(server.server_port)
             self.config.write_text('[sandboxes.sandbox-main]\nprovider="opensandbox/v1"\napi_key_env="LOOM_TEST_SANDBOX_KEY"\nendpoint=' + json.dumps(endpoint) + '\n')
             binding = {"service_id": "sandbox-main", "endpoint": endpoint, "provider": "opensandbox/v1", "options_json": json.dumps({"image": image, "profile": "code", "cpu": "1", "memory": "512Mi", "lease_seconds": 600, "request_timeout_seconds": 30}, sort_keys=True, separators=(",", ":"))}
@@ -139,8 +139,8 @@ class GoAcceptance(CLIFixture):
         work = self.base / "work"
         definition = self.definition(userspace=True,harness_argv=["python3","-I","{harness}/worker.py"])
         definition.write_text(definition.read_text().replace('contextWindow=4096', 'contextWindow=16384'))
-        self.call("create", work, "--harness", ROOT / "harnesses/kernel", "--definition", definition)
-        shutil.copyfile(ROOT / "templates/default/surface/main.md", work / "surface/main.md")
+        self.call("create", work, "--harness", ROOT / "components/worksurface/harness", "--definition", definition)
+        shutil.copyfile(ROOT / "components/worksurface/template/surface/main.md", work / "surface/main.md")
         userspace = self.base / "userspace"
         userspace.mkdir()
         self.call("grant", work, userspace)

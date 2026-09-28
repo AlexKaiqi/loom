@@ -14,7 +14,7 @@ import (
 
 func fixture(t *testing.T) string {
 	t.Helper()
-	module, err := filepath.Abs("../../services/model/transport.mjs")
+	module, err := filepath.Abs("../worker-rpc/transport.mjs")
 	if err != nil {
 		t.Fatal(err)
 	}

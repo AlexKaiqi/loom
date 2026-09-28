@@ -100,7 +100,7 @@ func (c *run) projection(ctx context.Context, method string, turn Object) (Objec
 	if err != nil {
 		return nil, err
 	}
-	params := Object{"handoff_basis": handoff, "output_directory": "/outputs", "repair_attempts": c.repairAttempts, "previous_projection_ref": c.projectionRef, "model_operation": operation, "content_version": version, "harness_ref": c.round.HarnessRef, "resource_views": resources, "files_root": "/sources/" + version, "facts_database": mountPath + "/facts.sqlite", "fact_watermark": view.Watermark, "view_id": view.ID, "required_fact_ids": required, "model_semantics": modelSemantics(c.runtime.Model), "timestamp": 0}
+	params := Object{"handoff_basis": handoff, "output_directory": "/outputs", "policy_state": c.policyState, "previous_projection_ref": c.projectionRef, "model_operation": operation, "content_version": version, "harness_ref": c.round.HarnessRef, "resource_views": resources, "files_root": "/sources/" + version, "facts_database": mountPath + "/facts.sqlite", "fact_watermark": view.Watermark, "view_id": view.ID, "required_fact_ids": required, "model_semantics": modelSemantics(c.runtime.Model), "timestamp": 0}
 	params["interface_path"] = mountPath + "/interface.json"
 	turnParams, err := c.policyTurn(turn)
 	if err != nil {
@@ -165,15 +165,11 @@ func (c *run) projection(ctx context.Context, method string, turn Object) (Objec
 	}
 	c.projectionRef = reference
 	c.projectedContext = object(result["context"])
-	c.repairMode = result["execution_mode"] == "context_repair"
-	if c.repairMode {
-		if turn == nil {
-			return nil, &rpc.Error{Kind: "not_ready", Diagnostic: "context repair budget exhausted"}
-		}
+	c.policyState = object(result["policy_state"])
+	if result["previous_projection_ref"] != nil {
 		if err = c.validateSavedViews(c.projectionPlan); err != nil {
 			return nil, err
 		}
-		c.repairAttempts++
 	}
 	c.projectionPlan = copyObject(result)
 	return result, nil
@@ -210,14 +206,21 @@ func (c *run) withBudget(context Object, options Object) (Object, error) {
 		}
 	}
 	estimate := len(raw) + 2048
-	reserve := 4096
+	reserve := 0
+	if value, ok := c.projectionPlan["budget_reserve"]; ok {
+		n, e := number(value)
+		if e != nil || n < 0 || n > window {
+			return nil, errors.New("invalid policy budget reserve")
+		}
+		reserve = int(n)
+	}
 	pressure := "normal"
 	if float64(estimate+reserve)+output > window {
 		pressure = "high"
 	}
-	feedback := Object{"schema_version": 1, "capability": "context.feedback/1", "model_id": c.runtime.Model["id"], "projection_ref": c.projectionRef, "effective_window": window, "next_input_estimate": estimate, "estimate_method": "UTF-8 serialized bytes plus 2048 protocol/feedback allowance; text only, conservative estimate", "output_reserved": output, "editing_reserved": reserve, "pressure": pressure, "edit": "surface/main.md", "selection_status": "applied"}
-	if c.repairMode {
-		feedback["selection_status"] = "rejected; context repair only"
+	feedback := Object{"schema_version": 1, "capability": "context.feedback/1", "model_id": c.runtime.Model["id"], "projection_ref": c.projectionRef, "effective_window": window, "next_input_estimate": estimate, "estimate_method": "UTF-8 serialized bytes plus 2048 protocol/feedback allowance; text only, conservative estimate", "output_reserved": output, "editing_reserved": reserve, "pressure": pressure, "selection_status": "applied"}
+	if status, ok := object(c.projectionPlan["selection"])["status"].(string); ok {
+		feedback["selection_status"] = status
 	}
 	if c.lastTurn != nil {
 		feedback["previous_usage"] = object(c.lastTurn["message"])["usage"]
@@ -227,7 +230,7 @@ func (c *run) withBudget(context Object, options Object) (Object, error) {
 	details["harness_ref"], details["template_sha256"], details["content_version"] = c.round.HarnessRef, c.projectionPlan["template_sha256"], c.projectionPlan["content_version"]
 	details["sources"], details["selection"], details["safe_boundaries"], details["protected_fact_ids"] = c.projectionPlan["sources"], c.projectionPlan["selection"], c.projectionPlan["safe_boundaries"], c.projectionPlan["protected_fact_ids"]
 	details["diagnostic"] = c.projectionPlan["diagnostic"]
-	details["threshold_source"] = "runtime text-budget/1: effective Work model window; output from Harness request; 4096 editing reserve; 2048 bounded feedback/protocol allowance"
+	details["threshold_source"] = "runtime text-budget/1: effective Work model window; output from Harness request; Harness-declared reserve; 2048 bounded feedback/protocol allowance"
 	details["source_estimate_method"] = "Harness UTF-8 contribution estimates; provenance verified against fixed files/fact view; source groups exclude some message/protocol wrappers and are not provider token usage"
 	details["previous_feedback_ref"] = c.budgetRef
 	if c.budgetRef != nil {
@@ -297,7 +300,7 @@ func (c *run) withBudget(context Object, options Object) (Object, error) {
 	candidate["systemPrompt"] = prompt + "\n[Runtime context feedback; estimates are not provider usage]\n" + string(encoded)
 	if float64(estimate)+output > window {
 		_, saveErr := artifact(c.work, Object{"context_feedback": feedback, "blocked": "context capacity exceeded"})
-		return nil, errors.Join(errors.New("not_ready: required projection exceeds context capacity; edit surface/main.md"), saveErr)
+		return nil, errors.Join(errors.New("not_ready: required projection exceeds context capacity; revise the Harness projection"), saveErr)
 	}
 	return candidate, nil
 }

@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"loom/runtime/policy"
 	"loom/runtime/store"
 )
 
@@ -91,17 +92,13 @@ func validateHarness(harness string) error {
 	if err != nil {
 		return err
 	}
-	var policy struct {
-		Protocol int             `json:"protocol"`
-		Events   json.RawMessage `json:"events"`
-		Tools    json.RawMessage `json:"tools"`
-	}
+	var manifest policy.Manifest
 	decoder := json.NewDecoder(bytes.NewReader(body))
 	decoder.DisallowUnknownFields()
-	if err = decoder.Decode(&policy); err != nil {
+	if err = decoder.Decode(&manifest); err != nil {
 		return err
 	}
-	if policy.Protocol != 1 {
+	if manifest.Protocol != 1 {
 		return errors.New("Harness requires protocol=1; execution argv belongs to work.toml")
 	}
 	return nil

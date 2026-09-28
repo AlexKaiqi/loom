@@ -64,3 +64,42 @@ func (c *Control) ObserveAllocation(id, kind string, body Object, nativeID strin
 		return err
 	})
 }
+
+func (c *Control) CreateAllocation(round, id, effect, target, binding string) error {
+	return Immediate(c.Path, func(db *sql.Conn) error {
+		if err := c.Guard(db, round); err != nil {
+			return err
+		}
+		result, err := db.ExecContext(context.Background(), "INSERT INTO allocations(id,effect_id,target,binding,release_state) SELECT ?,?,?,?,'pending' WHERE EXISTS(SELECT 1 FROM effects WHERE id=? AND round_id=?)", id, effect, target, binding, effect, round)
+		if err != nil {
+			return err
+		}
+		n, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if n != 1 {
+			return errors.New("allocation effect outside owned round")
+		}
+		return nil
+	})
+}
+func (c *Control) CheckpointAllocation(round, id, sandboxID, executionID, body string) error {
+	return Immediate(c.Path, func(db *sql.Conn) error {
+		if err := c.Guard(db, round); err != nil {
+			return err
+		}
+		result, err := db.ExecContext(context.Background(), "UPDATE allocations SET sandbox_id=COALESCE(NULLIF(?,''),sandbox_id),execution_id=COALESCE(NULLIF(?,''),execution_id),observation=? WHERE id=? AND (COALESCE(sandbox_id,'')='' OR ?='' OR sandbox_id=?) AND effect_id IN (SELECT id FROM effects WHERE round_id=?)", sandboxID, executionID, body, id, sandboxID, sandboxID, round)
+		if err != nil {
+			return err
+		}
+		n, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if n != 1 {
+			return errors.New("allocation identity changed")
+		}
+		return nil
+	})
+}

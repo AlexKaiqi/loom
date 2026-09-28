@@ -18,7 +18,7 @@ type CatalogModel struct {
 func Catalog(ctx context.Context, root string, args []string, out any) error {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "node", append([]string{filepath.Join(root, "services/model/catalog.mjs")}, args...)...)
+	cmd := exec.CommandContext(ctx, "node", append([]string{filepath.Join(root, "components/model-resource-hub/model-invocation/pi/catalog.mjs")}, args...)...)
 	// Catalog lookup is local and does not need user credentials.
 	for _, key := range []string{"PATH", "LANG", "LC_ALL", "TMPDIR"} {
 		if val, ok := os.LookupEnv(key); ok {

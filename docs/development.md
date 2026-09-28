@@ -4,13 +4,13 @@ The [HTML design book](loom-design-book.html) is the sole specification. Its ent
 
 ## Build individual components
 
-Use Go 1.25+, Node 24, Git and Python 3.11+. The production dependency inputs are `runtime/go.mod`, `runtime/go.sum`, `services/model/package-lock.json` and `harnesses/kernel/requirements.lock`. The Go SQLite driver verifies the actual engine version and WAL/FULL settings when opening each database.
+Use Go 1.25+, Node 24, Git and Python 3.11+. The production dependency inputs are `runtime/go.mod`, `runtime/go.sum`, `components/model-resource-hub/model-invocation/pi/package-lock.json` and `components/worksurface/harness/requirements.lock`. The Go SQLite driver verifies the actual engine version and WAL/FULL settings when opening each database.
 
 ```sh
-npm ci --prefix services/model
+npm ci --prefix components/model-resource-hub/model-invocation/pi
 (cd runtime && go build -o bin/loom ./cmd/loom)
 python3 -m venv .venv
-.venv/bin/pip install --require-hashes -r harnesses/kernel/requirements.lock
+.venv/bin/pip install --require-hashes -r components/worksurface/harness/requirements.lock
 .venv/bin/pip install -r tests/requirements.txt
 ```
 
@@ -35,7 +35,7 @@ loom setup --sandbox-provider ssh-process/v1 \
 
 The native default prefix is `/opt/loom`, with `/usr/local/bin/loom` as launcher. Custom prefixes must have searchable parent directories so NsJail can mount the read-only Python environment after adopting the Work identity; private homes are not chmodded. Credentials and control data remain private. A Linux facility is still needed on macOS; choosing a remote Linux host means running these commands there, not transparent host-directory synchronization.
 
-For ordinary task execution, prepare the [SSH Process facility](../deploy/ssh-process/README.md) once. It uses existing OpenSSH, systemd and NsJail; no task container or Loom execution server is required. Browser/desktop and independent-kernel providers remain optional capabilities.
+For ordinary task execution, prepare the [SSH Process facility](../components/sandbox/linux_process_execution/README.md) once. It uses existing OpenSSH, systemd and NsJail; no task container or Loom execution server is required. Browser/desktop and independent-kernel providers remain optional capabilities.
 
 Native releases snapshot the launcher binary and execution binding and install separate Node/Python dependencies. They do not install or start a task Sandbox server. Only `runtime/cmd/loom/providers.go` registers concrete task factories; add a provider adapter implementing `contracts` and register it there. Configuration and controller packages must remain free of vendor imports. Saved options are versioned by the provider identifier and never re-resolved from a new Profile during recovery.
 
@@ -110,7 +110,7 @@ subsequent run does not count its own report. Regenerate after source changes.
 ```sh
 (cd runtime && go test -race ./...)
 .venv/bin/python -m unittest discover -s tests/model -v
-.venv/bin/python -m unittest discover -s tests/harness -v
+.venv/bin/python -m unittest discover -s components/worksurface/tests -v
 ```
 
 CLI execution checks need a real Linux facility. Inside that facility, set `LOOM_GO_BINARY` to the compiled CLI, `LOOM_TEST_CGROUP_ROOT` to its delegated cgroup, and `LOOM_GO_EVIDENCE` to a new directory outside the source tree:
@@ -119,10 +119,25 @@ CLI execution checks need a real Linux facility. Inside that facility, set `LOOM
 python3 -m unittest discover -s tests/go_acceptance -v
 ```
 
-Remote execution checks additionally require `LOOM_SANDBOX_ENDPOINT`, `LOOM_SANDBOX_KEY_FILE` and `LOOM_SANDBOX_EVIDENCE`. Use the [OpenSandbox deployment runbook](../deploy/opensandbox/README.md). `go test ./adapters/opensandbox -run TestReal -v -count=1` runs the real SDK cases when these are configured.
+Remote execution checks additionally require `LOOM_SANDBOX_ENDPOINT`, `LOOM_SANDBOX_KEY_FILE` and `LOOM_SANDBOX_EVIDENCE`. Use the [OpenSandbox deployment runbook](../components/sandbox/linux_container_execution/loom-profile/README.md). `(cd components/sandbox/execution && go test ./providers/opensandbox -run TestReal -v -count=1)` runs the real SDK cases when these are configured.
 
 The isolated execution probe retains its raw result and publishes `target.ready` with the actual platform, architecture, tools, permissions, read-only mounts and original allocation/session identity. Inspect those facts and their record references when diagnosing a Target that was allocated but could not execute.
 
 For a bounded scheduler load and restart check, run `python3 tests/go_acceptance/scale.py --binary /absolute/path/to/loom --output /tmp/loom-load` inside the configured Linux facility. Its plan fixes 32 Works, mixed Node/Python strategies, concurrency, event rate, byte volume and thresholds before dispatch. The controlled model endpoint and two-second offline interval do not establish real-provider throughput or long-duration reliability.
 
 Keep every failed run and record its source/image/dependency identities. Rerun changed checks against the final source. A fixture pass, skipped real-service test or old evidence directory does not establish conformance. A35 additionally needs repeated real-model workloads with fixed quality/safety/budget criteria; renderer mechanism tests cannot substitute for that comparison.
+
+## 固定能力版本的开发验证
+
+先 `git submodule update --init --recursive`，具备私有子仓库读取权限；Go 命令需要 `GOPRIVATE=github.com/AlexKaiqi/ondemand-sandbox`。使用 Node 24，在根目录、`components/worksurface` 和 `components/model-resource-hub/model-invocation/pi` 分别执行 `npm ci`。根 Python 测试环境使用 `tests/requirements.txt`。
+
+```sh
+(cd runtime && go test ./...)
+python -m unittest discover -s tests/model -v
+python -m unittest discover -s components/worksurface/tests -v
+(cd components/worksurface && npm test)
+python -m unittest discover -s components/model-resource-hub/model-invocation/pi/tests -v
+(cd components/sandbox/execution && go test ./...)
+```
+
+`tests/model` 验证独立策略与单次模型服务的组合；提供方专用测试在模型能力仓库。真实 Linux 隔离与安装用例继续使用原验收入口。安装从 submodule 生成发布快照，不要求读取本机相邻工作仓库。Docker 构建额外要求宿主 Go，以便私有依赖在镜像外认证与取回。

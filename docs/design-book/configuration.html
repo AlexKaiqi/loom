@@ -202,6 +202,10 @@ request_timeout_seconds = 30
 </table></div>
 <p>发布锁固定实际源码、SDK、运行时、schema、converter、环境摘要和测试范围；未知主版本／必需能力明确拒绝。新字段有缺省行为才可兼容增加。</p>
 </section><nav class="page-pagination" aria-label="阅读顺序"><a href="providers.html">← 各工具的真实接入</a><a href="provider-srt.html">SRT 官方库 →</a></nav>
+<section id="capability-ownership"><h3>能力归属与组合发布</h3>
+<p>Loom 拥有持续工作的受理、进度、等待、操作托管、内容接管、授权与恢复；模型访问由 Model Resource Hub 维护，受约束任务执行由 OnDemand Sandbox 维护，参考 Worksurface Harness 独立维护策略、循环、模板和测试。每项能力的实现、专用契约、依赖、部署与验证随所属仓库维护。公开消费者绑定留在调用方，不能跨仓库读写私有状态。</p>
+<p>Harness 驱动请求单次模型操作；Runtime 先保存派发责任，通过模型能力取得原生结果并持久保存，再向驱动交付。模型访问不执行工具、不决定继续策略。任务执行返回已验证的执行路径与原资源身份；Runtime 不推断供应商挂载位置，必要结果未接管时保持原责任。</p>
+<p>组合通过固定版本的公开包与源码依赖构建，独立获取 Loom 后也能按声明取得依赖。正常模型／工具循环、调用结果未知、文件交付失败、恢复原绑定和独立安装必须分别验证。参考组合的目标 API 由本书定义；当前迁移范围另记于源码仓库的 <code>docs/capability-migration.md</code>，该记录不随 HTML 规格包交付。</p></section>
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>
 <dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>

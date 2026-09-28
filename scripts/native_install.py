@@ -10,6 +10,7 @@ import sys
 import tomllib
 
 from design_book import copy_design_book
+from components import copy_assets, vendor_execution
 
 
 def run(argv, **kwargs):
@@ -40,8 +41,8 @@ def prerequisites(execution_config):
 
 def assemble(source, release, installation, roots, state, cfg, copy_component):
     assets = release / 'assets'
-    for component in ('runtime', 'services/model', 'harnesses', 'templates', 'deploy'):
-        copy_component(source / component, assets / component)
+    copy_assets(source, assets, copy_component)
+    vendor_execution(assets / 'runtime')
     design_files = copy_design_book(source / 'docs', assets / 'docs')
     binaries = release / 'bin'
     binaries.mkdir()
@@ -54,13 +55,17 @@ def assemble(source, release, installation, roots, state, cfg, copy_component):
     python = release / 'python'
     run([sys.executable, '-m', 'venv', python])
     run([python / 'bin/pip', 'install', '--disable-pip-version-check', '--no-cache-dir', '--require-hashes', '-r',
-         assets / 'harnesses/kernel/requirements.lock'])
-    run(['npm', 'ci', '--omit=dev', '--no-audit', '--no-fund'], cwd=assets / 'services/model')
+         assets / 'components/worksurface/harness/requirements.lock'])
+    run(['npm', 'ci', '--omit=dev', '--no-audit', '--no-fund'], cwd=assets / 'components/model-resource-hub/model-invocation/pi')
+    run(['npm', 'ci', '--omit=dev', '--no-audit', '--no-fund'], cwd=assets / 'components/worksurface')
     (assets / 'bin').mkdir()
     model = assets / 'bin/loom-model'
     model.write_text('#!/bin/sh\nexec ' + shlex.quote(shutil.which('node')) + ' ' +
-                     shlex.quote(str(assets / 'services/model/worker.mjs')) + ' "$@"\n')
+                     shlex.quote(str(assets / 'components/model-resource-hub/model-invocation/pi/worker.mjs')) + ' "$@"\n')
     model.chmod(0o755)
+    driver = assets / 'bin/loom-worksurface'
+    driver.write_text('#!/bin/sh\nexec ' + shlex.quote(shutil.which('node')) + ' ' + shlex.quote(str(assets / 'components/worksurface/driver/worker.mjs')) + ' "$@"\n')
+    driver.chmod(0o755)
     snapshot = dict(cfg, launcher=str(binaries / 'nsjail'), python_environment=str(python))
     binding = release / 'execution.toml'
     binding.write_text(''.join(k + ' = ' + json.dumps(v) + '\n' for k, v in snapshot.items()))
@@ -68,8 +73,8 @@ def assemble(source, release, installation, roots, state, cfg, copy_component):
     env = dict(os.environ, LOOM_EXECUTION_CONFIG=str(binding), LOOM_INSTALL_ROOT=str(assets))
     run([binaries / 'loom-runtime', 'check-facility'], env=env)
     run(['node', '--input-type=module', '-e',
-         'await import(' + json.dumps(str(assets / 'services/model/agent.mjs')) + '); '
-         'const {apiFor}=await import(' + json.dumps(str(assets / 'services/model/pi.mjs')) + '); '
+         'await import(' + json.dumps(str(assets / 'components/worksurface/driver/agent.mjs')) + '); '
+         'const {apiFor}=await import(' + json.dumps(str(assets / 'components/model-resource-hub/model-invocation/pi/pi.mjs')) + '); '
          'if(typeof (await apiFor({api:"openai-completions"})).streamSimple!=="function")process.exit(2)'])
     shutil.copyfile(source / 'scripts/launcher.py', binaries / 'loom')
     (binaries / 'loom').chmod(0o755)
@@ -82,6 +87,6 @@ def assemble(source, release, installation, roots, state, cfg, copy_component):
             'execution_sha256': hashlib.sha256(binding.read_bytes()).hexdigest(),
             'go_build_info': subprocess.check_output(['go', 'version', '-m', binaries / 'loom-runtime'], text=True),
             'dependency_sha256': {name: hashlib.sha256((assets/name).read_bytes()).hexdigest() for name in
-                ('runtime/go.mod', 'runtime/go.sum', 'services/model/package-lock.json', 'harnesses/kernel/requirements.lock')},
+                ('runtime/go.mod', 'runtime/go.sum', 'components/model-resource-hub/model-invocation/pi/package-lock.json', 'components/worksurface/harness/requirements.lock')},
             'design_sha256': design_files['loom-design-book.html'], 'design_files_sha256': design_files}
     (release / 'installation.json').write_text(json.dumps(info, indent=2) + '\n')

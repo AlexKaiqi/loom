@@ -12,10 +12,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/AlexKaiqi/ondemand-sandbox/execution/contracts"
 	"github.com/pelletier/go-toml/v2"
 	"golang.org/x/term"
 	"loom/runtime/config"
-	"loom/runtime/contracts"
 	"loom/runtime/work"
 )
 
@@ -230,7 +230,7 @@ func (s Setup) Run(ctx context.Context) error {
 	if err = facility.Check(); err != nil {
 		return err
 	}
-	host := config.Config{Profiles: map[string]config.SandboxProfile{"code": profile}, Models: map[string]config.ModelService{"primary": {Endpoint: s.ModelEndpoint, Worker: worker, APIKeyEnv: menv, APIKeyFile: mfile}}, Sandboxes: map[string]config.SandboxService{profile.Service: {Provider: s.SandboxProvider, Endpoint: s.SandboxEndpoint, APIKeyEnv: senv, APIKeyFile: sfile}}}
+	host := config.Config{Drivers: map[string][]string{"worksurface/v1": DriverWorker(root)}, Profiles: map[string]config.SandboxProfile{"code": profile}, Models: map[string]config.ModelService{"primary": {Endpoint: s.ModelEndpoint, Worker: worker, APIKeyEnv: menv, APIKeyFile: mfile}}, Sandboxes: map[string]config.SandboxService{profile.Service: {Provider: s.SandboxProvider, Endpoint: s.SandboxEndpoint, APIKeyEnv: senv, APIKeyFile: sfile}}}
 	hostBytes, err := toml.Marshal(host)
 	if err != nil {
 		return err

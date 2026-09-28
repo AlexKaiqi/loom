@@ -1,0 +1,9 @@
+[submodule "components/worksurface"]
+	path = components/worksurface
+	url = https://github.com/AlexKaiqi/loom-worksurface.git
+[submodule "components/sandbox"]
+	path = components/sandbox
+	url = https://github.com/AlexKaiqi/ondemand-sandbox.git
+[submodule "components/model-resource-hub"]
+	path = components/model-resource-hub
+	url = https://github.com/AlexKaiqi/model-resource-hub.git

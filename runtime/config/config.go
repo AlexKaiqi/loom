@@ -12,12 +12,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/AlexKaiqi/ondemand-sandbox/execution/facility"
 	"github.com/pelletier/go-toml/v2"
-	"loom/runtime/execution"
 	"loom/runtime/work"
 )
 
 type Config struct {
+	Drivers   map[string][]string       `toml:"drivers"`
 	Execution *execution.Config         `toml:"execution,omitempty"`
 	Models    map[string]ModelService   `toml:"models"`
 	Profiles  map[string]SandboxProfile `toml:"profiles"`

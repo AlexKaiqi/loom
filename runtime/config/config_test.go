@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"context"
-	"loom/runtime/contracts"
+	"github.com/AlexKaiqi/ondemand-sandbox/execution/contracts"
 	"loom/runtime/work"
 )
 

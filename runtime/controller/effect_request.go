@@ -71,7 +71,7 @@ func (c *run) requestTool(ctx context.Context, key, kind, environment, target st
 	if c.modelEffect != nil {
 		return nil, &rpc.Error{Kind: "not_ready"}
 	}
-	if c.repairMode && environment != "work" {
+	if !c.environmentAllowed(environment) {
 		return nil, &rpc.Error{Kind: "not_ready"}
 	}
 	_, executionErr := c.executeTool(ctx, "harness:"+key, args)
