@@ -1,6 +1,8 @@
 (()=>{
   const navHolder=document.querySelector('.nav-holder');
-  if(matchMedia('(max-width:760px)').matches) navHolder.open=false;
+  const smallScreen=matchMedia('(max-width:760px)');
+  function syncNavigation(){navHolder.open=!smallScreen.matches;}
+  smallScreen.addEventListener('change',syncNavigation);syncNavigation();
   function revealHash(){
     let id;try{id=decodeURIComponent(location.hash.slice(1));}catch{return;}
     if(!id)return;
@@ -11,13 +13,35 @@
   window.addEventListener('hashchange',revealHash);revealHash();
   const links=[...document.querySelectorAll('.page-toc a[href^="#"]')];
   const headings=links.map(a=>document.getElementById(decodeURIComponent(a.hash.slice(1))));
+  const toc=document.querySelector('.page-toc'),tocToggle=toc?.querySelector('.toc-toggle');
+  function expandToc(open){
+    toc?.classList.toggle('is-open',open);
+    tocToggle?.setAttribute('aria-expanded',String(open));
+    tocToggle?.setAttribute('aria-label',open?'收起本页目录':'展开本页目录');
+  }
+  tocToggle?.addEventListener('click',()=>expandToc(!toc.classList.contains('is-open')));
+  links.forEach((link,i)=>link.addEventListener('click',()=>{
+    expandToc(false);
+    const heading=headings[i];
+    if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}
+  }));
+  document.addEventListener('pointerdown',e=>{if(toc&&!toc.contains(e.target))expandToc(false);});
+  toc?.addEventListener('keydown',e=>{
+    if(e.key!=='Escape')return;
+    expandToc(false);
+    const target=tocToggle.offsetParent?tocToggle:headings[links.findIndex(a=>a.classList.contains('active'))];
+    if(target){if(target!==tocToggle)target.tabIndex=-1;target.focus({preventScroll:true});}
+  });
   let ticking=false;
   function mark(){
     ticking=false;let active=0;
     headings.forEach((h,i)=>{if(h&&h.getBoundingClientRect().top<130)active=i;});
+    if(scrollY>0&&Math.ceil(scrollY+innerHeight)>=document.documentElement.scrollHeight)active=links.length-1;
     links.forEach((a,i)=>{a.classList.toggle('active',i===active);if(i===active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});
   }
-  addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(mark);}},{passive:true});mark();
+  function queueMark(){if(!ticking){ticking=true;requestAnimationFrame(mark);}}
+  addEventListener('scroll',queueMark,{passive:true});
+  addEventListener('resize',queueMark);mark();
   const dialog=document.getElementById('diagram-dialog'),holder=document.getElementById('dialog-content');
   let returnFocus=null;
   document.querySelectorAll('figure .zoom').forEach(btn=>btn.addEventListener('click',()=>{

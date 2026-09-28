@@ -12,42 +12,45 @@
 <aside class="sidebar">
 <a class="brand" href="loom-design-book.html">LOOM</a>
 <div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="loom-design-book.html" class="active" aria-current="page">设计书总览</a><div class="nav-group">工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="loom-design-book.html" class="active" aria-current="page">设计书总览</a><details class="nav-group" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="design-book/goals.html">目标与范围</a>
 <a href="design-book/work-model.html">工作模型与共同约定</a>
 <a href="design-book/events.html">事件与输入</a>
-<a href="design-book/durable.html">Durable：推进、等待与内容</a>
+<a href="design-book/durable.html">持久执行：恢复、等待与内容</a>
 <a href="design-book/model.html">模型访问</a>
 <a href="design-book/sandbox.html">Sandbox 与任务内容</a>
-<a href="design-book/harness.html">Harness 定义与组合</a>
+<a href="design-book/harness.html">Harness：推进逻辑与组合</a>
 <a href="design-book/examples.html">参考 Harness</a>
 <a href="design-book/verification.html">运行与契约验收</a>
-<div class="nav-group">实现接入</div>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="design-book/implementation.html">实现接入与配置</a>
-<a href="design-book/author-types.html">作者类型与编码</a>
+<a href="design-book/author-types.html">接口类型与编码</a>
 <a href="design-book/nats.html">NATS／JetStream 接入</a>
 <a href="design-book/durable-bindings.html">Durable 组合与接口边界</a>
 <a href="design-book/provider-contract.html">Provider 类型与命令载荷</a>
-<a href="design-book/providers.html">各工具的真实接入</a>
+<a href="design-book/providers.html">执行后端接入</a>
 <a href="design-book/configuration.html">配置、组件组织与版本</a>
-<div class="nav-group">Provider 接入</div>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="design-book/provider-srt.html">SRT 官方库</a>
 <a href="design-book/provider-apple.html">Apple container CLI</a>
 <a href="design-book/provider-podman.html">rootless Podman CLI</a>
 <a href="design-book/provider-opensandbox.html">OpenSandbox SDK／API</a>
 <a href="design-book/provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
 <a href="design-book/provider-e2b.html">E2B SDK</a>
-<div class="nav-group">选型与证据</div>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="design-book/research.html">选型依据与验证范围</a>
-</nav></details>
+</div></details></nav></details>
 <div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
 <main>
-<header class="cover" id="top"><p class="eyebrow">LOOM / DESIGN BOOK</p><h1>工作持久存在。<br><em>策略自由组合。</em></h1><p class="lede">Harness 使用输入、模型、执行与等待原语组织工作；Runtime 保存已确认进度，并在条件满足后安排继续。</p><div class="meta"><span>设计工作稿 1.21</span><span>工作模型 0.3</span><span>2026-09-23</span></div><div class="quick"><a class="primary" href="design-book/events.html#event-api">事件：五个作者动作</a><a href="design-book/goals.html#entrypoints">底座入口</a><a href="design-book/harness.html#harness-minimum">怎样定义 Harness</a><a href="design-book/providers.html#provider-adapters">具体工具接入</a></div><p class="scope-note">正文是目标工作契约，附录给出类型、具体接入与证据。示例 API 不表示 SDK 已发布；参考实现和候选的验证范围单独标明。</p></header><p class="note">本设计书按职责分篇维护。各分篇共同构成规范正文；本页提供阅读入口，目录中的内容只在所属分篇定义。</p>
-<section class="chapter"><h2>工作契约</h2><ul class="chapter-links"><li><a href="design-book/goals.html">目标与范围</a></li><li><a href="design-book/work-model.html">工作模型与共同约定</a></li><li><a href="design-book/events.html">事件与输入</a></li><li><a href="design-book/durable.html">Durable：推进、等待与内容</a></li><li><a href="design-book/model.html">模型访问</a></li><li><a href="design-book/sandbox.html">Sandbox 与任务内容</a></li><li><a href="design-book/harness.html">Harness 定义与组合</a></li><li><a href="design-book/examples.html">参考 Harness</a></li><li><a href="design-book/verification.html">运行与契约验收</a></li></ul></section>
-<section class="chapter"><h2>实现接入</h2><ul class="chapter-links"><li><a href="design-book/implementation.html">实现接入与配置</a></li><li><a href="design-book/author-types.html">作者类型与编码</a></li><li><a href="design-book/nats.html">NATS／JetStream 接入</a></li><li><a href="design-book/durable-bindings.html">Durable 组合与接口边界</a></li><li><a href="design-book/provider-contract.html">Provider 类型与命令载荷</a></li><li><a href="design-book/providers.html">各工具的真实接入</a></li><li><a href="design-book/configuration.html">配置、组件组织与版本</a></li></ul></section>
-<section class="chapter"><h2>Provider 接入</h2><ul class="chapter-links"><li><a href="design-book/provider-srt.html">SRT 官方库</a></li><li><a href="design-book/provider-apple.html">Apple container CLI</a></li><li><a href="design-book/provider-podman.html">rootless Podman CLI</a></li><li><a href="design-book/provider-opensandbox.html">OpenSandbox SDK／API</a></li><li><a href="design-book/provider-cloudflare.html">Cloudflare Sandbox Bridge</a></li><li><a href="design-book/provider-e2b.html">E2B SDK</a></li></ul></section>
-<section class="chapter"><h2>选型与证据</h2><ul class="chapter-links"><li><a href="design-book/research.html">选型依据与验证范围</a></li></ul></section>
+<header class="cover" id="top"><p class="eyebrow">LOOM / DESIGN BOOK</p><h1>让复杂工作<br><em>持续推进。</em></h1><p class="lede">Harness 决定每一步如何取得信息、采取行动和检验结果；Runtime 提供受控执行、进度保存和中断恢复，让这些步骤连接成持续的工作。</p><div class="meta"><span>设计工作稿 1.22</span><span>工作模型 0.3</span><span>2026-09-28</span></div><div class="quick"><a class="primary" href="design-book/goals.html">先理解目标与分工</a><a href="design-book/harness.html#harness-minimum">定义推进逻辑</a><a href="design-book/examples.html">阅读 Harness 示例</a><a href="design-book/providers.html#provider-adapters">接入执行后端</a></div><p class="scope-note">本书定义目标契约和接入要求。示例 API 与配置不表示已经发布；实际可用范围以对应版本的实现说明和验证报告为准。</p></header><p class="note">从目标与范围开始，理解 Harness 和 Runtime 的分工。编写 Harness 时查工作契约与示例；实现 Runtime 或适配器时继续查接入附录。具体规则只在所属分篇维护。</p>
+<section class="chapter"><h2>工作契约</h2><p>面向 Harness 作者，说明工作怎样推进，以及输入、操作、等待和结果分别承诺什么。</p><ul class="chapter-links"><li><a href="design-book/goals.html">目标与范围</a></li><li><a href="design-book/work-model.html">工作模型与共同约定</a></li><li><a href="design-book/events.html">事件与输入</a></li><li><a href="design-book/durable.html">持久执行：恢复、等待与内容</a></li><li><a href="design-book/model.html">模型访问</a></li><li><a href="design-book/sandbox.html">Sandbox 与任务内容</a></li><li><a href="design-book/harness.html">Harness：推进逻辑与组合</a></li><li><a href="design-book/examples.html">参考 Harness</a></li><li><a href="design-book/verification.html">运行与契约验收</a></li></ul></section>
+<section class="chapter"><h2>实现接入</h2><p>面向 Runtime 实现者，说明类型、执行引擎、事件服务和配置如何落实工作契约。</p><ul class="chapter-links"><li><a href="design-book/implementation.html">实现接入与配置</a></li><li><a href="design-book/author-types.html">接口类型与编码</a></li><li><a href="design-book/nats.html">NATS／JetStream 接入</a></li><li><a href="design-book/durable-bindings.html">Durable 组合与接口边界</a></li><li><a href="design-book/provider-contract.html">Provider 类型与命令载荷</a></li><li><a href="design-book/providers.html">执行后端接入</a></li><li><a href="design-book/configuration.html">配置、组件组织与版本</a></li></ul></section>
+<section class="chapter"><h2>Provider 接入</h2><p>按执行后端查接口映射、能力限制和故障处理。</p><ul class="chapter-links"><li><a href="design-book/provider-srt.html">SRT 官方库</a></li><li><a href="design-book/provider-apple.html">Apple container CLI</a></li><li><a href="design-book/provider-podman.html">rootless Podman CLI</a></li><li><a href="design-book/provider-opensandbox.html">OpenSandbox SDK／API</a></li><li><a href="design-book/provider-cloudflare.html">Cloudflare Sandbox Bridge</a></li><li><a href="design-book/provider-e2b.html">E2B SDK</a></li></ul></section>
+<section class="chapter"><h2>选型与证据</h2><p>查阅组件选择依据、研究版本和验证要求。</p><ul class="chapter-links"><li><a href="design-book/research.html">选型依据与验证范围</a></li></ul></section>
 
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>

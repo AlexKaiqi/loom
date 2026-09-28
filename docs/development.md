@@ -125,7 +125,7 @@ The isolated execution probe retains its raw result and publishes `target.ready`
 
 For a bounded scheduler load and restart check, run `python3 tests/go_acceptance/scale.py --binary /absolute/path/to/loom --output /tmp/loom-load` inside the configured Linux facility. Its plan fixes 32 Works, mixed Node/Python strategies, concurrency, event rate, byte volume and thresholds before dispatch. The controlled model endpoint and two-second offline interval do not establish real-provider throughput or long-duration reliability.
 
-Keep every failed run and record its source/image/dependency identities. Rerun changed checks against the final source. A fixture pass, skipped real-service test or old evidence directory does not establish conformance. A35 additionally needs repeated real-model workloads with fixed quality/safety/budget criteria; renderer mechanism tests cannot substitute for that comparison.
+Keep every failed run and record its source/image/dependency identities. Rerun changed checks against the final source. A fixture pass, skipped real-service test or old evidence directory does not establish conformance. Context-selection quality additionally needs repeated real-model workloads with fixed quality, safety and budget criteria, as described in the [reference Harness contract](design-book/examples.html#basic). Renderer tests cannot substitute for that comparison.
 
 ## 固定能力版本的开发验证
 

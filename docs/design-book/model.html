@@ -12,44 +12,45 @@
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
 <div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><div class="nav-group">工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html">事件与输入</a>
-<a href="durable.html">Durable：推进、等待与内容</a>
+<a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html" class="active" aria-current="page">模型访问</a>
 <a href="sandbox.html">Sandbox 与任务内容</a>
-<a href="harness.html">Harness 定义与组合</a>
+<a href="harness.html">Harness：推进逻辑与组合</a>
 <a href="examples.html">参考 Harness</a>
 <a href="verification.html">运行与契约验收</a>
-<div class="nav-group">实现接入</div>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="implementation.html">实现接入与配置</a>
-<a href="author-types.html">作者类型与编码</a>
+<a href="author-types.html">接口类型与编码</a>
 <a href="nats.html">NATS／JetStream 接入</a>
 <a href="durable-bindings.html">Durable 组合与接口边界</a>
 <a href="provider-contract.html">Provider 类型与命令载荷</a>
-<a href="providers.html">各工具的真实接入</a>
+<a href="providers.html">执行后端接入</a>
 <a href="configuration.html">配置、组件组织与版本</a>
-<div class="nav-group">Provider 接入</div>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="provider-srt.html">SRT 官方库</a>
 <a href="provider-apple.html">Apple container CLI</a>
 <a href="provider-podman.html">rootless Podman CLI</a>
 <a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
 <a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
 <a href="provider-e2b.html">E2B SDK</a>
-<div class="nav-group">选型与证据</div>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</nav></details>
+</div></details></nav></details>
 <div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
-<main>
-<header class="page-header" id="top"><a href="../loom-design-book.html">Loom 设计书</a> / 工作契约<p>设计工作稿 1.21 · 工作模型 0.3 · 2026-09-23</p></header><details class="page-toc"><summary>本页目录</summary><nav aria-label="本页目录"><a href="#model-need">5.1 Harness 要什么</a><a href="#model-api">5.2 调用契约</a><a href="#model-results">5.3 结果、流与缓存</a><a href="#budget">5.4 预算与并发准入</a></nav></details>
+<main id="top">
+<nav class="page-toc" aria-label="本页目录"><button class="toc-toggle" type="button" aria-label="展开本页目录" aria-expanded="false" aria-controls="page-outline"><span aria-hidden="true">⋮</span></button><div class="toc-links" id="page-outline"><a href="#model-need"><span>5.1 一次调用在持续工作中的位置</span></a><a href="#model-api"><span>5.2 调用契约</span></a><a href="#model-results"><span>5.3 结果、流与缓存</span></a><a href="#budget"><span>5.4 预算与并发准入</span></a></div></nav>
 <section aria-labelledby="model" class="chapter"><h1 id="model">05. 模型访问</h1>
-<h3 id="model-need">5.1 Harness 要什么</h3>
-<blockquote>
-<p><strong>提交一个独立模型请求，得到它的响应、结束原因、用量与原文；同一工作可以批量调用，也可以把响应交给自己的工具循环。</strong></p>
-</blockquote>
-<p>调用不要求 Agent 对象、Surface 或全局 messages。模型适配复用 pi-ai；模型选择、Prompt、结构化判断和是否继续由消费者定义。</p>
+<h3 id="model-need">5.1 一次调用在持续工作中的位置</h3>
+<p>Harness 用模型完成某一步判断，例如提出疑点、评审证据或选择工具。Runtime 接收这次请求，调用选定模型，并保存响应、结束原因、用量和原文。如何检查回答、执行工具，以及是否再次调用模型，由 Harness 决定。</p>
+<p>模型接口接受独立请求，因此同一 Work 可以顺序或并发调用不同上下文。供应商协议适配复用 pi-ai；接入不要求使用特定 Agent 对象、Surface 或全局聊天记录。</p>
 <h3 id="model-api">5.2 调用契约</h3>
 <div class="table-wrap" tabindex="0"><table class="api-table">
 <thead>
@@ -85,7 +86,7 @@
 </tr>
 </tbody>
 </table></div>
-<p>请求必须表达本次模型、<code>messages | messages_ref | projection_ref</code> 三选一、输出要求、输出上限和预算范围。工具定义、缓存偏好和 stage／item／pass 归因可选；缺省值在受理时固定。完整类型见<a href="author-types.html#author-types">附录 A.1</a>。</p>
+<p>请求必须表达本次模型、<code>messages | messages_ref | projection_ref</code> 三选一、输出要求、输出上限和预算范围。工具定义和缓存偏好可选；<code>stage / item / pass</code> 可标明所属阶段、评审项和轮次。缺省值在受理时固定。完整类型见<a href="author-types.html#author-types">附录 A.1</a>。</p>
 <div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-3" type="button">复制</button><pre id="code-3"><code class="language-typescript">const response = await work.model.invoke({
   schema_version: 1,
   request_key: "review:document-v7:section-3",
@@ -102,9 +103,9 @@
 });
 </code></pre></div>
 <h3 id="model-results">5.3 结果、流与缓存</h3>
-<p>结果区分正常停止、工具请求、长度截断、错误与取消；同时保存实际请求／响应引用、选定 attempt、tool calls、schema 校验状态及 usage。<strong>JSON 合法不证明判断正确，空工具数组不证明调用成功。</strong> 不支持必需 schema 能力时拒绝；不得静默降级为文本。</p>
-<p>流式片段绑定 operation／attempt／序号，属于可观察进度。部分输出不当作完整结果，重连不伪装成从原 token 续生成；采用片段作控制决定的运行方式必须记录该决定的依据。</p>
-<p>前缀缓存是优化，不是持久保证或结果去重。固定 rubric、序列化和工具/schema 顺序有助于前缀稳定；命中按实际 usage 记录，不承诺每次命中、不减少上下文占用。完整输入与输出仍按内容契约保存。</p>
+<p>结果须区分正常停止、工具请求、长度截断、错误与取消，并保留实际请求和响应、选定尝试、工具调用、格式校验结果及用量。<strong>JSON 合法不证明判断正确，空工具数组不证明调用成功。</strong> 不支持必需 schema 能力时拒绝；不得静默降级为文本。</p>
+<p>流式片段绑定 operation／attempt／序号，属于可观察进度。部分输出不当作完整结果，重连不伪装成从原 token 续生成；如果 Harness 根据片段提前作出决定，必须保存当时采用的片段和决定。</p>
+<p>前缀缓存是优化，不是持久保证或结果去重。固定评审标准、序列化格式以及工具和 schema 的顺序，有助于保持请求前缀稳定。缓存是否命中按实际用量记录；命中仍然占用上下文窗口。完整输入与输出仍按内容契约保存。</p>
 <h3 id="budget">5.4 预算与并发准入</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
@@ -120,11 +121,11 @@
 </tr>
 <tr>
 <td data-label="阶段">准入</td>
-<td data-label="规则">新 attempt 在派发前按保守上界保留额度；并发请求共同仲裁，不能分别花同一余额。</td>
+<td data-label="规则">每次实际尝试在派发前按消耗上界预留额度；并发请求共用同一准入检查，不能重复支配同一余额。</td>
 </tr>
 <tr>
 <td data-label="阶段">结算</td>
-<td data-label="规则">每个真实 attempt 保存 usage 与价格依据；重放旧结果不再扣费，新尝试仍计费。</td>
+<td data-label="规则">每个真实 attempt 保存 usage 与价格依据；恢复时复用已有结果不产生新的调用费用；新尝试单独计费。</td>
 </tr>
 <tr>
 <td data-label="阶段">未知</td>
@@ -136,8 +137,8 @@
 </tr>
 </tbody>
 </table></div>
-<p>硬费用上限依赖可信单次消耗上界；只具备估计时必须标为软预算或拒绝 hard-limit 要求。默认不按预计缓存命中缩减保留额。并发槽、费用预算、上下文窗口是三种不同限制。</p>
-</section><nav class="page-pagination" aria-label="阅读顺序"><a href="durable.html">← Durable：推进、等待与内容</a><a href="sandbox.html">Sandbox 与任务内容 →</a></nav>
+<p>承诺硬费用上限，必须有可信的单次消耗上界；只有估计值时，应标明软预算，或拒绝硬上限要求。默认不按预计缓存命中缩减保留额。并发槽、费用预算、上下文窗口是三种不同限制。</p>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="durable.html">← 持久执行：恢复、等待与内容</a><a href="sandbox.html">Sandbox 与任务内容 →</a></nav>
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>
 <dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>

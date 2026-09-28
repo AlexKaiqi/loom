@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>作者类型与编码 · Loom Design Book</title>
+<title>接口类型与编码 · Loom Design Book</title>
 <link rel="stylesheet" href="book.css">
 <script src="book.js" defer></script>
 </head>
@@ -12,42 +12,46 @@
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
 <div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><div class="nav-group">工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group"><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html">事件与输入</a>
-<a href="durable.html">Durable：推进、等待与内容</a>
+<a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html">模型访问</a>
 <a href="sandbox.html">Sandbox 与任务内容</a>
-<a href="harness.html">Harness 定义与组合</a>
+<a href="harness.html">Harness：推进逻辑与组合</a>
 <a href="examples.html">参考 Harness</a>
 <a href="verification.html">运行与契约验收</a>
-<div class="nav-group">实现接入</div>
+</div></details>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="implementation.html">实现接入与配置</a>
-<a href="author-types.html" class="active" aria-current="page">作者类型与编码</a>
+<a href="author-types.html" class="active" aria-current="page">接口类型与编码</a>
 <a href="nats.html">NATS／JetStream 接入</a>
 <a href="durable-bindings.html">Durable 组合与接口边界</a>
 <a href="provider-contract.html">Provider 类型与命令载荷</a>
-<a href="providers.html">各工具的真实接入</a>
+<a href="providers.html">执行后端接入</a>
 <a href="configuration.html">配置、组件组织与版本</a>
-<div class="nav-group">Provider 接入</div>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="provider-srt.html">SRT 官方库</a>
 <a href="provider-apple.html">Apple container CLI</a>
 <a href="provider-podman.html">rootless Podman CLI</a>
 <a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
 <a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
 <a href="provider-e2b.html">E2B SDK</a>
-<div class="nav-group">选型与证据</div>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</nav></details>
+</div></details></nav></details>
 <div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
-<main>
-<header class="page-header" id="top"><a href="../loom-design-book.html">Loom 设计书</a> / 实现接入<p>设计工作稿 1.21 · 工作模型 0.3 · 2026-09-23</p></header>
-<section class="chapter"><h1 id="author-types">A.1 作者类型与编码</h1>
-<p>外层使用 JSON-RPC 2.0 时，<code>id</code> 只关联往返；业务身份继续使用 request_key。工作身份、执行所有权和秘密由受信通道绑定。大整数与时间按协议编码；大载荷使用带摘要、大小和媒体类型的引用。</p>
-<p>作者字段与 wire 字段由受信适配明确转换，例如 <code>event_type + data</code> 保存成 <code>loom.event/1</code> 的 event_ref；来源位置由系统生成。不能通过作者提供的正文覆盖来源、目标或消费位置。</p>
-<details class="reference-detail" id="event-types"><summary>Event／Input 类型 · event-contracts.ts</summary><div class="detail-body"><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-8" type="button">复制</button><pre id="code-8"><code class="language-typescript">// 目标作者契约；Promise 只表达接口形状，持久性由已验证的运行绑定实现。
+<main id="top">
+
+<section class="chapter"><h1 id="author-types">A.1 接口类型与编码</h1>
+<p>本页定义事件、输入和模型调用的数据类型，供 Harness 作者及 SDK 实现者核对。TypeScript 声明描述目标接口；<code>Promise</code> 表达异步返回，持久性由所选执行绑定提供。</p>
+<p>使用 JSON-RPC 2.0 传输时，<code>id</code> 只关联一次请求与响应，<code>request_key</code> 标识可跨连接核对的业务操作。Work 身份和执行所有权由受信通道确认，秘密不进入业务载荷。字节数、序号等大整数使用十进制字符串；大载荷通过摘要、大小及媒体类型组成的引用传递。</p>
+<p>适配器把作者字段转换为传输格式，例如将 <code>event_type + data</code> 保存为事件内容，再用 <code>event_ref</code> 引用。来源、目标和消费位置由 Runtime 绑定，不能由正文覆盖。</p>
+<details class="reference-detail" id="event-types"><summary>Event／Input 类型 · event-contracts.ts</summary><div class="detail-body"><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-8" type="button">复制</button><pre id="code-8"><code class="language-typescript">// 目标接口；Promise 表达异步返回，运行绑定负责保存状态与恢复。
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 export type Ref = { sha256: string; size_bytes: string; media_type: string };
 export type EventRecord = {
@@ -111,9 +115,9 @@ export interface EventPort {
   }&gt;;
 }
 export interface InputPort {
-  // 绑定为每次逻辑 next 保存稳定调用身份。没有匹配输入时持久等待。
+  // 运行绑定为每次逻辑 next 保存稳定调用身份。没有匹配输入时持久等待。
   next(filter: { subscription_id?: string; types?: string[] }): Promise&lt;NextInput&gt;;
-  // 整份 delivery 带回认领身份；重放原完成返回原回执，旧 owner 不得新提交。
+  // delivery 携带原处理身份；重复完成请求返回原回执，旧执行者不能提交新结果。
   complete(delivery: InputDelivery, result: Disposition): Promise&lt;{
     input_id: string; outcome: Disposition['outcome']; receipt_ref: Ref;
   }&gt;;
@@ -129,7 +133,7 @@ export type ContractFailure = {
 };
 </code></pre></div></div></details><details class="reference-detail" id="model-types"><summary>Model 类型 · model-contracts.ts</summary><div class="detail-body"><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-9" type="button">复制</button><pre id="code-9"><code class="language-typescript">import type { Json, Ref } from './event-contracts';
 // 模型目标契约；不是已发布 SDK。
-// Promise 类型仅表达作者形状；持久语义由已验证的执行绑定实现。
+// Promise 类型仅表达异步接口；持久性须由执行绑定实现并验证。
 export type Message = {
   role: 'system' | 'developer' | 'user' | 'assistant' | 'tool';
   content: Json; // 媒体、工具关系与原生块按锁定的消息 schema 验证

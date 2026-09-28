@@ -12,85 +12,89 @@
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
 <div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><div class="nav-group">工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group"><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html">事件与输入</a>
-<a href="durable.html">Durable：推进、等待与内容</a>
+<a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html">模型访问</a>
 <a href="sandbox.html">Sandbox 与任务内容</a>
-<a href="harness.html">Harness 定义与组合</a>
+<a href="harness.html">Harness：推进逻辑与组合</a>
 <a href="examples.html">参考 Harness</a>
 <a href="verification.html">运行与契约验收</a>
-<div class="nav-group">实现接入</div>
+</div></details>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="implementation.html">实现接入与配置</a>
-<a href="author-types.html">作者类型与编码</a>
+<a href="author-types.html">接口类型与编码</a>
 <a href="nats.html" class="active" aria-current="page">NATS／JetStream 接入</a>
 <a href="durable-bindings.html">Durable 组合与接口边界</a>
 <a href="provider-contract.html">Provider 类型与命令载荷</a>
-<a href="providers.html">各工具的真实接入</a>
+<a href="providers.html">执行后端接入</a>
 <a href="configuration.html">配置、组件组织与版本</a>
-<div class="nav-group">Provider 接入</div>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="provider-srt.html">SRT 官方库</a>
 <a href="provider-apple.html">Apple container CLI</a>
 <a href="provider-podman.html">rootless Podman CLI</a>
 <a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
 <a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
 <a href="provider-e2b.html">E2B SDK</a>
-<div class="nav-group">选型与证据</div>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</nav></details>
+</div></details></nav></details>
 <div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
-<main>
-<header class="page-header" id="top"><a href="../loom-design-book.html">Loom 设计书</a> / 实现接入<p>设计工作稿 1.21 · 工作模型 0.3 · 2026-09-23</p></header>
+<main id="top">
+
 <section class="chapter"><h1 id="nats-adapter">A.2 NATS／JetStream 与目标输入</h1>
+<p>NATS／JetStream 保存和投递事件；目标 Work 保存输入及其处理状态。两者之间的桥接必须在目标确认受理后才确认传输完成，避免消息已被移出队列、工作却没有留下待办。</p>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
-<th>作者契约</th>
+<th>Harness 接口契约</th>
 <th>NATS 侧</th>
 <th>Work／Durable 侧</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td data-label="作者契约">publish</td>
+<td data-label="Harness 接口契约">publish</td>
 <td data-label="NATS 侧">固定 event_id、<code>Nats-Msg-Id</code>，PublishMsg，等 PubAck。</td>
 <td data-label="Work／Durable 侧">先保存内容和原发布请求；PubAck 后保存发布收据。回执丢失使用原身份补交。</td>
 </tr>
 <tr>
-<td data-label="作者契约">subscribe</td>
+<td data-label="Harness 接口契约">subscribe</td>
 <td data-label="NATS 侧">一个逻辑订阅一个 durable pull consumer，固定来源过滤和起点。</td>
 <td data-label="Work／Durable 侧">目标保存订阅定义、状态及 start_cursor；运行实例退出不删除它。</td>
 </tr>
 <tr>
-<td data-label="作者契约">delivery</td>
+<td data-label="Harness 接口契约">delivery</td>
 <td data-label="NATS 侧">Fetch／Next 取得消息，核验来源、内容与权限。</td>
-<td data-label="Work／Durable 侧">将 event、subscription 身份与版本交给目标准入；同目标去重，原子登记输入和处理责任。</td>
+<td data-label="Work／Durable 侧">将事件、订阅身份及版本交给目标 Work 校验；同目标去重，并在同一次提交中登记输入及处理责任。</td>
 </tr>
 <tr>
-<td data-label="作者契约">ACK</td>
+<td data-label="Harness 接口契约">ACK</td>
 <td data-label="NATS 侧">目标准入确认后 <code>DoubleAck</code>；暂时错误延迟重投。</td>
 <td data-label="Work／Durable 侧">ACK 前必须能确认原 InputReceipt；业务处理不在 ACK 等待范围内。</td>
 </tr>
 <tr>
-<td data-label="作者契约">unsubscribe</td>
+<td data-label="Harness 接口契约">unsubscribe</td>
 <td data-label="NATS 侧">退订之后停止拉取并清理原 consumer；残留消息不直接成为新输入。</td>
 <td data-label="Work／Durable 侧"><strong>先在目标提交关闭订阅标记</strong>，与输入准入同序仲裁；该确认成立后才返回退订成功。</td>
 </tr>
 </tbody>
 </table></div>
 <p>来源和类型映射到 <code>loom.v1.&lt;scope-token&gt;.events.&lt;source-token&gt;.&lt;type-token&gt;</code>。token 采用确定编码，不直接拼任意名称或通配符。事件信封沿用 <code>loom.event/1</code>，包含 event_id、source、event_type、event_ref、observed_at；大正文在内容库，不进入 subject。</p>
-<p>目标去重身份使用“作用域＋可信来源事件＋目标 Work”，不包含订阅版本、Run ID 或重投次数。匹配订阅作为单独关联保存；相同来源身份换正文为冲突。传输去重窗口不替代工作级身份记录。</p>
+<p>目标按“作用域＋可信来源事件＋目标 Work”去重；订阅版本、引擎运行实例标识（Run ID）和重投次数不改变该身份。匹配订阅作为单独关联保存；相同来源身份换正文为冲突。传输去重窗口不替代工作级身份记录。</p>
 <h4>订阅登记和退订的确认点</h4>
-<p>订阅登记先保存原请求，固定来源起点 L，再准备 durable consumer；在目标持久状态中激活同一 subscription_id。桥只向目标交付有效订阅版本。起点一经保存即复用；准备中崩溃用原请求续办，不重新计算 now。</p>
+<p>订阅登记先保存原请求，固定来源起点 L，再准备 durable consumer；在目标持久状态中激活同一 subscription_id。桥接组件只向目标交付有效订阅版本。起点一经保存即复用；准备中崩溃用原请求续办，不重新计算 now。</p>
 <p>历史起点需要补读时，先保护实时起点和积压，再固定来源历史范围 H，补齐历史后接实时。两条路径允许重叠并去重；未覆盖的区间报告 history_gap。<strong>“now”仅以回执给出的来源游标为界，不等于任意机器的墙上时钟。</strong></p>
-<p>退订的线性化点在目标准入所有者：同一短提交先判断订阅仍有效，再建立输入／匹配关联；关闭标记先提交时，该订阅不能再新增关联。仅删除 NATS consumer 无法完成这个保证。多条路由都已失效且输入未受理时，记录明确拒绝；已受理输入保持原关联和责任。</p>
+<p>退订以目标 Work 保存关闭标记的提交为生效点。输入受理在同一次短提交中检查订阅有效性并建立关联；关闭标记已先提交时，拒绝通过该订阅新增关联。仅删除 NATS consumer 无法完成这个保证。多条路由都已失效且输入未受理时，记录明确拒绝；已受理输入保持原关联和责任。</p>
 <h4>参考组合 T 的输入桥</h4>
-<p>Bridge 使用 Temporal Go Client 调用 <code>UpdateWorkflow</code>，Update 名为 <code>loom.input</code>，等待 <code>WorkflowUpdateStageCompleted</code>。handler 只验证准入、重复身份、订阅有效性并入队；不运行模型、不等待业务完成。取得并核验 InputReceipt 后 ACK NATS。</p>
-<p><code>update_id = H(delivery_key, payload_digest, routing_identity)</code> 用于传输重试；业务唯一性仍由 delivery_key 决定。routing_identity 对应有效订阅关联或直接交付身份，使晚到的第二条合法路由可以进入关联校验，而不是被同一 Update 缓存吞掉。相同业务键换内容必须到达冲突检查。<strong>这是作者契约对接入的要求，真实并发与跨 Run 行为仍须验证。</strong></p>
-<p><code>loom.input</code> 的相同逻辑事件可返回原 InputReceipt，并更新合法匹配关联；不能重新生成待办。关闭 Work 后，已有键可通过受保留的最终回执查询确认；新键返回 work_closed，不自动重启执行。</p>
+<p>桥接组件使用 Temporal Go Client 调用 <code>UpdateWorkflow</code>，Update 名为 <code>loom.input</code>，等待 <code>WorkflowUpdateStageCompleted</code>。handler 只验证准入、重复身份、订阅有效性并入队；不运行模型、不等待业务完成。取得并核验 InputReceipt 后 ACK NATS。</p>
+<p><code>update_id = H(delivery_key, payload_digest, routing_identity)</code> 用于传输重试；业务唯一性仍由 delivery_key 决定。routing_identity 对应有效订阅关联或直接交付身份，使晚到的第二条合法路由可以进入关联校验，而不会因命中已有 Update 结果缓存而跳过关联检查。相同业务键换内容必须到达冲突检查。<strong>这是Harness 接口契约对接入的要求，并发与跨运行实例的行为仍须验证。</strong></p>
+<p><code>loom.input</code> 的相同逻辑事件可返回原 InputReceipt，并更新合法匹配关联；不能为同一事件再次生成待处理输入。关闭 Work 后，已有键可通过受保留的最终回执查询确认；新键返回 work_closed，不自动重启执行。</p>
 <figure class="diagram" id="nats-seq"><figcaption><span>图 A1 · NATS 交付到持久输入的确认线</span><button aria-label="放大图 A1 · NATS 交付到持久输入的确认线" class="zoom" type="button">放大</button></figcaption><p class="diagram-scope">参考组合 T 的实际调用时序。Worker 执行业务代码，Service 保存历史；Bridge 发起 Pull。</p><div class="diagram-viewport" tabindex="0"><svg aria-labelledby="nats-seq-title" role="img" viewbox="0 0 1160 1122" xmlns="http://www.w3.org/2000/svg"><title id="nats-seq-title">图 A1 · NATS 交付到持久输入的确认线</title><defs><marker id="nats-seq-a" markerheight="7" markerwidth="7" orient="auto-start-reverse" refx="9" refy="5" viewbox="0 0 10 10"><path d="M0 0 L10 5 L0 10Z" fill="#18675d"></path></marker></defs><rect fill="#fff" height="1122" width="1160"></rect><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="145.0" x2="145.0" y1="104" y2="1112"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="33.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="145.0" y="48.0">NATS JetStream</text><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="435.0" x2="435.0" y1="104" y2="1112"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="323.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="435.0" y="48.0">Loom Bridge</text><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="725.0" x2="725.0" y1="104" y2="1112"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="613.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="725.0" y="48.0">Temporal Service</text><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="1015.0" x2="1015.0" y1="104" y2="1112"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="903.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="1015.0" y="48.0">Workflow Worker</text><rect fill="#fff" height="34" rx="3" width="274.0" x="153.0" y="132"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="290.0" y="151.0">Pull 原 durable consumer</text><line marker-end="url(#nats-seq-a)" stroke="#18675d" stroke-width="1.7" x1="435.0" x2="145.0" y1="175" y2="175"></line><rect fill="#fff" height="34" rx="3" width="274.0" x="153.0" y="201"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="290.0" y="220.0">事件 E + 订阅关联</text><line marker-end="url(#nats-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="145.0" x2="435.0" y1="244" y2="244"></line><rect fill="#f6f3e9" height="42" rx="5" stroke="#c9d6cd" width="236" x="317.0" y="275"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="435.0" y="300.0">校验来源、内容和目标权限</text><rect fill="#fff" height="56" rx="3" width="274.0" x="443.0" y="342"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="361.0">Update loom.input，等待 Comple</text><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="383.0">ted</text><line marker-end="url(#nats-seq-a)" stroke="#18675d" stroke-width="1.7" x1="435.0" x2="725.0" y1="407" y2="407"></line><rect fill="#fff" height="34" rx="3" width="274.0" x="733.0" y="433"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="870.0" y="452.0">Poll Workflow Task</text><line marker-end="url(#nats-seq-a)" stroke="#18675d" stroke-width="1.7" x1="1015.0" x2="725.0" y1="476" y2="476"></line><rect fill="#fff" height="34" rx="3" width="274.0" x="733.0" y="502"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="870.0" y="521.0">任务 + Update</text><line marker-end="url(#nats-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="725.0" x2="1015.0" y1="545" y2="545"></line><rect fill="#f6f3e9" height="64" rx="5" stroke="#c9d6cd" width="236" x="897.0" y="576"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="1015.0" y="601.0">短准入：订阅状态、业务去重、入</text><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="1015.0" y="623.0">队或原回执</text><rect fill="#fff" height="34" rx="3" width="274.0" x="733.0" y="665"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="870.0" y="684.0">完成任务并提交 Update 结果</text><line marker-end="url(#nats-seq-a)" stroke="#18675d" stroke-width="1.7" x1="1015.0" x2="725.0" y1="708" y2="708"></line><rect fill="#f6f3e9" height="64" rx="5" stroke="#c9d6cd" width="236" x="607.0" y="739"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="725.0" y="764.0">持久保存输入和 Update outcom</text><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="725.0" y="786.0">e</text><rect fill="#fff" height="34" rx="3" width="274.0" x="443.0" y="828"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="847.0">InputReceipt</text><line marker-end="url(#nats-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="725.0" x2="435.0" y1="871" y2="871"></line><rect fill="#fff" height="34" rx="3" width="274.0" x="153.0" y="897"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="290.0" y="916.0">DoubleAck 原消息</text><line marker-end="url(#nats-seq-a)" stroke="#18675d" stroke-width="1.7" x1="435.0" x2="145.0" y1="940" y2="940"></line><rect fill="#fff" height="34" rx="3" width="274.0" x="153.0" y="966"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="290.0" y="985.0">ACK 确认</text><line marker-end="url(#nats-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="145.0" x2="435.0" y1="1009" y2="1009"></line><rect fill="#edf3f0" height="42" rx="5" width="1120" x="20" y="1040"></rect><text fill="#476365" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="1065.0">Harness 的业务处理可在准入后独立推进；NATS ACK 不启动模型，也不等待任务完成。</text></svg></div></figure>
 <h4>配置与耐久范围</h4>
 <div class="table-wrap" tabindex="0"><table>
@@ -107,7 +111,7 @@
 </tr>
 <tr>
 <td data-label="项">保留</td>
-<td data-label="参考配置／约束">不按等待时间自动过期未结交付；容量显式、满时背压。已确认可清理的传输记录与长期原文分别管理。</td>
+<td data-label="参考配置／约束">尚未完成的交付不因等待过久而被自动清理；显式配置容量，满时限制新提交。已确认可清理的传输记录与长期原文分别管理。</td>
 </tr>
 <tr>
 <td data-label="项">Consumer</td>
@@ -115,7 +119,7 @@
 </tr>
 <tr>
 <td data-label="项">失败</td>
-<td data-label="参考配置／约束">暂时错误 NakWithDelay；永久非法先保存证据再终止该交付。MaxDeliver 不等于自动死信库。</td>
+<td data-label="参考配置／约束">暂时错误 NakWithDelay；永久非法的消息先保存拒绝原因及原消息，再终止该交付。MaxDeliver 不等于自动死信库。</td>
 </tr>
 <tr>
 <td data-label="项">去重</td>
@@ -132,7 +136,7 @@
 </tbody>
 </table></div>
 <p>对应上游依据：<a href="research.html#src-nats-client">Go API</a>、<a href="research.html#src-nats-publish">发布确认</a>、<a href="research.html#src-nats-retention">保留策略</a>、<a href="research.html#src-nats-embed">内嵌部署</a>。</p>
-</section><nav class="page-pagination" aria-label="阅读顺序"><a href="author-types.html">← 作者类型与编码</a><a href="durable-bindings.html">Durable 组合与接口边界 →</a></nav>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="author-types.html">← 接口类型与编码</a><a href="durable-bindings.html">Durable 组合与接口边界 →</a></nav>
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>
 <dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>

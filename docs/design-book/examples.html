@@ -12,41 +12,45 @@
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
 <div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><div class="nav-group">工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html">事件与输入</a>
-<a href="durable.html">Durable：推进、等待与内容</a>
+<a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html">模型访问</a>
 <a href="sandbox.html">Sandbox 与任务内容</a>
-<a href="harness.html">Harness 定义与组合</a>
+<a href="harness.html">Harness：推进逻辑与组合</a>
 <a href="examples.html" class="active" aria-current="page">参考 Harness</a>
 <a href="verification.html">运行与契约验收</a>
-<div class="nav-group">实现接入</div>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="implementation.html">实现接入与配置</a>
-<a href="author-types.html">作者类型与编码</a>
+<a href="author-types.html">接口类型与编码</a>
 <a href="nats.html">NATS／JetStream 接入</a>
 <a href="durable-bindings.html">Durable 组合与接口边界</a>
 <a href="provider-contract.html">Provider 类型与命令载荷</a>
-<a href="providers.html">各工具的真实接入</a>
+<a href="providers.html">执行后端接入</a>
 <a href="configuration.html">配置、组件组织与版本</a>
-<div class="nav-group">Provider 接入</div>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="provider-srt.html">SRT 官方库</a>
 <a href="provider-apple.html">Apple container CLI</a>
 <a href="provider-podman.html">rootless Podman CLI</a>
 <a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
 <a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
 <a href="provider-e2b.html">E2B SDK</a>
-<div class="nav-group">选型与证据</div>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</nav></details>
+</div></details></nav></details>
 <div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
-<main>
-<header class="page-header" id="top"><a href="../loom-design-book.html">Loom 设计书</a> / 工作契约<p>设计工作稿 1.21 · 工作模型 0.3 · 2026-09-23</p></header><details class="page-toc"><summary>本页目录</summary><nav aria-label="本页目录"><a href="#basic">8.1 Basic：普通任务与主动 Archive</a><a href="#worksurface">8.2 Worksurface：文件化理解与协作</a><a href="#review">8.3 普通代码：评审管线与修改 Agent</a></nav></details>
+<main id="top">
+<nav class="page-toc" aria-label="本页目录"><button class="toc-toggle" type="button" aria-label="展开本页目录" aria-expanded="false" aria-controls="page-outline"><span aria-hidden="true">⋮</span></button><div class="toc-links" id="page-outline"><a href="#basic"><span>8.1 Basic：模型与工具循环</span></a><a href="#worksurface"><span>8.2 Worksurface：文件化理解与协作</span></a><a href="#review"><span>8.3 普通代码：评审管线与修改 Agent</span></a></div></nav>
 <section aria-labelledby="examples" class="chapter"><h1 id="examples">08. 参考 Harness</h1>
-<h3 id="basic">8.1 Basic：普通任务与主动 Archive</h3>
-<p>组成是固定指令、交互投影、Bash、精确编辑及模型主动 archive。它不需要 Surface。工具以独立命令为默认，cwd／env 显式，必要状态保存为文件；持久 PTY 是可选会话能力，不视为 Durable。</p>
+<p>以下示例展示同一 Runtime 上的不同推进方式：Basic 根据模型的工具请求循环，Worksurface 用文件维护长期理解，评审程序按固定流程并发检查。它们复用相同的输入、模型、执行和恢复契约；具体 SDK 与发布状态须由实现说明。</p>
+<h3 id="basic">8.1 Basic：模型与工具循环</h3>
+<p>Basic 把任务指令和已有交互组成模型上下文。模型请求工具时，Harness 通过 Runtime 执行 Bash 或精确编辑，收集结果后再次调用模型；模型正常回答且未请求工具时结束本轮。上下文增长时，由模型主动调用 archive 整理。该策略不需要 Surface。</p>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -57,7 +61,7 @@
 <tbody>
 <tr>
 <td data-label="模型／工具结果">正常完整响应含 tool call</td>
-<td data-label="驱动动作">验证并执行工具，闭合每个结果，再调用模型。</td>
+<td data-label="驱动动作">验证并执行工具，为每项调用记录对应结果，再调用模型。</td>
 </tr>
 <tr>
 <td data-label="模型／工具结果">正常完整响应无 tool call</td>
@@ -69,11 +73,11 @@
 </tr>
 <tr>
 <td data-label="模型／工具结果">截断、取消、错误、未知结果</td>
-<td data-label="驱动动作">保存实际状态；按错误策略修复、重试或等待，不作为正常完成。</td>
+<td data-label="驱动动作">保存实际状态。按策略修复或等待；重试须先满足原操作的核对规则，不能将这些状态当作正常完成。</td>
 </tr>
 <tr>
 <td data-label="模型／工具结果">明确 yield</td>
-<td data-label="驱动动作">保存当前进度与等待，结束活跃推进。</td>
+<td data-label="驱动动作">保存当前进度与等待条件，释放本轮执行资源。</td>
 </tr>
 </tbody>
 </table></div>
@@ -87,7 +91,8 @@ while (true) {
   });
 }
 </code></pre></div>
-<p><strong>Archive 工具：</strong> <code>archive({through, summary})</code>。模型从反馈给出的安全边界选择 through，自行保留要求、更正、进度、未决事项与原文入口；公共代码验证并确认采用。</p>
+<p>Bash 默认按独立命令执行，工作目录和环境变量显式传入，继续所需状态保存到文件。需要持久终端时另行启用会话能力；终端连接本身不提供中断恢复保证。</p>
+<p><strong>Archive 工具：</strong> <code>archive({through, summary})</code>。模型根据上下文反馈选择归档位置 <code>through</code>，在摘要中保留任务要求、更正、进度、未决事项和原文引用；归档实现检查消息完整性和容量后提交新选择。</p>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -102,11 +107,11 @@ while (true) {
 </tr>
 <tr>
 <td data-label="契约点">保护</td>
-<td data-label="规则">当前必需输入、当前 archive 调用、未闭合工具关系和不可拆原生块不能被移走。已闭合的早期工具组可在长任务中归档。</td>
+<td data-label="规则">当前必需输入、当前 archive 调用、尚未配齐结果的工具调用，以及不可拆分的原生消息块必须保留。较早且已完整记录结果的工具组可以归档。</td>
 </tr>
 <tr>
 <td data-label="契约点">生效</td>
-<td data-label="规则">先保存说明和候选，验证消息闭包与容量，再一致提交选择与工具结果。下一次请求使用新 revision。</td>
+<td data-label="规则">先保存摘要和候选选择，检查工具调用与结果是否配对、上下文是否超限，再同时提交选择与工具结果。下一次请求使用新 revision。</td>
 </tr>
 <tr>
 <td data-label="契约点">查回</td>
@@ -114,18 +119,18 @@ while (true) {
 </tr>
 <tr>
 <td data-label="契约点">失败</td>
-<td data-label="规则">返回具体范围和原因；不说“已归档”，不偷偷改用自动摘要。</td>
+<td data-label="规则">返回具体范围和原因；失败时保留原选择，不报告已归档，也不自动切换摘要策略。</td>
 </tr>
 </tbody>
 </table></div>
-<p>Runtime 在窗口尚有整理余量时提供输入估计、输出预留、来源占用和合法边界。模型忽略提示或必需输入过大时，保存修复状态并停止发送超限请求。摘要质量必须用真实长任务检验，机制本身不保证摘要无遗漏。</p>
+<p>Runtime 在上下文窗口尚有整理余量时，反馈预计输入量、预留输出量、各来源占用及可归档位置。模型忽略提示或必需输入过大时，保存修复状态并停止发送超限请求。摘要质量必须用真实长任务检验，机制本身不保证摘要无遗漏。</p>
 <h3 id="worksurface">8.2 Worksurface：文件化理解与协作</h3>
-<p>Worksurface 复用 Basic 的普通循环、工具与 Durable 接入，<strong>以 Surface 替换上下文选择实现</strong>，不同时维护另一份 Basic 的 after／summary。多 Work 协作是可选能力，协作者也可以使用其他 Harness。</p>
+<p>Worksurface 复用 Basic 的模型与工具循环，通过 <strong>Surface 文件维护当前理解和上下文选择</strong>。它替换 Basic 的 <code>after / summary</code> 状态，避免两份选择互相冲突。多 Work 协作是可选能力，协作者也可以使用其他 Harness。</p>
 <div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-6" type="button">复制</button><pre id="code-6"><code class="language-markdown"># 当前工作
 制作生日卡片；语气温暖，不提此前争吵。
 
 ## 当前进度
-HTML v7 已保存；等待主人选择照片。检查依据见 F0118。
+HTML v7 已保存；等待用户选择照片。检查依据见 F0118。
 
 ## 资料
 ```include
@@ -140,20 +145,20 @@ include = ["F0118"]
 body_refs = ["F0134"]
 ```
 </code></pre></div>
-<p>主模板只解释 <code>include</code>／<code>facts</code> fence；不执行 Shell、SQL、循环或递归模板。<code>include</code> 固定授权资源、文件版本和可选行范围；<code>facts</code> 只有一块，支持 after、include、body_refs。未知字段和非法范围返回定位错误。</p>
-<p>模型用普通局部编辑表达选择。编辑成功、投影有效、模型实际采用分别记录；失败候选不偷偷回滚。旧投影仍合法且能容纳诊断时可进入明确修复过程，否则阻塞。文件及每次真实请求保留来源版本。</p>
-<p>协作采用<a href="events.html#event-example">第 3 章同一事件契约</a>：发布候选 → 验证方订阅取得输入 → 返回绑定候选版本的报告 → 发起方决定是否采用。创建 Work、定向交付与取消是获准操作；父子关系不自动授予权限、预算或级联终止。</p>
+<p>主模板只解析 <code>include</code> 和 <code>facts</code> 代码块，不执行 Shell、SQL、循环或递归模板。<code>include</code> 固定授权资源、文件版本和可选行范围；<code>facts</code> 只有一块，支持 after、include、body_refs。未知字段和非法范围返回定位错误。</p>
+<p>模型通过编辑文件调整选择。Runtime 分别记录文件已修改、上下文校验通过和请求实际采用的版本。校验失败时保留候选文件，并报告定位信息；原上下文仍有效且能容纳诊断时，可以用它发起明确的修复步骤，否则暂停推进。每次请求都保留内容来源及版本。</p>
+<p>协作采用<a href="events.html#event-example">第 3 章同一事件契约</a>：验证方预先订阅 → 制作方发布候选 → 验证方取得输入并返回对应版本的报告 → 发起方决定是否采用。创建 Work、定向交付与取消是获准操作；父子关系不自动授予权限、预算或级联终止。</p>
 <h3 id="review">8.3 普通代码：评审管线与修改 Agent</h3>
-<p>固定文档、rubric、schema 和段落身份；同 Work 中有界并发评审；按项目身份汇合后进入修改 Agent，再评审新版本。每项调用有独立上下文和逐调用记录，不创建一批无必要的子 Work。</p>
+<p>Harness 先固定文档版本、评审标准、输出格式和各段落的标识，再限制并发数进行评审。它按评审项标识汇总报告，交给修改 Agent 生成新版本，然后再次评审。每次调用使用独立上下文和操作记录；这些步骤可以在同一 Work 中完成。</p>
 <div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-7" type="button">复制</button><pre id="code-7"><code class="language-text">固定文档 v7 和评审清单
   → 并发检查各章节／段落／句子（独立 ModelRequest）
   → allSettled 汇合：失败／拒绝／格式错误不算“没有问题”
   → 完整报告 + 原文版本 → 修改 Agent
   → 保存 v8 → 新评审轮次；达到上限则明确停止
 </code></pre></div>
-<p>100 项完成 37 项后退出：保留 37 项结果，核对原清单中其余操作，再继续。修改 Agent 的每次模型／工具仍单独托管，不能把整个修改循环藏进一个粗粒度 Activity。</p>
-<p>监控程序则只需订阅、取得输入、规则判断、按需调用模型或工具和处置输入；不是所有输入都必须启动 LLM。</p>
-</section><nav class="page-pagination" aria-label="阅读顺序"><a href="harness.html">← Harness 定义与组合</a><a href="verification.html">运行与契约验收 →</a></nav>
+<p>假设 100 个评审项完成 37 项后进程退出，Runtime 保留这 37 项结果，逐项核对剩余操作后继续。修改 Agent 内的模型和工具调用也须分别记录，才能从中断位置恢复；不能只在整个修改循环结束时保存一个结果。</p>
+<p>事件监控采用另一种推进方式：订阅变化，取得输入后按规则判断，需要进一步分析或行动时才调用模型或工具，最后记录处理结果。没有待处理输入时，Runtime 保存等待条件并释放执行资源。</p>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="harness.html">← Harness：推进逻辑与组合</a><a href="verification.html">运行与契约验收 →</a></nav>
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>
 <dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>
