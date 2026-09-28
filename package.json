@@ -1,0 +1,19 @@
+{
+  "name": "@loom/worker-rpc",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "exports": {
+    "./transport": "./runtime/worker-rpc/transport.mjs",
+    "./records": "./runtime/worker-rpc/records.mjs"
+  },
+  "files": [
+    "runtime/worker-rpc"
+  ],
+  "dependencies": {
+    "vscode-jsonrpc": "9.0.2"
+  }
+}
