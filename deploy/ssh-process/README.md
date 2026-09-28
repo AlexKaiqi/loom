@@ -4,7 +4,7 @@
 OpenSSH/SFTP provides transport, systemd transient services provide resource limits
 and lifecycle, and NsJail provides the task's file/PID/network view. No task starts
 a container or VM. Work and task facilities can share a machine; their views and
-permissions remain separate. The [design book](../../docs/loom-design-book.html#section-5-5)
+permissions remain separate. The [design book](../../docs/design-book/sandbox.html#provider-catalog)
 is the specification.
 
 ## Prepare once

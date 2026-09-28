@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Durable：推进、等待与内容 · Loom Design Book</title>
+<link rel="stylesheet" href="book.css">
+<script src="book.js" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+<a class="brand" href="../loom-design-book.html">LOOM</a>
+<div class="brand-sub">DESIGN BOOK / 工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><div class="nav-group">工作契约</div>
+<a href="goals.html">目标与范围</a>
+<a href="work-model.html">工作模型与共同约定</a>
+<a href="events.html">事件与输入</a>
+<a href="durable.html" class="active" aria-current="page">Durable：推进、等待与内容</a>
+<a href="model.html">模型访问</a>
+<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="harness.html">Harness 定义与组合</a>
+<a href="examples.html">参考 Harness</a>
+<a href="verification.html">运行与契约验收</a>
+<div class="nav-group">实现接入</div>
+<a href="implementation.html">实现接入与配置</a>
+<a href="author-types.html">作者类型与编码</a>
+<a href="nats.html">NATS／JetStream 接入</a>
+<a href="durable-bindings.html">Durable 组合与接口边界</a>
+<a href="provider-contract.html">Provider 类型与命令载荷</a>
+<a href="providers.html">各工具的真实接入</a>
+<a href="configuration.html">配置、组件组织与版本</a>
+<div class="nav-group">Provider 接入</div>
+<a href="provider-srt.html">SRT 官方库</a>
+<a href="provider-apple.html">Apple container CLI</a>
+<a href="provider-podman.html">rootless Podman CLI</a>
+<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
+<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
+<a href="provider-e2b.html">E2B SDK</a>
+<div class="nav-group">选型与证据</div>
+<a href="research.html">选型依据与验证范围</a>
+</nav></details>
+<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</aside>
+<main>
+<header class="page-header" id="top"><a href="../loom-design-book.html">Loom 设计书</a> / 工作契约<p>设计工作稿 1.21 · 工作模型 0.3 · 2026-09-23</p></header><details class="page-toc"><summary>本页目录</summary><nav aria-label="本页目录"><a href="#durable-need">4.1 Harness 要什么</a><a href="#durable-authoring">4.2 作者怎样表达可恢复程序</a><a href="#recovery-table">4.3 中断后的动作</a><a href="#wait-contract">4.4 结果等待、时间与取消</a><a href="#content-contract">4.5 内容与历史读取</a><a href="#retention">4.6 生命周期与保留</a></nav></details>
+<section aria-labelledby="durable" class="chapter"><h1 id="durable">04. Durable：推进、等待与内容</h1>
+<h3 id="durable-need">4.1 Harness 要什么</h3>
+<blockquote>
+<p><strong>已确认的步骤不用重做；尚未完成的工作不会被遗忘；等待不需要进程活着；中断后系统知道继续、核对还是等待修复。</strong></p>
+</blockquote>
+<p>Durable 同时保存继续依据和必要内容。它不保证任务必定成功，也不恢复任意进程栈、Shell 内存或模型生成到一半的 token 现场。</p>
+<h3 id="durable-authoring">4.2 作者怎样表达可恢复程序</h3>
+<div class="table-wrap" tabindex="0"><table class="api-table">
+<thead>
+<tr>
+<th>入口</th>
+<th>作者负责</th>
+<th>运行绑定负责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="入口"><strong>受管顺序代码</strong></td>
+<td data-label="作者负责">用所选 SDK 定义控制流；外部观察与操作经过受管调用。</td>
+<td data-label="运行绑定负责">保存调用结果、等待和执行历史，重建控制位置并安排继续。</td>
+</tr>
+<tr>
+<td data-label="入口"><strong>显式状态驱动</strong></td>
+<td data-label="作者负责">提供状态 schema 和有限推进函数，返回必要状态、下一动作或等待。</td>
+<td data-label="运行绑定负责">一致提交状态与后续责任，按记录再次调用驱动；无隐含闭包状态。</td>
+</tr>
+</tbody>
+</table></div>
+<p>两者遵守相同工作契约，不承诺源码可以零修改互换。<strong>采用重放 SDK 时，不再并行维护一套手工 Round 游标。</strong> 采用显式状态时，不把唯一继续依据藏在未保存的变量中。具体接入见<a href="durable-bindings.html#durable-adapters">附录 A.3</a>。</p>
+<h3 id="recovery-table">4.3 中断后的动作</h3>
+<div class="table-wrap" tabindex="0"><table>
+<thead>
+<tr>
+<th>已确认的边界</th>
+<th>恢复行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="已确认的边界">输入已受理，尚未执行</td>
+<td data-label="恢复行为">自动安排该输入；不依赖后来碰巧又来一条消息。</td>
+</tr>
+<tr>
+<td data-label="已确认的边界">模型结果已保存，工具尚未开始</td>
+<td data-label="恢复行为">使用原模型结果与工具清单，按原操作身份续办。</td>
+</tr>
+<tr>
+<td data-label="已确认的边界">部分并发项已完成</td>
+<td data-label="恢复行为">复用已完成项；其余项分别继续或核对，不重跑整个批次。</td>
+</tr>
+<tr>
+<td data-label="已确认的边界">结果与产物已保存，返回回执前退出</td>
+<td data-label="恢复行为">取得原收据及内容，不再次执行命令。</td>
+</tr>
+<tr>
+<td data-label="已确认的边界">已可能派发，原结果未知</td>
+<td data-label="恢复行为">查询原目的地；只有明确可重复、原生幂等或获准新尝试时才派发。</td>
+</tr>
+<tr>
+<td data-label="已确认的边界">等待已登记</td>
+<td data-label="恢复行为">从已记录输入、结果和计划恢复；条件已满足则推进，否则继续等待。</td>
+</tr>
+<tr>
+<td data-label="已确认的边界">代码不兼容、内容缺失或权限撤销</td>
+<td data-label="恢复行为">明确阻塞原因与修复入口，不清空原任务或伪造成功。</td>
+</tr>
+</tbody>
+</table></div>
+<p>操作重入与新的实际尝试不同。允许重新生成的模型请求单独计费、记录 attempt；只有一个选定结果驱动后续动作。非幂等外部写入结果未知时，不因执行引擎安排重试就重发。</p>
+<h3 id="wait-contract">4.4 结果等待、时间与取消</h3>
+<div class="table-wrap" tabindex="0"><table class="api-table">
+<thead>
+<tr>
+<th>作者动作</th>
+<th>持久契约</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="作者动作"><code>operation.result(id)</code></td>
+<td data-label="持久契约">等原操作的确定返回；不创建第二个操作。等待超时携带原 id，不把操作改成未执行。</td>
+</tr>
+<tr>
+<td data-label="作者动作"><code>inputs.next(filter)</code></td>
+<td data-label="持久契约">先检查已受理匹配输入，再可靠登记等待；检查和休眠之间不能漏唤醒。</td>
+</tr>
+<tr>
+<td data-label="作者动作">受管 <code>sleep</code></td>
+<td data-label="持久契约">第一次确认时固定到期时间；重启不重新计时。到点由共享设施推进。</td>
+</tr>
+<tr>
+<td data-label="作者动作"><code>timer.put/update/cancel</code></td>
+<td data-label="持久契约">稳定计划 id、版本、绝对到期时间和载荷；重复登记不改期，修改须检查原版本。</td>
+</tr>
+<tr>
+<td data-label="作者动作"><code>operation.cancel(id)</code></td>
+<td data-label="持久契约">记录取消请求；实际停止、已经发生的结果和未知费用继续独立核对。</td>
+</tr>
+</tbody>
+</table></div>
+<p>周期默认固定锚点 <code>origin + n × every</code>，停机后有界补齐；合并漏期须显式配置。计划取消与本期输入受理在同一确认顺序中仲裁：本期已经受理则不能抹掉。宿主停机时不能执行，恢复后记录原到期、实际受理和处理时间。</p>
+<p><strong>等待答复与获得批准分开。</strong> 拒绝也是答复，应结束等待；随后 Harness 根据原请求、来源、内容版本和答案作决定。对 v7 的批准不授予 v8 的发送权。</p>
+<p><code>allSettled</code> 保留各项成功／失败；<code>race</code> 返回赢家不自动取消其他操作。外层程序结束前，已受理的其他操作须完成、取消核对或转交责任。</p>
+<figure class="diagram" id="wait-answer"><figcaption><span>图 D1 · 早到的拒绝也是答复</span><button aria-label="放大图 D1 · 早到的拒绝也是答复" class="zoom" type="button">放大</button></figcaption><p class="diagram-scope">逻辑接口时序；等待匹配只说明有答复，批准与否由答复及授权规则决定。</p><div class="diagram-viewport" tabindex="0"><svg aria-labelledby="wait-answer-title" role="img" viewbox="0 0 1160 755" xmlns="http://www.w3.org/2000/svg"><title id="wait-answer-title">图 D1 · 早到的拒绝也是答复</title><defs><marker id="wait-answer-a" markerheight="7" markerwidth="7" orient="auto-start-reverse" refx="9" refy="5" viewbox="0 0 10 10"><path d="M0 0 L10 5 L0 10Z" fill="#18675d"></path></marker></defs><rect fill="#fff" height="755" width="1160"></rect><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="145.0" x2="145.0" y1="104" y2="745"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="33.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="145.0" y="48.0">请求方 Harness</text><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="580.0" x2="580.0" y1="104" y2="745"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="468.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="580.0" y="48.0">持久输入／等待</text><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="1015.0" x2="1015.0" y1="104" y2="745"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="903.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="1015.0" y="48.0">用户输入入口</text><rect fill="#f6f3e9" height="42" rx="5" stroke="#c9d6cd" width="236" x="27.0" y="137"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="145.0" y="162.0">保存确认请求 Q7，绑定卡片 v7</text><rect fill="#fff" height="34" rx="3" width="419.0" x="588.0" y="204"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="797.5" y="223.0">回答 Q7：不要发送 v7</text><line marker-end="url(#wait-answer-a)" stroke="#18675d" stroke-width="1.7" x1="1015.0" x2="580.0" y1="247" y2="247"></line><rect fill="#fff" height="34" rx="3" width="419.0" x="588.0" y="273"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="797.5" y="292.0">输入已受理</text><line marker-end="url(#wait-answer-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="580.0" x2="1015.0" y1="316" y2="316"></line><rect fill="#edf3f0" height="42" rx="5" width="1120" x="20" y="347"></rect><text fill="#476365" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="372.0">Harness 尚未登记这次等待；已受理答复仍保留。</text><rect fill="#fff" height="34" rx="3" width="419.0" x="153.0" y="412"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="362.5" y="431.0">等待 Q7 的答复</text><line marker-end="url(#wait-answer-a)" stroke="#18675d" stroke-width="1.7" x1="145.0" x2="580.0" y1="455" y2="455"></line><rect fill="#f6f3e9" height="64" rx="5" stroke="#c9d6cd" width="236" x="462.0" y="486"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="580.0" y="511.0">先查已有输入，匹配请求、来源和</text><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="580.0" y="533.0">内容版本</text><rect fill="#fff" height="34" rx="3" width="419.0" x="153.0" y="575"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="362.5" y="594.0">返回原答复：拒绝</text><line marker-end="url(#wait-answer-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="580.0" x2="145.0" y1="618" y2="618"></line><rect fill="#f6f3e9" height="64" rx="5" stroke="#c9d6cd" width="236" x="27.0" y="649"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="145.0" y="674.0">等待结束；不发送。按策略处理后</text><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="145.0" y="696.0">续工作</text></svg></div></figure>
+<h3 id="content-contract">4.5 内容与历史读取</h3>
+<div class="table-wrap" tabindex="0"><table class="api-table">
+<thead>
+<tr>
+<th>入口</th>
+<th>输入与返回</th>
+<th>确认边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="入口"><code>content.read(ref)</code></td>
+<td data-label="输入与返回">确定引用及可选范围 → 字节、来源、范围。</td>
+<td data-label="确认边界">不读取同名对象的“最新版本”代替原引用。</td>
+</tr>
+<tr>
+<td data-label="入口"><code>content.save / capture</code></td>
+<td data-label="输入与返回">字节或稳定来源 → 内容引用。</td>
+<td data-label="确认边界">已校验、耐久且受保留；不表示共享项目已更新。</td>
+</tr>
+<tr>
+<td data-label="入口"><code>content.apply</code></td>
+<td data-label="输入与返回">新内容 + 目标 + 预期基线 → 整合回执。</td>
+<td data-label="确认边界">目标基线相符才更新；冲突不覆盖。</td>
+</tr>
+<tr>
+<td data-label="入口"><code>history.open/read/search</code></td>
+<td data-label="输入与返回">Work、授权范围、固定游标 → 记录、覆盖范围、分页游标。</td>
+<td data-label="确认边界">读取不执行旧工具、不消费输入；无命中不证明不存在。</td>
+</tr>
+<tr>
+<td data-label="入口"><code>view.open</code></td>
+<td data-label="输入与返回">必需记录范围 → 固定只读文件／SQLite 视图。</td>
+<td data-label="确认边界">未覆盖所需范围返回 not_ready／history_gap；视图不是新权威。</td>
+</tr>
+</tbody>
+</table></div>
+<p>保存顺序为 <strong>必要字节 → 保留保护 → 结果／状态引用提交 → 成功回执</strong>。文件存在、产生稳定版本、字节耐久、共享项目更新是不同确认。只读查询缓存可重建；原文与必要操作收据不可当缓存清理。</p>
+<p>过去读取 Surface v12 的步骤恢复仍使用 v12；新的读取可以采用 v13。查询“当前最新 facts”是一次新观察，不因数据库叫 facts 就天然可重放。</p>
+<h3 id="retention">4.6 生命周期与保留</h3>
+<div class="table-wrap" tabindex="0"><table>
+<thead>
+<tr>
+<th>动作</th>
+<th>改变什么</th>
+<th>保留什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="动作">Archive</td>
+<td data-label="改变什么">后续模型上下文选择。</td>
+<td data-label="保留什么">原始记录、输入处置、等待、操作及其内容。</td>
+</tr>
+<tr>
+<td data-label="动作">运行历史滚动</td>
+<td data-label="改变什么">引擎单次执行的历史长度。</td>
+<td data-label="保留什么">Work、回执、未处理输入、计划、未结操作和必要状态。</td>
+</tr>
+<tr>
+<td data-label="动作">Work 关闭</td>
+<td data-label="改变什么">停止新业务准入，形成最终处置。</td>
+<td data-label="保留什么">历史与原回执；慢清理已由独立持久责任接管。</td>
+</tr>
+<tr>
+<td data-label="动作">Fork</td>
+<td data-label="改变什么">从确定基线创建新 Work。</td>
+<td data-label="保留什么">原工作及原责任不改变；新 Work 不继承执行权、秘密或未知效果重放权。</td>
+</tr>
+</tbody>
+</table></div>
+<p>目录导出保存资料与声明的继续状态；完整备份还须覆盖实际执行引擎状态。不能仅复制 <code>.loom/durable.json</code> 就创建第二个活跃执行者。历史保留范围、引擎清理期限和内容 GC 必须协调；永久可读只在相应部署验证后声明。</p>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="events.html">← 事件与输入</a><a href="model.html">模型访问 →</a></nav>
+<footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
+</main>
+<dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>
+</body>
+</html>

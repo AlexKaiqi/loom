@@ -29,6 +29,7 @@ COPY harnesses /opt/loom/harnesses
 COPY templates /opt/loom/templates
 COPY deploy /opt/loom/deploy
 COPY docs/loom-design-book.html /opt/loom/docs/loom-design-book.html
+COPY docs/design-book /opt/loom/docs/design-book
 COPY --from=build /usr/local/bin/nsjail /usr/local/bin/nsjail
 COPY --from=build /usr/local/bin/loom-runtime /usr/local/bin/loom-runtime
 COPY --from=build /usr/local/share/loom-nsjail-submodules.lock /usr/local/share/loom-nsjail-submodules.lock

@@ -7,7 +7,7 @@ npm ci --prefix services/model
 node services/model/worker.mjs
 ```
 
-Inherited FD 3 carries JSON-RPC 2.0 as bounded UTF-8 JSON lines; stdout/stderr are logs. The process must complete `session.hello` before operations. `model.complete` accepts and returns native Pi data. `agent.run` uses Pi's continuation loop and requests host tools/events through callbacks whose acknowledgements let Runtime establish durable custody. The full wire and failure contract is [HTML design book](../../docs/loom-design-book.html#chapter-06).
+Inherited FD 3 carries JSON-RPC 2.0 as bounded UTF-8 JSON lines; stdout/stderr are logs. The process must complete `session.hello` before operations. `model.complete` accepts and returns native Pi data. `agent.run` uses Pi's continuation loop and requests host tools/events through callbacks whose acknowledgements let Runtime establish durable custody. The target model contract is in the [HTML design book](../../docs/design-book/model.html), with author types in [types and encoding](../../docs/design-book/author-types.html).
 
 Install the worker independently and resolve its absolute argv through the host deployment configuration. The Go executable does not embed npm dependencies or assume a repository-relative worker path.
 

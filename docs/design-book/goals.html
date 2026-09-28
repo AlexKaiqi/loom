@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>目标与范围 · Loom Design Book</title>
+<link rel="stylesheet" href="book.css">
+<script src="book.js" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+<a class="brand" href="../loom-design-book.html">LOOM</a>
+<div class="brand-sub">DESIGN BOOK / 工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><div class="nav-group">工作契约</div>
+<a href="goals.html" class="active" aria-current="page">目标与范围</a>
+<a href="work-model.html">工作模型与共同约定</a>
+<a href="events.html">事件与输入</a>
+<a href="durable.html">Durable：推进、等待与内容</a>
+<a href="model.html">模型访问</a>
+<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="harness.html">Harness 定义与组合</a>
+<a href="examples.html">参考 Harness</a>
+<a href="verification.html">运行与契约验收</a>
+<div class="nav-group">实现接入</div>
+<a href="implementation.html">实现接入与配置</a>
+<a href="author-types.html">作者类型与编码</a>
+<a href="nats.html">NATS／JetStream 接入</a>
+<a href="durable-bindings.html">Durable 组合与接口边界</a>
+<a href="provider-contract.html">Provider 类型与命令载荷</a>
+<a href="providers.html">各工具的真实接入</a>
+<a href="configuration.html">配置、组件组织与版本</a>
+<div class="nav-group">Provider 接入</div>
+<a href="provider-srt.html">SRT 官方库</a>
+<a href="provider-apple.html">Apple container CLI</a>
+<a href="provider-podman.html">rootless Podman CLI</a>
+<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
+<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
+<a href="provider-e2b.html">E2B SDK</a>
+<div class="nav-group">选型与证据</div>
+<a href="research.html">选型依据与验证范围</a>
+</nav></details>
+<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</aside>
+<main>
+<header class="page-header" id="top"><a href="../loom-design-book.html">Loom 设计书</a> / 工作契约<p>设计工作稿 1.21 · 工作模型 0.3 · 2026-09-23</p></header><details class="page-toc"><summary>本页目录</summary><nav aria-label="本页目录"><a href="#principles">1.1 实现原则</a><a href="#entrypoints">1.2 底座对作者开放什么</a></nav></details>
+<section aria-labelledby="goals" class="chapter"><h1 id="goals">01. 目标与范围</h1>
+<p>Loom 是供不同 Harness 共用的持久运行底座。<strong>Harness 编写工作逻辑；Runtime 提供输入、模型、执行、内容和持久等待。</strong> 模型自主循环、批量评审程序和事件监控程序都直接使用这些能力。</p>
+<div class="table-wrap" tabindex="0"><table>
+<thead>
+<tr>
+<th>核心目标</th>
+<th>必须能观察到的结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="核心目标">多样 Harness 共用底座</td>
+<td data-label="必须能观察到的结果">更换上下文策略、工具或控制流，不要求重写事件、模型适配和恢复机制。</td>
+</tr>
+<tr>
+<td data-label="核心目标">Durable</td>
+<td data-label="必须能观察到的结果">已受理工作和已确认进度跨越进程寿命；设施恢复或条件满足后，系统自动安排继续。</td>
+</tr>
+<tr>
+<td data-label="核心目标">控制与任务执行分离</td>
+<td data-label="必须能观察到的结果">Harness 决定做什么；模型服务和 Sandbox 执行实际操作。任务执行可以在本机或远端。</td>
+</tr>
+<tr>
+<td data-label="核心目标">非执行期释放专属资源</td>
+<td data-label="必须能观察到的结果">纯等待不保留每 Work 的 Agent 进程、模型连接或空转 Sandbox；共享服务、存储和有界缓存仍有成本。</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="principles">1.1 实现原则</h3>
+<p>优先复用成熟开源组件，也允许抽取和修改其实现。<strong>稳定可靠优先于极致性能；接口尽量符合普通代码、文件和异步调用的习惯。</strong> 速度、资源占用和复杂度在满足契约的方案之间优化。</p>
+<p>事件驱动是实现离线接收、按需执行与独立协作的手段，不是独立产品目标。NATS、Temporal、Cordis、Resonate 等组件的职责与采用范围见<a href="implementation.html#implementation">附录 A</a>和<a href="research.html#research">附录 B</a>。</p>
+<h3 id="entrypoints">1.2 底座对作者开放什么</h3>
+<div class="table-wrap" tabindex="0"><table>
+<thead>
+<tr>
+<th>我要做什么</th>
+<th>使用的入口</th>
+<th>谁决定业务含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="我要做什么">关心某种变化，离线时也接收</td>
+<td data-label="使用的入口"><code>events.subscribe</code>，<code>inputs.next</code></td>
+<td data-label="谁决定业务含义">Harness 决定收到以后做什么。</td>
+</tr>
+<tr>
+<td data-label="我要做什么">发布一份结果或观测</td>
+<td data-label="使用的入口"><code>events.publish</code></td>
+<td data-label="谁决定业务含义">事件类型定义载荷含义；发布不等于对方验收。</td>
+</tr>
+<tr>
+<td data-label="我要做什么">调用一次模型</td>
+<td data-label="使用的入口"><code>model.invoke</code>，或 <code>submit</code> + <code>result</code></td>
+<td data-label="谁决定业务含义">调用者提供输入；是否继续调用由调用者决定。</td>
+</tr>
+<tr>
+<td data-label="我要做什么">运行命令、编辑任务文件</td>
+<td data-label="使用的入口"><code>tools.call</code>／<code>execution.submit</code></td>
+<td data-label="谁决定业务含义">工具定义业务接口，Provider 落实执行。</td>
+</tr>
+<tr>
+<td data-label="我要做什么">等待输入、结果或时间</td>
+<td data-label="使用的入口">受管 <code>next</code>／<code>result</code>／<code>sleep</code></td>
+<td data-label="谁决定业务含义">Harness 定义等待条件和后续分支。</td>
+</tr>
+<tr>
+<td data-label="我要做什么">读取资料、保存产物、查历史</td>
+<td data-label="使用的入口"><code>content</code>、<code>history</code>、只读事实视图</td>
+<td data-label="谁决定业务含义">读取不自动消费输入，保存不自动发布或验收。</td>
+</tr>
+</tbody>
+</table></div>
+<p>所有入口使用同一 Work 的身份、授权和预算。<strong>底座没有必需的 <code>runAgent(prompt)</code>，也不要求 Surface 或一份全局聊天记录。</strong></p>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="../loom-design-book.html">← 总览</a><a href="work-model.html">工作模型与共同约定 →</a></nav>
+<footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
+</main>
+<dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>
+</body>
+</html>

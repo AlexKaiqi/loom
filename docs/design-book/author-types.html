@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>作者类型与编码 · Loom Design Book</title>
+<link rel="stylesheet" href="book.css">
+<script src="book.js" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+<a class="brand" href="../loom-design-book.html">LOOM</a>
+<div class="brand-sub">DESIGN BOOK / 工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><div class="nav-group">工作契约</div>
+<a href="goals.html">目标与范围</a>
+<a href="work-model.html">工作模型与共同约定</a>
+<a href="events.html">事件与输入</a>
+<a href="durable.html">Durable：推进、等待与内容</a>
+<a href="model.html">模型访问</a>
+<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="harness.html">Harness 定义与组合</a>
+<a href="examples.html">参考 Harness</a>
+<a href="verification.html">运行与契约验收</a>
+<div class="nav-group">实现接入</div>
+<a href="implementation.html">实现接入与配置</a>
+<a href="author-types.html" class="active" aria-current="page">作者类型与编码</a>
+<a href="nats.html">NATS／JetStream 接入</a>
+<a href="durable-bindings.html">Durable 组合与接口边界</a>
+<a href="provider-contract.html">Provider 类型与命令载荷</a>
+<a href="providers.html">各工具的真实接入</a>
+<a href="configuration.html">配置、组件组织与版本</a>
+<div class="nav-group">Provider 接入</div>
+<a href="provider-srt.html">SRT 官方库</a>
+<a href="provider-apple.html">Apple container CLI</a>
+<a href="provider-podman.html">rootless Podman CLI</a>
+<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
+<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
+<a href="provider-e2b.html">E2B SDK</a>
+<div class="nav-group">选型与证据</div>
+<a href="research.html">选型依据与验证范围</a>
+</nav></details>
+<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</aside>
+<main>
+<header class="page-header" id="top"><a href="../loom-design-book.html">Loom 设计书</a> / 实现接入<p>设计工作稿 1.21 · 工作模型 0.3 · 2026-09-23</p></header>
+<section class="chapter"><h1 id="author-types">A.1 作者类型与编码</h1>
+<p>外层使用 JSON-RPC 2.0 时，<code>id</code> 只关联往返；业务身份继续使用 request_key。工作身份、执行所有权和秘密由受信通道绑定。大整数与时间按协议编码；大载荷使用带摘要、大小和媒体类型的引用。</p>
+<p>作者字段与 wire 字段由受信适配明确转换，例如 <code>event_type + data</code> 保存成 <code>loom.event/1</code> 的 event_ref；来源位置由系统生成。不能通过作者提供的正文覆盖来源、目标或消费位置。</p>
+<details class="reference-detail" id="event-types"><summary>Event／Input 类型 · event-contracts.ts</summary><div class="detail-body"><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-8" type="button">复制</button><pre id="code-8"><code class="language-typescript">// 目标作者契约；Promise 只表达接口形状，持久性由已验证的运行绑定实现。
+export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+export type Ref = { sha256: string; size_bytes: string; media_type: string };
+export type EventRecord = {
+  id: string;
+  source: string;             // 已验证的来源逻辑身份
+  event_type: string;
+  position: string;           // 不透明来源游标，不按字符串比较
+  data: Json;
+  event_ref: Ref;
+};
+export type PublicationReceipt = {
+  event_id: string;
+  event_ref: Ref;
+  position: string;
+  status: 'published';
+};
+export type SubscribeRequest = {
+  request_key: string;
+  source: string;
+  types: string[];            // 非空、无重复，精确匹配
+  from: 'now' | { after: string };
+};
+export type SubscriptionReceipt = {
+  subscription_id: string;
+  start_cursor: string;
+  status: 'active';
+};
+export type InputDelivery = {
+  input: {
+    id: string;
+    ordinal: string;
+    event: EventRecord;
+    matched_subscriptions: string[];
+  };
+  processing_ref: string;     // Runtime 绑定；作者原样传回，不自行构造
+};
+export type NextInput =
+  | { kind: 'input'; delivery: InputDelivery }
+  | { kind: 'closed'; reason: 'subscription_closed' | 'work_closed' };
+export type Disposition =
+  | { outcome: 'handled'; result_ref?: Ref }
+  | { outcome: 'failed' | 'ignored'; reason: string; result_ref?: Ref };
+export interface EventPort {
+  publish(request: {
+    request_key: string; event_type: string; data: Json;
+  }): Promise&lt;PublicationReceipt&gt;;
+  subscribe(request: SubscribeRequest): Promise&lt;SubscriptionReceipt&gt;;
+  unsubscribe(request: {
+    request_key: string; subscription_id: string;
+  }): Promise&lt;{ subscription_id: string; status: 'closed'; receipt_ref: Ref }&gt;;
+  describe(request: { source: string }): Promise&lt;Array&lt;{
+    event_type: string; schema_ref: Ref; meaning: string;
+  }&gt;&gt;;
+  inspect(subscriptionId: string): Promise&lt;{
+    definition: SubscribeRequest; start_cursor: string;
+    state: 'preparing' | 'active' | 'closed' | 'blocked';
+    observation_ref: Ref;
+  }&gt;;
+  list(request: { cursor?: string; limit: number }): Promise&lt;{
+    subscription_ids: string[]; next_cursor?: string;
+  }&gt;;
+}
+export interface InputPort {
+  // 绑定为每次逻辑 next 保存稳定调用身份。没有匹配输入时持久等待。
+  next(filter: { subscription_id?: string; types?: string[] }): Promise&lt;NextInput&gt;;
+  // 整份 delivery 带回认领身份；重放原完成返回原回执，旧 owner 不得新提交。
+  complete(delivery: InputDelivery, result: Disposition): Promise&lt;{
+    input_id: string; outcome: Disposition['outcome']; receipt_ref: Ref;
+  }&gt;;
+}
+export type ContractFailure = {
+  kind: 'invalid_request' | 'permission_denied' | 'identity_conflict'
+    | 'history_gap' | 'work_closed' | 'subscription_closed'
+    | 'stale_processing' | 'not_ready' | 'resource_exhausted'
+    | 'outcome_unknown' | 'internal_error';
+  message: string;
+  request_key?: string;
+  evidence_ref?: Ref;
+};
+</code></pre></div></div></details><details class="reference-detail" id="model-types"><summary>Model 类型 · model-contracts.ts</summary><div class="detail-body"><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-9" type="button">复制</button><pre id="code-9"><code class="language-typescript">import type { Json, Ref } from './event-contracts';
+// 模型目标契约；不是已发布 SDK。
+// Promise 类型仅表达作者形状；持久语义由已验证的执行绑定实现。
+export type Message = {
+  role: 'system' | 'developer' | 'user' | 'assistant' | 'tool';
+  content: Json; // 媒体、工具关系与原生块按锁定的消息 schema 验证
+};
+export type ModelInput =
+  | { messages: Message[]; messages_ref?: never; projection_ref?: never }
+  | { messages_ref: Ref; messages?: never; projection_ref?: never }
+  | { projection_ref: Ref; messages?: never; messages_ref?: never };
+export type OutputContract =
+  | { mode: 'text' }
+  | { mode: 'json_schema'; schema_ref: Ref;
+      enforcement: 'provider_required' | 'validate_result' };
+export type ModelRequest = {
+  schema_version: 1;
+  request_key: string;
+  model: { service: string; model_id?: string; parameters?: Record&lt;string, Json&gt; };
+  input: ModelInput;
+  output: OutputContract;
+  tools_ref?: Ref;
+  limits: { max_output_tokens: number; budget_ref: string };
+  cache?: { mode: 'provider_default' | 'prefer_prefix'; prefix_ref?: Ref };
+  attribution?: { stage?: string; item?: string; pass?: number };
+};
+export type ModelCallOutcome = {
+  operation_id: string;
+  selected_attempt_id: string;
+  request_ref: Ref;
+  response_ref: Ref;
+  stop_reason: 'stop' | 'tool_use' | 'length' | 'error' | 'aborted';
+  tool_calls: Array&lt;{ id: string; name: string; arguments: Json }&gt;;
+  validation: 'not_requested' | 'valid' | 'invalid' | 'unavailable';
+  output_ref?: Ref;
+  usage_ref: Ref; // 供应商未报告的值标 unknown，不填零
+};
+export type OperationReceipt = {
+  operation_id: string;
+  request_ref: Ref;
+  binding_ref: Ref;
+  status: 'accepted';
+};
+export interface ModelPort {
+  // 成功仅承诺原请求和执行责任持久成立；相同 key 不创建第二次操作。
+  submit(request: ModelRequest): Promise&lt;OperationReceipt&gt;;
+  // 在持久执行绑定中等待已选定结果；不执行返回的工具，不启动新推理。
+  result(operationId: string): Promise&lt;ModelCallOutcome&gt;;
+  inspect(operationId: string): Promise&lt;{
+    status: 'pending' | 'running' | 'unknown' | 'complete';
+    cancellation: 'none' | 'requested' | 'stop_confirmed' | 'unknown';
+    observation_ref: Ref; result?: ModelCallOutcome;
+  }&gt;;
+  cancel(arg: { operation_id: string; request_key: string }): Promise&lt;{
+    operation_id: string; status: 'cancellation_requested'; receipt_ref: Ref;
+  }&gt;;
+  describe(model: ModelRequest['model']): Promise&lt;{
+    capability_ref: Ref; observed_at: string; // 身份、窗口与支持范围在记录中
+  }&gt;;
+  // submit + result 的便利入口，不包含 agent loop 或隐式重试。
+  invoke(request: ModelRequest): Promise&lt;ModelCallOutcome&gt;;
+}</code></pre></div></div></details>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="implementation.html">← 实现接入与配置</a><a href="nats.html">NATS／JetStream 接入 →</a></nav>
+<footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
+</main>
+<dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>
+</body>
+</html>

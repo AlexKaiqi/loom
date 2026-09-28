@@ -13,6 +13,8 @@ import tempfile
 import time
 import uuid
 
+from design_book import copy_design_book
+
 SOURCE = Path(__file__).resolve().parent.parent
 
 
@@ -37,8 +39,7 @@ def assemble(release, docker, installation, roots, state):
     build.mkdir()
     for component in ('runtime', 'services/model', 'harnesses', 'templates', 'deploy'):
         copy_component(SOURCE / component, build / component)
-    (build / 'docs').mkdir()
-    shutil.copyfile(SOURCE / 'docs/loom-design-book.html', build / 'docs/loom-design-book.html')
+    design_files = copy_design_book(SOURCE / 'docs', build / 'docs')
     image_tag = 'loom-work:' + release.name
     run([docker, 'build', '--tag', image_tag, '-f', build / 'deploy/work/Dockerfile', build])
     image_id = subprocess.check_output([docker, 'image', 'inspect', '--format', '{{.Id}}', image_tag], text=True).strip()
@@ -73,7 +74,7 @@ def assemble(release, docker, installation, roots, state):
         (release / 'bin/loom').chmod(0o755)
         info = {'format': 3, 'deployment': 'docker', 'docker': docker, 'installation_id': installation, 'container': container, 'image_id': image_id,
                 'workspace_roots': list(map(str, roots)), 'host_state': str(state),
-                'design_sha256': hashlib.sha256((build / 'docs/loom-design-book.html').read_bytes()).hexdigest()}
+                'design_sha256': design_files['loom-design-book.html'], 'design_files_sha256': design_files}
         (release / 'installation.json').write_text(json.dumps(info, indent=2) + '\n')
         shutil.rmtree(build)
         activated = True

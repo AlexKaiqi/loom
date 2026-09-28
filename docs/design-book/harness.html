@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Harness 定义与组合 · Loom Design Book</title>
+<link rel="stylesheet" href="book.css">
+<script src="book.js" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+<a class="brand" href="../loom-design-book.html">LOOM</a>
+<div class="brand-sub">DESIGN BOOK / 工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><div class="nav-group">工作契约</div>
+<a href="goals.html">目标与范围</a>
+<a href="work-model.html">工作模型与共同约定</a>
+<a href="events.html">事件与输入</a>
+<a href="durable.html">Durable：推进、等待与内容</a>
+<a href="model.html">模型访问</a>
+<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="harness.html" class="active" aria-current="page">Harness 定义与组合</a>
+<a href="examples.html">参考 Harness</a>
+<a href="verification.html">运行与契约验收</a>
+<div class="nav-group">实现接入</div>
+<a href="implementation.html">实现接入与配置</a>
+<a href="author-types.html">作者类型与编码</a>
+<a href="nats.html">NATS／JetStream 接入</a>
+<a href="durable-bindings.html">Durable 组合与接口边界</a>
+<a href="provider-contract.html">Provider 类型与命令载荷</a>
+<a href="providers.html">各工具的真实接入</a>
+<a href="configuration.html">配置、组件组织与版本</a>
+<div class="nav-group">Provider 接入</div>
+<a href="provider-srt.html">SRT 官方库</a>
+<a href="provider-apple.html">Apple container CLI</a>
+<a href="provider-podman.html">rootless Podman CLI</a>
+<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
+<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
+<a href="provider-e2b.html">E2B SDK</a>
+<div class="nav-group">选型与证据</div>
+<a href="research.html">选型依据与验证范围</a>
+</nav></details>
+<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</aside>
+<main>
+<header class="page-header" id="top"><a href="../loom-design-book.html">Loom 设计书</a> / 工作契约<p>设计工作稿 1.21 · 工作模型 0.3 · 2026-09-23</p></header><details class="page-toc"><summary>本页目录</summary><nav aria-label="本页目录"><a href="#harness-minimum">7.1 作者至少定义什么</a><a href="#composition">7.2 独立变化与组合契约</a><a href="#work-directory">7.3 Work 目录与配置</a><a href="#harness-release">7.4 版本与信任</a></nav></details>
+<section aria-labelledby="harness" class="chapter"><h1 id="harness">07. Harness 定义与组合</h1>
+<h3 id="harness-minimum">7.1 作者至少定义什么</h3>
+<div class="table-wrap" tabindex="0"><table>
+<thead>
+<tr>
+<th>职责</th>
+<th>最小定义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="职责">输入</td>
+<td data-label="最小定义">接收哪些输入、何时采用、如何处置。可以是一次调用，也可以长期消费输入。</td>
+</tr>
+<tr>
+<td data-label="职责">模型请求</td>
+<td data-label="最小定义">如何形成 messages、选择模型和工具；不增长的请求不要求 archive。</td>
+</tr>
+<tr>
+<td data-label="职责">推进</td>
+<td data-label="最小定义">继续、并行、等待、失败处理和结束条件。只有 Basic 采用固定的 tool-call 循环。</td>
+</tr>
+<tr>
+<td data-label="职责">上下文容量</td>
+<td data-label="最小定义">对增长输入选择 archive、摘要、检索或有界保留；Runtime 只提供容量和合法性反馈。</td>
+</tr>
+<tr>
+<td data-label="职责">恢复入口</td>
+<td data-label="最小定义">选择受管顺序代码或显式状态驱动，保存足以恢复的必要依据。</td>
+</tr>
+</tbody>
+</table></div>
+<p>输入可靠性、原操作核对、共享调度和权限机制不由每份 Harness 重写。发布材料固定实际入口、代码、状态 schema、能力及依赖；它们是运行材料，不是每个作者都要重新编写的基础设施。</p>
+<h3 id="composition">7.2 独立变化与组合契约</h3>
+<div class="table-wrap" tabindex="0"><table>
+<thead>
+<tr>
+<th>能力</th>
+<th>可替换什么</th>
+<th>状态／权限边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="能力">上下文</td>
+<td data-label="可替换什么">会话＋archive、Surface、检索或批量片段。</td>
+<td data-label="状态／权限边界">同一次投影有一个明确的选择所有者，不能有两个未协调的裁剪游标。</td>
+</tr>
+<tr>
+<td data-label="能力">推进驱动</td>
+<td data-label="可替换什么">ReAct、固定评审、验证分支、事件响应。</td>
+<td data-label="状态／权限边界">拥有必要控制状态，不拥有模型厂商或 Sandbox 实现。</td>
+</tr>
+<tr>
+<td data-label="能力">工具</td>
+<td data-label="可替换什么">schema、参数校验、结果呈现与操作语义。</td>
+<td data-label="状态／权限边界">不自行扩大授权或伪造 Runtime 结果。</td>
+</tr>
+<tr>
+<td data-label="能力">模型路由</td>
+<td data-label="可替换什么">模型选择和请求参数策略。</td>
+<td data-label="状态／权限边界">候选阶段可变；受理后原请求、原绑定固定。</td>
+</tr>
+<tr>
+<td data-label="能力">观察</td>
+<td data-label="可替换什么">UI、统计、诊断。</td>
+<td data-label="状态／权限边界">只读已确认结果；普通观察故障不成为隐藏的业务提交屏障。</td>
+</tr>
+</tbody>
+</table></div>
+<p>具名 Hook 明确顺序和权限：请求候选可按序改写；最终授权与完整性拒绝不能被后续普通扩展放宽；结果呈现不改原生结果；名称冲突须拒绝或显式替换。</p>
+<p>Cordis 可管理依赖、作用域与进程内装卸，不能替代持久责任。卸载依次停止新调用、排空／交接已有调用、移除注册、清理临时资源。Work 的逻辑状态与未结操作在实例消失后仍存在。<strong>使用 Cordis 不是所有 Harness 的接入前提。</strong></p>
+<h3 id="work-directory">7.3 Work 目录与配置</h3>
+<div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-4" type="button">复制</button><pre id="code-4"><code class="language-text">work/
+  work.toml          逻辑配置、确定 Harness 入口和资源声明；不含秘密
+  harness/           源码或确定 release 引用
+  surface/           可选，仅 Worksurface 等文件策略使用
+  .loom/             Runtime 管理，非整体向模型开放
+    durable.json     实际引擎的执行绑定，不是可复制的执行许可
+    records/         原文、请求、结果、内容与历史保留引用
+    versions.git/    Work 与获准副本的内容版本
+    views/           固定范围的只读事实视图
+    state.sqlite     可选查询索引；可重建，不作为第二套推进状态
+
+Userspace            独立项目、用户资料与产物，位置由用户资源绑定决定
+Runtime 私有存储      事件设施状态、权限、凭据和必要操作收据
+</code></pre></div>
+<p>只创建实际需要的目录。Surface 不是完整历史副本，Userspace 不随 Work 关闭而删除。T 的 <code>work.toml</code> 与服务配置见<a href="configuration.html#configuration">附录 A.6</a>；其他入口使用明确的发布元数据，不默默套用 Workflow 字段。</p>
+<h3 id="harness-release">7.4 版本与信任</h3>
+<p>Harness 候选通过 Git 分支、worktree 与普通代码维护；检查、发布、启用分别发生。恢复原执行使用原版本；换版本先确认状态兼容和未结操作的解释方式。编辑 Surface 只影响后续投影，不等于升级代码。</p>
+<p>使用者批准的 Harness 可作为受信代码运行于共享 Worker，安全沙箱按信任需求选用；模型生成的任务 Bash 和项目脚本仍通过执行管控。模型生成新 Harness 不等于自动批准在受信宿主启用。</p>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="sandbox.html">← Sandbox 与任务内容</a><a href="examples.html">参考 Harness →</a></nav>
+<footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
+</main>
+<dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>
+</body>
+</html>

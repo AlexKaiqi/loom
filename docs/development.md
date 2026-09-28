@@ -1,6 +1,6 @@
 # Development operations
 
-The [HTML design book](loom-design-book.html) is the sole specification. This file contains reconstruction and verification commands, not an alternate architecture or acceptance standard.
+The [HTML design book](loom-design-book.html) is the sole specification. Its entry page links to the authoritative topic pages in `design-book/`; edit each contract or adapter in its own page. The directory also holds shared CSS and JavaScript. Installation packages the entry page and this entire directory, and records their individual hashes. This file contains reconstruction and verification commands, not an alternate architecture or acceptance standard.
 
 ## Build individual components
 

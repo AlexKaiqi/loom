@@ -1,6 +1,6 @@
 # Reference Harness
 
-The [HTML design book](../../docs/loom-design-book.html#chapter-04) defines the behavior. This directory contains ordinary Python policy code, its tool schemas and locked dependencies. Initial Surface files belong to `templates/default/`, outside the strategy.
+The [HTML design book](../../docs/design-book/harness.html) defines the behavior, with [reference Harnesses](../../docs/design-book/examples.html) in a separate topic. This directory contains ordinary Python policy code, its tool schemas and locked dependencies. Initial Surface files belong to `templates/default/`, outside the strategy.
 
 `surface/main.md` is the maintained template. `include` fences select ordinary files or retained resource versions; one `facts` fence records explicit visibility choices. The model can edit both with Bash. Original facts and all actual inputs stay in immutable Runtime storage. There is no automatic archive threshold or mandatory plan/report directory.
 

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>工作模型与共同约定 · Loom Design Book</title>
+<link rel="stylesheet" href="book.css">
+<script src="book.js" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+<a class="brand" href="../loom-design-book.html">LOOM</a>
+<div class="brand-sub">DESIGN BOOK / 工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><div class="nav-group">工作契约</div>
+<a href="goals.html">目标与范围</a>
+<a href="work-model.html" class="active" aria-current="page">工作模型与共同约定</a>
+<a href="events.html">事件与输入</a>
+<a href="durable.html">Durable：推进、等待与内容</a>
+<a href="model.html">模型访问</a>
+<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="harness.html">Harness 定义与组合</a>
+<a href="examples.html">参考 Harness</a>
+<a href="verification.html">运行与契约验收</a>
+<div class="nav-group">实现接入</div>
+<a href="implementation.html">实现接入与配置</a>
+<a href="author-types.html">作者类型与编码</a>
+<a href="nats.html">NATS／JetStream 接入</a>
+<a href="durable-bindings.html">Durable 组合与接口边界</a>
+<a href="provider-contract.html">Provider 类型与命令载荷</a>
+<a href="providers.html">各工具的真实接入</a>
+<a href="configuration.html">配置、组件组织与版本</a>
+<div class="nav-group">Provider 接入</div>
+<a href="provider-srt.html">SRT 官方库</a>
+<a href="provider-apple.html">Apple container CLI</a>
+<a href="provider-podman.html">rootless Podman CLI</a>
+<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
+<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
+<a href="provider-e2b.html">E2B SDK</a>
+<div class="nav-group">选型与证据</div>
+<a href="research.html">选型依据与验证范围</a>
+</nav></details>
+<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</aside>
+<main>
+<header class="page-header" id="top"><a href="../loom-design-book.html">Loom 设计书</a> / 工作契约<p>设计工作稿 1.21 · 工作模型 0.3 · 2026-09-23</p></header><details class="page-toc"><summary>本页目录</summary><nav aria-label="本页目录"><a href="#concepts">2.1 必要概念</a><a href="#common-contract">2.2 所有写操作共用的规则</a><a href="#state-model">2.3 Work 不只有一个“运行状态”</a><a href="#concurrency">2.4 并发与顺序</a></nav></details>
+<section aria-labelledby="work-model" class="chapter"><h1 id="work-model">02. 工作模型与共同约定</h1>
+<h3 id="concepts">2.1 必要概念</h3>
+<div class="table-wrap" tabindex="0"><table>
+<thead>
+<tr>
+<th>对象</th>
+<th>定义与边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="对象"><strong>Work</strong></td>
+<td data-label="定义与边界">持续存在的工作身份及其配置、必要状态、记录和未结事项。不是进程、项目目录或单条聊天。</td>
+</tr>
+<tr>
+<td data-label="对象"><strong>Harness</strong></td>
+<td data-label="定义与边界">组织上下文、操作与等待的工作程序。每次运行绑定确定版本和一种可恢复入口。</td>
+</tr>
+<tr>
+<td data-label="对象"><strong>Event / Input</strong></td>
+<td data-label="定义与边界">Event 是有来源、有类型的发布记录；Input 是某个 Work 已受理、需要明确处置的信息。</td>
+</tr>
+<tr>
+<td data-label="对象"><strong>Operation / Effect</strong></td>
+<td data-label="定义与边界">一次受托操作，绑定稳定身份、原请求、原目的地、实际尝试和结果。模型调用、命令、发布均可按此托管。</td>
+</tr>
+<tr>
+<td data-label="对象"><strong>等待</strong></td>
+<td data-label="定义与边界">对输入、操作结果或时间的持久依赖。属于工作状态，不依赖活着的回调。</td>
+</tr>
+<tr>
+<td data-label="对象"><strong>内容 / 上下文</strong></td>
+<td data-label="定义与边界">内容是可读取、可版本化的资料；上下文是一次模型请求实际采用的信息。Surface 是可选维护方式。</td>
+</tr>
+</tbody>
+</table></div>
+<p>Userspace 是独立项目、个人资料或数据资源。Work 使用其获准版本或工作副本，不取得项目所有权。Target 是 Work 内的逻辑执行目标，Allocation 是一次实际资源绑定。</p>
+<h3 id="common-contract">2.2 所有写操作共用的规则</h3>
+<div class="table-wrap" tabindex="0"><table>
+<thead>
+<tr>
+<th>契约</th>
+<th>确定行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="契约"><strong>C1 身份绑定</strong></td>
+<td data-label="确定行为">身份来自受信连接。<code>request_key</code> 在调用来源与目标 Work 的作用域内绑定方法和有效请求；不能复用为另一种操作。SDK 保存解析后的默认值、内容及目的地。</td>
+</tr>
+<tr>
+<td data-label="契约"><strong>C2 重复请求</strong></td>
+<td data-label="确定行为">同键同请求返回原回执；同键不同请求返回 <code>identity_conflict</code>。回执丢失后核对原键，不另造一次调用。相同正文配新键是新意图。</td>
+</tr>
+<tr>
+<td data-label="契约"><strong>C3 回执</strong></td>
+<td data-label="确定行为">回执说明该次提交确认了什么，不代替对象当前状态。写入“已受理”不等于已开始、已完成或业务正确。</td>
+</tr>
+<tr>
+<td data-label="契约"><strong>C4 恢复</strong></td>
+<td data-label="确定行为">已确认结果复用；未完成事项仍有执行或核对责任。超时和连接断开不能被解释成“从未执行”。</td>
+</tr>
+<tr>
+<td data-label="契约"><strong>C5 授权</strong></td>
+<td data-label="确定行为">请求、历史读取和实际执行都核验所需权限；引用、队列名、目录名和业务标签不授予权限。旧回执的返回也须有读取权。</td>
+</tr>
+<tr>
+<td data-label="契约"><strong>C6 一致确认</strong></td>
+<td data-label="确定行为">确认依赖的内容、状态与后续责任必须可恢复地关联。不能先报告成功，之后才尽力保存唯一必要内容。</td>
+</tr>
+<tr>
+<td data-label="契约"><strong>C7 保留</strong></td>
+<td data-label="确定行为">未处理输入、在途操作、等待和已确认继续状态所需的记录受保护。归档上下文、卸载组件与回收环境不删除这些责任。</td>
+</tr>
+<tr>
+<td data-label="契约"><strong>C8 可见失败</strong></td>
+<td data-label="确定行为">校验拒绝、资源不足、暂时不可用、结果未知分别返回稳定错误种类。没有确认结果的网络失败，仍需按原身份核对。</td>
+</tr>
+</tbody>
+</table></div>
+<p>重复请求先核对原提交；有权读取时返回原回执，不因当前版本或生命周期已经变化而误报为一次新的过期操作。未提交的新操作才继续检查当前 owner 与预期版本。</p>
+<p><code>request_key</code> 不是 RPC 连接的 <code>id</code>，也不是模型生成的 tool-call ID。业务对外重试使用显式键；内部顺序代码可由 Durable 绑定保存稳定调用身份。<strong>普通内存计数器或函数名不足以提供重启后的身份。</strong></p>
+<h3 id="state-model">2.3 Work 不只有一个“运行状态”</h3>
+<div class="table-wrap" tabindex="0"><table>
+<thead>
+<tr>
+<th>状态维度</th>
+<th>需要区分的状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="状态维度">生命周期</td>
+<td data-label="需要区分的状态"><code>open → closing → closed</code>。等待不等于关闭。关闭须处置或转交未结事项。</td>
+</tr>
+<tr>
+<td data-label="状态维度">输入</td>
+<td data-label="需要区分的状态"><code>queued → processing → disposed</code>。处理中可以等待或恢复；处置结果为 handled、failed 或 ignored。</td>
+</tr>
+<tr>
+<td data-label="状态维度">操作</td>
+<td data-label="需要区分的状态">尚未派发、已可能派发、原结果已确认；取消请求与实际停止另记。</td>
+</tr>
+<tr>
+<td data-label="状态维度">等待</td>
+<td data-label="需要区分的状态">未满足、已匹配、已取消／超时。得到答复不等于答复为批准。</td>
+</tr>
+</tbody>
+</table></div>
+<p>Work 可以同时有待处理输入、某个未知操作和另一个已完成结果。未知发送阻止冲突重发，不必阻止无关的只读工作。界面可显示摘要，但不得用一个 <code>done</code>／<code>failed</code> 覆盖以上关系。</p>
+<h3 id="concurrency">2.4 并发与顺序</h3>
+<p><strong>控制状态有可确认的提交顺序，不等于操作必须串行。</strong> 同一 Work 可发起多个独立模型请求，每个使用自己的输入、操作身份和预算。共享文件写入按实际资源范围协调。</p>
+<p>默认输入按目标 Work 的受理顺序取得；不从时间戳推导跨来源全局顺序。业务必须先 A 后 B 时，Harness 显式表达依赖。多次模型调用或多个 Task 不自动变成多个 Work。</p>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="goals.html">← 目标与范围</a><a href="events.html">事件与输入 →</a></nav>
+<footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
+</main>
+<dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>
+</body>
+</html>

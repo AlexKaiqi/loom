@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>配置、组件组织与版本 · Loom Design Book</title>
+<link rel="stylesheet" href="book.css">
+<script src="book.js" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+<a class="brand" href="../loom-design-book.html">LOOM</a>
+<div class="brand-sub">DESIGN BOOK / 工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><div class="nav-group">工作契约</div>
+<a href="goals.html">目标与范围</a>
+<a href="work-model.html">工作模型与共同约定</a>
+<a href="events.html">事件与输入</a>
+<a href="durable.html">Durable：推进、等待与内容</a>
+<a href="model.html">模型访问</a>
+<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="harness.html">Harness 定义与组合</a>
+<a href="examples.html">参考 Harness</a>
+<a href="verification.html">运行与契约验收</a>
+<div class="nav-group">实现接入</div>
+<a href="implementation.html">实现接入与配置</a>
+<a href="author-types.html">作者类型与编码</a>
+<a href="nats.html">NATS／JetStream 接入</a>
+<a href="durable-bindings.html">Durable 组合与接口边界</a>
+<a href="provider-contract.html">Provider 类型与命令载荷</a>
+<a href="providers.html">各工具的真实接入</a>
+<a href="configuration.html" class="active" aria-current="page">配置、组件组织与版本</a>
+<div class="nav-group">Provider 接入</div>
+<a href="provider-srt.html">SRT 官方库</a>
+<a href="provider-apple.html">Apple container CLI</a>
+<a href="provider-podman.html">rootless Podman CLI</a>
+<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
+<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
+<a href="provider-e2b.html">E2B SDK</a>
+<div class="nav-group">选型与证据</div>
+<a href="research.html">选型依据与验证范围</a>
+</nav></details>
+<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</aside>
+<main>
+<header class="page-header" id="top"><a href="../loom-design-book.html">Loom 设计书</a> / 实现接入<p>设计工作稿 1.21 · 工作模型 0.3 · 2026-09-23</p></header>
+<section class="chapter"><h1 id="configuration">A.6 配置、组件组织与版本</h1>
+<p>以下为参考组合 T 的 Work 配置，不作为所有 Durable 引擎的共同入口格式。</p>
+<div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-21" type="button">复制</button><pre id="code-21"><code class="language-toml">schema_version = 3
+
+[harness]
+path = "harness"
+workflow_type = "basicHarness"
+release = "basic-r1"
+state_schema = 1
+
+[durable]
+service = "primary-durable"
+
+[model]
+service = "primary-model"
+
+[userspaces.app]
+resource = "project-app"
+access = "write"
+delivery = "per-tool"
+
+[targets.default]
+profile = "local-default"
+userspaces = ["app"]
+</code></pre></div>
+<p>Basic 不要求 <code>[surface]</code>；Worksurface 的 release 要求 <code>surface.path</code>。Work 只声明逻辑资源；宿主配置解析物理目录、服务端点和私有 credential_ref。参考组合的用户级完整安装仍是发布门槛，不能把开发服务器演示当作生产部署通过。</p>
+<details class="reference-detail" id="host-service-config"><summary>宿主服务、Provider 配置与绑定示例</summary><div class="detail-body"><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-22" type="button">复制</button><pre id="code-22"><code class="language-toml"># work.toml 结构 3 的默认 Target 配置片段。
+[targets.default]
+profile = "local-default"
+userspaces = ["app", "reference"]</code></pre></div><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-23" type="button">复制</button><pre id="code-23"><code class="language-toml"># macOS / Linux 两种安装版共用形状；发行负责解析确定依赖。
+[services.local]
+provider = "local-process/v1"
+endpoint = "local://host-6"
+
+[profiles.local-default]
+service = "local"
+
+[profiles.local-default.options]
+policy_ref = "policy:default-tool-scope@locked"
+toolchain_ref = "toolchain:installed-host@locked"
+timeout_seconds = 120</code></pre></div><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-24" type="button">复制</button><pre id="code-24"><code class="language-toml"># 仅在额外 Target 被显式绑定时生效。并非所有用户必须配置。
+[services.independent-local]
+provider = "apple-container/v1"
+endpoint = "local://host-6"
+
+[profiles.independent-local]
+service = "independent-local"
+
+[profiles.independent-local.options]
+cli_ref = "tool:apple-container/1.4.1"
+image_ref = "image:approved-task-environment@locked"
+network_policy_ref = "policy:no-egress@locked"
+cpus = "2"
+memory = "2G"
+timeout_seconds = 120
+
+[services.remote]
+provider = "opensandbox/v1"
+endpoint = "https://sandbox.example.invalid/v1"
+
+[profiles.remote]
+service = "remote"
+
+[profiles.remote.options]
+sdk_ref = "sdk:opensandbox-go@locked"
+deployment_ref = "deployment:approved-remote@locked"
+request_timeout_seconds = 30</code></pre></div><div class="table-wrap" tabindex="0"><table><thead><tr><th>绑定</th><th>规定</th></tr></thead><tbody><tr><td data-label="绑定">local-process/v1</td><td data-label="规定"><code>policy_ref</code>、<code>toolchain_ref</code>、正整数 <code>timeout_seconds</code>；toolchain_ref 解析到固定 SRT／Node／OS 组合，options_json 保存实际配置。</td></tr><tr><td data-label="绑定">apple-container/v1</td><td data-label="规定"><code>cli_ref</code>、<code>image_ref</code>、<code>network_policy_ref</code>、<code>cpus</code>、<code>memory</code>、<code>timeout_seconds</code>。引用解析为不可变版本，无网配置使用已验证的 <code>--network none</code>。</td></tr><tr><td data-label="绑定">opensandbox/v1</td><td data-label="规定"><code>sdk_ref</code>、<code>deployment_ref</code>、<code>request_timeout_seconds</code>。部署对象固定 API／spec、image／platform、挂载或传输、网络、TTL 和保留条件；凭据单独注入。配置由绑定的适配器版本验证。</td></tr><tr><td data-label="绑定">共同</td><td data-label="规定">Profile 必须解析为要求快照与完整 provider/service/endpoint/options_json。未知键拒绝，身份/凭据来自宿主；模型不能把 image、path 或参数当成自授权。未解析引用或未通过能力组合不派发。</td></tr></tbody></table></div><div class="note"><p><strong>边界优先于接口齐全。</strong> 若现成组件不能提供请求所需的持续进程、冻结、恢复日志或受控网络，明确拒绝该能力组合；先选择其他已验证现成设施，不在 Provider 后面偷偷建设一个新的通用执行平台。</p></div>
+<p>宿主配置中的 <code>@locked</code> 引用必须解析为确定部署、依赖摘要和私有凭据引用；未解析时保持 <code>not_ready</code>。Linux Podman 与 macOS Apple 可由各自发行绑定同一逻辑 Profile；取得 Allocation 后使用固定服务，执行中不隐式切换。</p><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-25" type="button">复制</button><pre id="code-25"><code class="language-toml">[services.linux-sandbox]
+provider = "podman/v1"
+endpoint = "local://host-6"
+
+[profiles.local-isolated]
+service = "linux-sandbox"
+[profiles.local-isolated.options]
+cli_ref = "tool:podman@locked"
+deployment_ref = "deployment:rootless-local@locked"
+request_timeout_seconds = 30
+
+[services.private-sandbox]
+provider = "opensandbox/v1"
+endpoint = "https://sandbox.example.invalid/v1"
+
+[profiles.private-compute]
+service = "private-sandbox"
+[profiles.private-compute.options]
+sdk_ref = "sdk:opensandbox-go@locked"
+deployment_ref = "deployment:private-exec@locked"
+request_timeout_seconds = 30
+
+[services.cloudflare-sandbox]
+provider = "cloudflare-sandbox/v1"
+endpoint = "https://sandbox-bridge.example.invalid"
+
+[profiles.cloud-sandbox]
+service = "cloudflare-sandbox"
+[profiles.cloud-sandbox.options]
+api_ref = "openapi:cloudflare-sandbox-bridge@locked"
+deployment_ref = "deployment:cloudflare-account-worker@locked"
+request_timeout_seconds = 30
+
+[services.e2b-sandbox]
+provider = "e2b/v1"
+endpoint = "https://api.e2b.dev"
+
+[profiles.saas-sandbox]
+service = "e2b-sandbox"
+[profiles.saas-sandbox.options]
+sdk_ref = "sdk:e2b-js@locked"
+deployment_ref = "deployment:e2b-account-template@locked"
+request_timeout_seconds = 30
+
+# 秘密在宿主私有凭据库按 service 注入，不写入 work.toml/options。
+# OpenAI 缺独立 Exec，故没有伪造的可执行 service 配置。</code></pre></div><div class="table-wrap" tabindex="0"><table><thead><tr><th>适配器 options</th><th>固定语义</th></tr></thead><tbody><tr><td data-label="适配器 options"><code>podman/v1</code></td><td data-label="固定语义">cli_ref、deployment_ref、正整数 request_timeout_seconds。deployment_ref 固定 rootless store/config/runtime、环境摘要、受信入口、挂载策略、网络和配额。</td></tr><tr><td data-label="适配器 options"><code>cloudflare-sandbox/v1</code></td><td data-label="固定语义">api_ref、deployment_ref、正整数 request_timeout_seconds。deployment_ref 固定官方 bridge 源码/包/镜像组合、账户与 Worker、认证引用和内容保留；不能把某个普通 Worker URL 当作通用沙箱 API。</td></tr><tr><td data-label="适配器 options"><code>e2b/v1</code></td><td data-label="固定语义">sdk_ref、deployment_ref、正整数 request_timeout_seconds。deployment_ref 固定账户／项目、模板、联网规则、TTL、SDK/envd 与内容保留要求。</td></tr><tr><td data-label="适配器 options">共同</td><td data-label="固定语义">私有 options 保存到 <code>options_json</code>；原生资源身份和实际 capability 保存在 Allocation。客户端 deadline 与任务 timeout 分别处理。未知必需字段或无法满足的语义在派发前拒绝。</td></tr></tbody></table></div></div></details>
+<p>组件依赖方向为 <code>Harness → 公共契约 → Runtime 端口 ← 厂商适配器</code>。代码可按 <code>contracts/</code>、<code>runtime/{events,durable,operations,content,authorization}</code>、<code>adapters/</code>、<code>harnesses/{basic,worksurface,review}</code>、<code>tests/contracts/</code> 组织；这些是代码职责，不要求部署成多个服务。</p>
+<div class="table-wrap" tabindex="0"><table>
+<thead>
+<tr>
+<th>契约</th>
+<th>版本／范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="契约">Work 配置</td>
+<td data-label="版本／范围">T 使用 work.toml 结构 3、TOML 1.0。</td>
+</tr>
+<tr>
+<td data-label="契约">受信 RPC／Durable DTO</td>
+<td data-label="版本／范围">loom/2、loom.durable/1；JSON-RPC 2.0 封装。</td>
+</tr>
+<tr>
+<td data-label="契约">事件传输信封</td>
+<td data-label="版本／范围">loom.event/1；作者 publish／subscribe／inputs 接口为本文目标 API，实际发布前须完成 DTO 与错误契约检查。</td>
+</tr>
+<tr>
+<td data-label="契约">执行适配</td>
+<td data-label="版本／范围">sandbox.provider/2、tool.exec/1、sandbox.exec/1。</td>
+</tr>
+<tr>
+<td data-label="契约">资源与内容访问</td>
+<td data-label="版本／范围">userspace.binding/1、workspace.access/1。</td>
+</tr>
+<tr>
+<td data-label="契约">只读事实面</td>
+<td data-label="版本／范围">facts.view/2；格式、来源游标、授权范围和覆盖说明。</td>
+</tr>
+<tr>
+<td data-label="契约">上下文反馈</td>
+<td data-label="版本／范围">context.feedback/1。</td>
+</tr>
+<tr>
+<td data-label="契约">独立模型／预算</td>
+<td data-label="版本／范围">model.invoke/1、budget.scope/1 草案；不默默改变旧 modelInvoke 的载荷。</td>
+</tr>
+</tbody>
+</table></div>
+<p>发布锁固定实际源码、SDK、运行时、schema、converter、环境摘要和测试范围；未知主版本／必需能力明确拒绝。新字段有缺省行为才可兼容增加。</p>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="providers.html">← 各工具的真实接入</a><a href="provider-srt.html">SRT 官方库 →</a></nav>
+<footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
+</main>
+<dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>
+</body>
+</html>

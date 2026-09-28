@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>实现接入与配置 · Loom Design Book</title>
+<link rel="stylesheet" href="book.css">
+<script src="book.js" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+<a class="brand" href="../loom-design-book.html">LOOM</a>
+<div class="brand-sub">DESIGN BOOK / 工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><div class="nav-group">工作契约</div>
+<a href="goals.html">目标与范围</a>
+<a href="work-model.html">工作模型与共同约定</a>
+<a href="events.html">事件与输入</a>
+<a href="durable.html">Durable：推进、等待与内容</a>
+<a href="model.html">模型访问</a>
+<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="harness.html">Harness 定义与组合</a>
+<a href="examples.html">参考 Harness</a>
+<a href="verification.html">运行与契约验收</a>
+<div class="nav-group">实现接入</div>
+<a href="implementation.html" class="active" aria-current="page">实现接入与配置</a>
+<a href="author-types.html">作者类型与编码</a>
+<a href="nats.html">NATS／JetStream 接入</a>
+<a href="durable-bindings.html">Durable 组合与接口边界</a>
+<a href="provider-contract.html">Provider 类型与命令载荷</a>
+<a href="providers.html">各工具的真实接入</a>
+<a href="configuration.html">配置、组件组织与版本</a>
+<div class="nav-group">Provider 接入</div>
+<a href="provider-srt.html">SRT 官方库</a>
+<a href="provider-apple.html">Apple container CLI</a>
+<a href="provider-podman.html">rootless Podman CLI</a>
+<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
+<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
+<a href="provider-e2b.html">E2B SDK</a>
+<div class="nav-group">选型与证据</div>
+<a href="research.html">选型依据与验证范围</a>
+</nav></details>
+<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</aside>
+<main>
+<header class="page-header" id="top"><a href="../loom-design-book.html">Loom 设计书</a> / 实现接入<p>设计工作稿 1.21 · 工作模型 0.3 · 2026-09-23</p></header>
+<section aria-labelledby="implementation" class="chapter"><h1 id="implementation">附录 A. 实现接入与配置</h1>
+<p>本附录把前文契约映射到具体组件。<strong>NATS／JetStream 是事件实现；Temporal 为参考组合 T；DSH／Cordis 与可嵌入内核为组合 E；Resonate 为候选组合 R。</strong> 候选不同时成为一项 Work 的执行权威。代码只表示已列明的接入形状，运行与故障范围按验收报告确认。</p>
+<ul class="chapter-links"><li><a href="author-types.html#author-types">作者类型与编码</a></li><li><a href="nats.html#nats-adapter">NATS／JetStream 接入</a></li><li><a href="durable-bindings.html#durable-adapters">Durable 组合与接口边界</a></li><li><a href="provider-contract.html#provider-contract">Provider 类型与命令载荷</a></li><li><a href="providers.html#provider-adapters">各工具的真实接入</a></li><li><a href="configuration.html#configuration">配置、组件组织与版本</a></li></ul></section><nav class="page-pagination" aria-label="阅读顺序"><a href="verification.html">← 运行与契约验收</a><a href="author-types.html">作者类型与编码 →</a></nav>
+<footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
+</main>
+<dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>
+</body>
+</html>

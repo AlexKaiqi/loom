@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def sources():
     paths = []
-    for name in ("runtime", "services/model", "harnesses", "tests/go_acceptance", "tests/model", "deploy", "scripts", "templates", "tests/harness", "tests/install", "tests/onboarding"):
+    for name in ("runtime", "services/model", "harnesses", "tests/go_acceptance", "tests/model", "deploy", "scripts", "templates", "tests/harness", "tests/install", "tests/onboarding", "docs/design-book"):
         for path in (ROOT / name).rglob("*"):
             relative = path.relative_to(ROOT)
             if not path.is_file() or path.is_symlink() or any(part in {"node_modules", "evidence", "__pycache__", "bin"} for part in relative.parts):

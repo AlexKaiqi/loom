@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>模型访问 · Loom Design Book</title>
+<link rel="stylesheet" href="book.css">
+<script src="book.js" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+<a class="brand" href="../loom-design-book.html">LOOM</a>
+<div class="brand-sub">DESIGN BOOK / 工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><div class="nav-group">工作契约</div>
+<a href="goals.html">目标与范围</a>
+<a href="work-model.html">工作模型与共同约定</a>
+<a href="events.html">事件与输入</a>
+<a href="durable.html">Durable：推进、等待与内容</a>
+<a href="model.html" class="active" aria-current="page">模型访问</a>
+<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="harness.html">Harness 定义与组合</a>
+<a href="examples.html">参考 Harness</a>
+<a href="verification.html">运行与契约验收</a>
+<div class="nav-group">实现接入</div>
+<a href="implementation.html">实现接入与配置</a>
+<a href="author-types.html">作者类型与编码</a>
+<a href="nats.html">NATS／JetStream 接入</a>
+<a href="durable-bindings.html">Durable 组合与接口边界</a>
+<a href="provider-contract.html">Provider 类型与命令载荷</a>
+<a href="providers.html">各工具的真实接入</a>
+<a href="configuration.html">配置、组件组织与版本</a>
+<div class="nav-group">Provider 接入</div>
+<a href="provider-srt.html">SRT 官方库</a>
+<a href="provider-apple.html">Apple container CLI</a>
+<a href="provider-podman.html">rootless Podman CLI</a>
+<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
+<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
+<a href="provider-e2b.html">E2B SDK</a>
+<div class="nav-group">选型与证据</div>
+<a href="research.html">选型依据与验证范围</a>
+</nav></details>
+<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</aside>
+<main>
+<header class="page-header" id="top"><a href="../loom-design-book.html">Loom 设计书</a> / 工作契约<p>设计工作稿 1.21 · 工作模型 0.3 · 2026-09-23</p></header><details class="page-toc"><summary>本页目录</summary><nav aria-label="本页目录"><a href="#model-need">5.1 Harness 要什么</a><a href="#model-api">5.2 调用契约</a><a href="#model-results">5.3 结果、流与缓存</a><a href="#budget">5.4 预算与并发准入</a></nav></details>
+<section aria-labelledby="model" class="chapter"><h1 id="model">05. 模型访问</h1>
+<h3 id="model-need">5.1 Harness 要什么</h3>
+<blockquote>
+<p><strong>提交一个独立模型请求，得到它的响应、结束原因、用量与原文；同一工作可以批量调用，也可以把响应交给自己的工具循环。</strong></p>
+</blockquote>
+<p>调用不要求 Agent 对象、Surface 或全局 messages。模型适配复用 pi-ai；模型选择、Prompt、结构化判断和是否继续由消费者定义。</p>
+<h3 id="model-api">5.2 调用契约</h3>
+<div class="table-wrap" tabindex="0"><table class="api-table">
+<thead>
+<tr>
+<th>方法</th>
+<th>成功含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="方法"><code>model.describe(selection)</code></td>
+<td data-label="成功含义">返回当前可用模型、窗口、支持的媒体／输出/schema 能力及依据。发现不等于授权。</td>
+</tr>
+<tr>
+<td data-label="方法"><code>model.submit(request)</code></td>
+<td data-label="成功含义">返回原操作 id、有效请求引用和绑定；请求与执行责任已受理。</td>
+</tr>
+<tr>
+<td data-label="方法"><code>model.result(operation_id)</code></td>
+<td data-label="成功含义">取得同一操作已选定的完整结果；未就绪时持久等待。</td>
+</tr>
+<tr>
+<td data-label="方法"><code>model.inspect(operation_id)</code></td>
+<td data-label="成功含义">返回 pending／running／unknown／complete、取消观测与结果引用。</td>
+</tr>
+<tr>
+<td data-label="方法"><code>model.cancel(...)</code></td>
+<td data-label="成功含义">记录取消请求，不证明供应商未计算或未计费。</td>
+</tr>
+<tr>
+<td data-label="方法"><code>model.invoke(request)</code></td>
+<td data-label="成功含义">submit + result；<strong>不执行返回的 tool call，不内置重试循环。</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>请求必须表达本次模型、<code>messages | messages_ref | projection_ref</code> 三选一、输出要求、输出上限和预算范围。工具定义、缓存偏好和 stage／item／pass 归因可选；缺省值在受理时固定。完整类型见<a href="author-types.html#author-types">附录 A.1</a>。</p>
+<div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-3" type="button">复制</button><pre id="code-3"><code class="language-typescript">const response = await work.model.invoke({
+  schema_version: 1,
+  request_key: "review:document-v7:section-3",
+  model: { service: "reviewer" },
+  input: { messages: [
+    { role: "system", content: rubricText },
+    { role: "user", content: sectionText }
+  ] },
+  output: { mode: "json_schema", schema_ref: findingSchemaRef,
+    enforcement: "provider_required" },
+  limits: { max_output_tokens: 1500, budget_ref: "review-budget" },
+  cache: { mode: "prefer_prefix" },
+  attribution: { stage: "review", item: "section-3", pass: 0 }
+});
+</code></pre></div>
+<h3 id="model-results">5.3 结果、流与缓存</h3>
+<p>结果区分正常停止、工具请求、长度截断、错误与取消；同时保存实际请求／响应引用、选定 attempt、tool calls、schema 校验状态及 usage。<strong>JSON 合法不证明判断正确，空工具数组不证明调用成功。</strong> 不支持必需 schema 能力时拒绝；不得静默降级为文本。</p>
+<p>流式片段绑定 operation／attempt／序号，属于可观察进度。部分输出不当作完整结果，重连不伪装成从原 token 续生成；采用片段作控制决定的运行方式必须记录该决定的依据。</p>
+<p>前缀缓存是优化，不是持久保证或结果去重。固定 rubric、序列化和工具/schema 顺序有助于前缀稳定；命中按实际 usage 记录，不承诺每次命中、不减少上下文占用。完整输入与输出仍按内容契约保存。</p>
+<h3 id="budget">5.4 预算与并发准入</h3>
+<div class="table-wrap" tabindex="0"><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>规则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="阶段">范围</td>
+<td data-label="规则">受信配置授予 budget_ref、单位、上限、上级和版本；stage 标签不能自授额度。</td>
+</tr>
+<tr>
+<td data-label="阶段">准入</td>
+<td data-label="规则">新 attempt 在派发前按保守上界保留额度；并发请求共同仲裁，不能分别花同一余额。</td>
+</tr>
+<tr>
+<td data-label="阶段">结算</td>
+<td data-label="规则">每个真实 attempt 保存 usage 与价格依据；重放旧结果不再扣费，新尝试仍计费。</td>
+</tr>
+<tr>
+<td data-label="阶段">未知</td>
+<td data-label="规则">已可能派发但用量不明时保留占用或按声明方式保守结算，不能填零或取消即退还。</td>
+</tr>
+<tr>
+<td data-label="阶段">不足</td>
+<td data-label="规则">明确拒绝或按已声明规则排队；不丢输入、不无限重试。</td>
+</tr>
+</tbody>
+</table></div>
+<p>硬费用上限依赖可信单次消耗上界；只具备估计时必须标为软预算或拒绝 hard-limit 要求。默认不按预计缓存命中缩减保留额。并发槽、费用预算、上下文窗口是三种不同限制。</p>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="durable.html">← Durable：推进、等待与内容</a><a href="sandbox.html">Sandbox 与任务内容 →</a></nav>
+<footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
+</main>
+<dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>
+</body>
+</html>

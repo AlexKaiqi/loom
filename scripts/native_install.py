@@ -9,6 +9,8 @@ import subprocess
 import sys
 import tomllib
 
+from design_book import copy_design_book
+
 
 def run(argv, **kwargs):
     return subprocess.run([str(x) for x in argv], check=True, **kwargs)
@@ -40,8 +42,7 @@ def assemble(source, release, installation, roots, state, cfg, copy_component):
     assets = release / 'assets'
     for component in ('runtime', 'services/model', 'harnesses', 'templates', 'deploy'):
         copy_component(source / component, assets / component)
-    (assets / 'docs').mkdir()
-    shutil.copyfile(source / 'docs/loom-design-book.html', assets / 'docs/loom-design-book.html')
+    design_files = copy_design_book(source / 'docs', assets / 'docs')
     binaries = release / 'bin'
     binaries.mkdir()
     # Each release keeps its own launcher, Python packages and Node modules.
@@ -82,5 +83,5 @@ def assemble(source, release, installation, roots, state, cfg, copy_component):
             'go_build_info': subprocess.check_output(['go', 'version', '-m', binaries / 'loom-runtime'], text=True),
             'dependency_sha256': {name: hashlib.sha256((assets/name).read_bytes()).hexdigest() for name in
                 ('runtime/go.mod', 'runtime/go.sum', 'services/model/package-lock.json', 'harnesses/kernel/requirements.lock')},
-            'design_sha256': hashlib.sha256((assets / 'docs/loom-design-book.html').read_bytes()).hexdigest()}
+            'design_sha256': design_files['loom-design-book.html'], 'design_files_sha256': design_files}
     (release / 'installation.json').write_text(json.dumps(info, indent=2) + '\n')
