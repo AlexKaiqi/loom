@@ -35,7 +35,7 @@ loom setup --sandbox-provider ssh-process/v1 \
 
 The native default prefix is `/opt/loom`, with `/usr/local/bin/loom` as launcher. Custom prefixes must have searchable parent directories so NsJail can mount the read-only Python environment after adopting the Work identity; private homes are not chmodded. Credentials and control data remain private. A Linux facility is still needed on macOS; choosing a remote Linux host means running these commands there, not transparent host-directory synchronization.
 
-For ordinary task execution, prepare the [SSH Process facility](../components/sandbox/linux_process_execution/README.md) once. It uses existing OpenSSH, systemd and NsJail; no task container or Loom execution server is required. Browser/desktop and independent-kernel providers remain optional capabilities.
+For ordinary task execution, prepare the [SSH Process facility](../components/sandbox/execution/providers/sshprocess/facility/README.md) once. It uses existing OpenSSH, systemd and NsJail; no task container or Loom execution server is required. Browser/desktop and independent-kernel providers remain optional capabilities.
 
 Native releases snapshot the launcher binary and execution binding and install separate Node/Python dependencies. They do not install or start a task Sandbox server. Only `runtime/cmd/loom/providers.go` registers concrete task factories; add a provider adapter implementing `contracts` and register it there. Configuration and controller packages must remain free of vendor imports. Saved options are versioned by the provider identifier and never re-resolved from a new Profile during recovery.
 
@@ -119,7 +119,7 @@ CLI execution checks need a real Linux facility. Inside that facility, set `LOOM
 python3 -m unittest discover -s tests/go_acceptance -v
 ```
 
-Remote execution checks additionally require `LOOM_SANDBOX_ENDPOINT`, `LOOM_SANDBOX_KEY_FILE` and `LOOM_SANDBOX_EVIDENCE`. Use the [OpenSandbox deployment runbook](../components/sandbox/linux_container_execution/loom-profile/README.md). `(cd components/sandbox/execution && go test ./providers/opensandbox -run TestReal -v -count=1)` runs the real SDK cases when these are configured.
+Remote execution checks additionally require `LOOM_SANDBOX_ENDPOINT`, `LOOM_SANDBOX_KEY_FILE` and `LOOM_SANDBOX_EVIDENCE`. Use the [OpenSandbox deployment runbook](../components/sandbox/execution/providers/opensandbox/profile/README.md). `(cd components/sandbox/execution && go test ./providers/opensandbox -run TestReal -v -count=1)` runs the real SDK cases when these are configured.
 
 The isolated execution probe retains its raw result and publishes `target.ready` with the actual platform, architecture, tools, permissions, read-only mounts and original allocation/session identity. Inspect those facts and their record references when diagnosing a Target that was allocated but could not execute.
 
