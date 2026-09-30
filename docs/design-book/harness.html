@@ -153,7 +153,7 @@
 <p>模型生成的 Harness 在已经授权并验证能力的隔离 Profile 内可直接启动。将它提升到共享 Worker 作为受信宿主代码运行，或扩大资源与权限时，才检查相应批准。代码格式检查不保证解题正确，结果仍由 Harness 的业务验收负责。原运行升级须明确状态迁移与未结操作处理；不能靠修改最新文件实现热替换。</p>
 <h3 id="harness-graphs">7.7 图结构与展示</h3>
 <p>Harness 可以定义自己的图映射和结构规则：哪些内容作为节点，什么关系作为边，怎样的一组节点和关系构成某种结构，以及怎样命名和描述。结构定义随 Harness 材料保存，不要求展示名称预先成为 Runtime 内置对象。</p>
-<p>Runtime 提供获准的记录和内容，Harness 或语义转换器生成可追溯的图快照，<code>graph-workbench</code> 负责唯一的通用展示。图中区分运行事实、推导与未知；坐标、布局、名称和折叠不授予权限，也不决定调用完成或如何恢复。完整快照、定义版本、来源范围及更新契约见<a href="graphs.html#graph-snapshot">第 10 章</a>。</p>
+<p>Runtime 提供获准的记录和内容，Harness 或语义转换器生成可追溯的图快照，<code>graph</code> 负责唯一的通用展示。图中区分运行事实、推导与未知；坐标、布局、名称和折叠不授予权限，也不决定调用完成或如何恢复。完整快照、定义版本、来源范围及更新契约见<a href="graphs.html#graph-snapshot">第 10 章</a>。</p>
 </section><nav class="page-pagination" aria-label="阅读顺序"><a href="sandbox.html">← 用户环境：Sandbox 调用</a><a href="harness-description.html">Harness 描述与作者入口 →</a></nav>
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>

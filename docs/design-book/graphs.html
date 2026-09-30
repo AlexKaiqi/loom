@@ -44,24 +44,24 @@
 <main id="top">
 <nav class="page-toc" aria-label="本页目录"><button class="toc-toggle" type="button" aria-label="展开本页目录" aria-expanded="false" aria-controls="page-outline"><span aria-hidden="true">⋮</span></button><div class="toc-links" id="page-outline"><a href="#graph-responsibility"><span>10.1 运行事实、结构含义与展示</span></a><a href="#graph-structures"><span>10.2 定义与命名图结构</span></a><a href="#graph-snapshot"><span>10.3 完整快照与来源</span></a><a href="#graph-update"><span>10.4 保存、发布与更新</span></a><a href="#graph-example"><span>10.5 示例：A 调用 B，B 调用 C</span></a><a href="#context-graphs"><span>10.6 模型输入的信息关系</span></a><a href="#graph-failures"><span>10.7 校验与失败处理</span></a></div></nav>
 <section aria-labelledby="graphs" class="chapter"><h1 id="graphs">10. 图结构与展示</h1>
-<p>Harness 可以把运行记录、内容与当前理解组织成图，定义哪些节点和关系构成一种结构，再为它命名、描述并展示。图结构的含义随 Harness 或专用语义适配器维护；Loom 无需先把所有可能的组织方式列为 Runtime 实体。通用图展示复用 graph-workbench，不另建 Harness 专用图前端。</p>
+<p>Harness 可以把运行记录、内容与当前理解组织成图，定义哪些节点和关系构成一种结构，再为它命名、描述并展示。图结构的含义随 Harness 或专用语义适配器维护；Loom 无需先把所有可能的组织方式列为 Runtime 实体。通用图展示复用 graph，不另建 Harness 专用图前端。</p>
 <h3 id="graph-responsibility">10.1 运行事实、结构含义与展示</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead><tr><th>责任方</th><th>交付</th><th>确认边界</th></tr></thead>
 <tbody>
 <tr><td data-label="责任方">Runtime</td><td data-label="交付">按授权读取的原记录、固定内容引用与记录覆盖范围。</td><td data-label="确认边界">原记录描述实际受理、尝试、结果或未知；不会因节点标签或连接线而改变操作状态、权限及责任。</td></tr>
 <tr><td data-label="责任方">Harness／语义适配器</td><td data-label="交付">映射规则、结构定义、确定版本的图快照与依据。</td><td data-label="确认边界">说明图中每种关系与结构的含义，区分观测、推导和未知；采集、映射和递送是 Loom 的接合工作。</td></tr>
-<tr><td data-label="责任方">graph-workbench</td><td data-label="交付">节点、边、结构集合的通用展示，以及描述、布局、折叠、展开和导出。</td><td data-label="确认边界">校验通用图结构并保留原身份及连接；不理解业务标签，不自动采集 Runtime，不验证领域关系。</td></tr>
+<tr><td data-label="责任方">graph</td><td data-label="交付">节点、边、结构集合的通用展示，以及描述、布局、折叠、展开和导出。</td><td data-label="确认边界">校验通用图结构并保留原身份及连接；不理解业务标签，不自动采集 Runtime，不验证领域关系。</td></tr>
 </tbody></table></div>
 <p>图是带来源的表达，不成为第二份执行状态库。坐标、参考线、显示行和折叠形状不独立证明时间、因果、权限或完成。展示“已完成”必须能定位实际结果记录；发布图快照只确认内容已保存与通知责任已受理。</p>
-<p>图工作台的准确格式、入口与限制以<a href="research.html#src-graph-workbench">其公开契约</a>为准。这里定义 Loom 的来源信封与接合要求，不复制布局或图会话的内部规则。</p>
+<p>图工作台的准确格式、入口与限制以<a href="research.html#src-graph">其公开契约</a>为准。这里定义 Loom 的来源信封与接合要求，坐标、端口、投影映射、几何与挂载限制直接引用该契约，不另维护副本。</p>
 <h3 id="graph-structures">10.2 定义与命名图结构</h3>
 <p>结构定义作为 Harness 版本材料保存，固定节点映射、边的含义、候选结构的判定范围、命名和描述方式。例如，一份 Harness 可将获准的调用记录映射为节点，将两次调用之间的已记录操作映射为边，再把满足某规则的节点集合命名为一段评审结构。这样的名称属于该定义，不要求 Runtime 或图工作台新增同名实体。</p>
 <p>一份定义必须说明：需要哪些原记录或内容、如何形成稳定 ID、怎样区分直接记录与推导关系、缺少输入时返回什么未知项，以及版本变化如何影响原结构。自动识别由 Harness 或已有语义能力执行；图快照只携带结果和规则引用，不携带交给浏览器运行的任意规则脚本。</p>
-<p><code>regions</code> 的 <code>members</code> 始终是明确的节点 ID 快照。人工圈选并命名是一项解释；自动识别须保留规则与依据。后续新增节点不会自动进入原结构，重新识别或人工调整须明确提交新的成员快照。结构可以嵌套；部分交叠的结构可以各自描述，但按图工作台契约不能同时折叠。</p>
+<p><code>groups</code> 的 <code>members</code> 始终是明确的节点 ID 快照。人工圈选并命名是一项解释；自动识别须保留规则与依据。后续新增节点不会自动进入原结构，重新识别或人工调整须明确提交新的成员快照。结构可以嵌套；部分交叠的结构可以各自描述，但按图工作台契约不能同时折叠。</p>
 <p>节点、边和结构使用稳定 ID，说明与坐标变化不换 ID。多个模型调用、代码版本或尝试可以按定义显示为不同节点，也可以在节点数据中汇总；汇总须保留原引用，不把不同尝试合成一条虚假的成功记录。</p>
 <h3 id="graph-snapshot">10.3 完整快照与来源</h3>
-<p>第一版采用完整快照：外层是 Loom 展示信封，<code>snapshot</code> 原样采用图工作台的 <code>format: "graph-workbench", version: 1, graph, view</code> 格式。类型见<a href="author-types.html#graph-types">第 11 章</a>；接收层先校验信封和来源，再将内层交给图工作台公开校验入口。不能将整个 Loom 信封误当作图工作台输入。</p>
+<p>第一版采用完整快照：外层是 Loom 展示信封，<code>snapshot</code> 原样采用图工作台的 <code>format: "graph", version: 1, graph, view, layout</code> 格式。类型见<a href="author-types.html#graph-types">第 11 章</a>；接收层先校验信封和来源，再将内层交给 graph 的公开文档与图校验入口。不能将整个 Loom 信封误当作图工作台输入。</p>
 <div class="table-wrap" tabindex="0"><table class="api-table">
 <thead><tr><th>信封字段</th><th>固定语义</th></tr></thead>
 <tbody>
@@ -83,8 +83,8 @@
 </ol>
 <p>需要持久接收更新的 Work 使用第 3 章的订阅与输入交付；普通展示页面通过已有获准查询读取发布记录和内容，不因打开图而自动创建 Work。接合不新增图消息总线、图状态存储或一套 RPC。断线、通知遗漏或已清理中间快照时，接收方从获准的既有发布记录取得该展示的新完整快照即可；不要求补放所有增量。事件历史缺口仍按 <code>history_gap</code> 报告，缺少依据或权限撤销时保留上次图并明确显示其覆盖位置与不可继续原因，不假装它是当前事实。</p>
 <p>图读取与原 Content／Event 的可见范围一致。引用不是权限凭据；图的标签、描述和数据若复制了受限内容，也必须处于相应授权范围。不得用图通知向无权读原材料的接收者披露秘密。拒绝或缺失须保留具体原因，不能以隐藏节点或空图伪装“没有该事实”。</p>
-<p>人工描述、布局、折叠或编辑仅修改图解释与视图。工作台原生导出的 JSON 是 graph-workbench 快照，不携带 Loom 的来源确认；再次发布为 Loom 展示时，获准产出者须校验并保存新的 revision，注明人工解释及原覆盖范围，不能冒用原发布回执。编辑不回写原记录、不触发执行，也不自动获得业务验证；运行事实需要从实际记录重新生成。更新规则或自动快照时，接收方明确保留、舍弃或重新应用人工视图，不能无声覆盖尚未保存的编辑。</p>
-<p>离线检查复用现有 CLI：将 <code>snapshot</code> 交给 <code>node graph-workbench.mjs validate snapshot.json</code> 或 <code>render snapshot.json --output graph.html</code>。独立 HTML 无需后台或网络，但不是 Runtime 实时视图；交付时同时保留来源信封与覆盖说明。采集和递送由调用方负责，组件不会因打开页面而自动连接 Loom。</p>
+<p>人工描述、布局、折叠或编辑仅修改图解释与视图。工作台原生导出的 JSON 是 graph 快照，不携带 Loom 的来源确认；再次发布为 Loom 展示时，获准产出者须校验并保存新的 revision，注明人工解释及原覆盖范围，不能冒用原发布回执。编辑不回写原记录、不触发执行，也不自动获得业务验证；运行事实需要从实际记录重新生成。更新规则或自动快照时，接收方明确保留、舍弃或重新应用人工视图，不能无声覆盖尚未保存的编辑。</p>
+<p>离线检查复用现有 CLI：将 <code>snapshot</code> 交给 <code>node graph-cli.mjs validate snapshot.json</code> 或 <code>node graph-cli.mjs render snapshot.json --output graph.html</code>。独立 HTML 无需后台或网络，但不是 Runtime 实时视图；交付时同时保留来源信封与覆盖说明。采集和递送由调用方负责，组件不会因打开页面而自动连接 Loom。</p>
 <h3 id="graph-example">10.5 示例：A 调用 B，B 调用 C</h3>
 <p>以下是<a href="examples.html#generated-harness">生成与调用示例</a>的一个展示快照。此 Harness 的定义把一次调用映射为一个节点，把原调用操作映射为边，并把 B 与 C 命名为“检查结构”。<code>invokes</code> 是这份定义的数据标签，不新增 Runtime 的全局图关系枚举。样例中的摘要和记录 ID 只演示格式，不指向真实内容；F106 是本次观察的待核对记录，不能确认 C 的最终结果。</p>
 <div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="graph-example-code" type="button">复制</button><pre id="graph-example-code"><code class="language-json">{
@@ -101,7 +101,7 @@
     "records": {"after": "F100", "through": "F106", "coverage": "complete"}
   },
   "snapshot": {
-    "format": "graph-workbench",
+    "format": "graph",
     "version": 1,
     "graph": {
       "title": "评审调用 · 覆盖至 F106；C 结果未知",
@@ -132,7 +132,7 @@
                  "claim":{"kind":"observed","statement":"B 发起的原操作启动了 C",
                           "basis_refs":["record:F105","record:F106"]}}}
       ],
-      "regions": [
+      "groups": [
         {"id":"structure:checks","label":"检查结构","members":["run:b","run:c"],
          "description":"按此 Harness 的结构规则，将专项检查与其子调用一起描述。",
          "data":{"claim":{"kind":"derived","statement":"B、C 构成本定义中的检查结构",
@@ -141,14 +141,15 @@
                                       "size_bytes":"256","media_type":"application/json"}}}}
       ]
     },
-    "view": {"collapsed":["structure:checks"]}
+    "view": {"collapsed":["structure:checks"]},
+    "layout": {"strategy":"fixed"}
   }
 }</code></pre></div>
 <p>折叠后仍保留 B、C 的原节点 ID、B→C 的内部边，以及 A→B 的真实边界端点；展开能够核对全部原记录引用。它不表示 B 与 C 共享权限、不表示两者完成，也不把未来新增的调用纳入该结构。若 C 后来返回结果，新快照继续使用 <code>run:c</code>，修改说明和依据并提高 revision。</p>
 <h3 id="context-graphs">10.6 模型输入的信息关系</h3>
-<p>需要解释模型可见输入怎样追加、取用、摘要或改写时，复用<a href="research.html#src-context-graph">context-information-graph 的语义契约</a>。该能力校验模型输入之间的直接信息关系，按已有规则计算候选结构，再转换成同一个图工作台快照。它的源文档和通用展示快照是两种格式，不能互相冒充。</p>
-<p>Runtime 的调用、工具、文件、等待和授权关系可以按 Harness 的通用图定义展示；不应硬塞进上下文信息图的 append／transfer／compact／edit。上下文信息图只核对其约定的输入、来源与先后，前缀相符不独立证明直接来源，样本验证不证明真实模型请求被观测。</p>
-<p>Loom 接合时须提供实际模型请求采用的固定输入与来源记录，保留 observed／hypothesis／unknown 的语义和未核实提示。图工作台中的描述、折叠和编辑不会回写上下文源文档，也不会重新验证信息关系；修改业务含义需先修改源数据，再经该能力校验和转换。映射后的显示行、候选名称不能自行确立新的业务概念。</p>
+<p>需要解释模型可见输入怎样追加、取用、摘要或改写时，所属 Harness 定义输入范围、来源关系、转换规则与候选结构，再生成同一种 graph 文档。关系的有效性由产出者按该定义校验；graph 提供结构查询、投影、布局、布线与展示，保留原节点、端点和调用方数据。</p>
+<p>Runtime 的调用、工具、文件、等待和授权关系也按各自 Harness 定义表达；通用图不预设一套上下文关系枚举。前缀相符不独立证明直接来源，样本验证不证明真实模型请求被观测；可达路径也不证明任务前置条件已经满足。</p>
+<p>Loom 接合时须提供实际模型请求采用的固定输入与来源记录，按本章的 observed／derived／unknown 约定保留依据和未核实提示。显示中的描述、折叠和编辑不会回写原输入或验证信息关系；业务规则或源数据改变后，由 Harness 重新校验、生成和发布。映射后的显示行、候选名称不能自行确立新的业务概念。</p>
 <h3 id="graph-failures">10.7 校验与失败处理</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead><tr><th>输入或操作</th><th>要求</th></tr></thead>
