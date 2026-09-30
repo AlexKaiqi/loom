@@ -290,7 +290,7 @@ export interface ManagedHarnessPort extends Omit&lt;HarnessPort, &#x27;start&#x2
 <h3 id="graph-publication-types">展示快照</h3>
 <p>来源范围、图中判断的依据及更新竞争按<a href="graphs.html#graph-snapshot">图与结构展示契约</a>处理。<code>graph</code> 不另复制图组件的节点、边和结构类型；载入前调用其公开校验入口。快照先保存为 Content 引用，再通过既有事件发布该引用与范围，不添加另一套图调度或存储权威。</p>
 <details class="reference-detail" id="graph-types"><summary>Graph 类型 · graph-contracts.ts</summary><div class="detail-body"><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-graph-types" type="button">复制</button><pre id="code-graph-types"><code class="language-typescript">import type { Json, Ref } from &#x27;./event-contracts&#x27;;
-// Loom 只定义来源信封；内部 graph/view 按所固定图组件契约校验。
+// Loom 只定义来源信封；内部 graph/view/layout 按所固定图组件契约校验。
 export type GraphPublication = {
   format: &#x27;loom.graph&#x27;;
   version: 1;
@@ -307,10 +307,11 @@ export type GraphPublication = {
     };
   };
   snapshot: {
-    format: &#x27;graph-workbench&#x27;;
+    format: &#x27;graph&#x27;;
     version: 1;
     graph: Json;
-    view: { collapsed: string[] };
+    view: Json;
+    layout: Json;
   };
 };</code></pre></div></div></details>
 
