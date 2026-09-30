@@ -12,45 +12,41 @@
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
 <div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">12</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html">事件与输入</a>
 <a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html" class="active" aria-current="page">模型访问</a>
-<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="sandbox.html">用户环境：Sandbox 调用</a>
 <a href="harness.html">Harness：推进逻辑与组合</a>
+<a href="harness-description.html">Harness 描述与作者入口</a>
 <a href="examples.html">参考 Harness</a>
+<a href="graphs.html">图结构与展示</a>
+<a href="author-types.html">接口类型与编码</a>
 <a href="verification.html">运行与契约验收</a>
 </div></details>
-<details class="nav-group"><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="implementation.html">实现接入与配置</a>
-<a href="author-types.html">接口类型与编码</a>
-<a href="nats.html">NATS／JetStream 接入</a>
-<a href="durable-bindings.html">Durable 组合与接口边界</a>
-<a href="provider-contract.html">Provider 类型与命令载荷</a>
-<a href="providers.html">执行后端接入</a>
-<a href="configuration.html">配置、组件组织与版本</a>
-</div></details>
-<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="provider-srt.html">SRT 官方库</a>
-<a href="provider-apple.html">Apple container CLI</a>
-<a href="provider-podman.html">rootless Podman CLI</a>
-<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
-<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
-<a href="provider-e2b.html">E2B SDK</a>
+<details class="nav-group"><summary><span class="nav-group-title">实现与拼接</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="implementation.html">实现与拼接总览</a>
+<a href="nats.html">事件与输入的实现</a>
+<a href="durable-bindings.html">持久执行的实现</a>
+<a href="harness-execution.html">Harness 执行管理</a>
+<a href="provider-contract.html">Sandbox 调用与工作接合</a>
+<a href="configuration.html">组件拼接与宿主配置</a>
 </div></details>
 <details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</div></details></nav></details>
-<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</div></details>
+</nav></details>
+<div class="side-footer">契约与实现 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
 <main id="top">
 <nav class="page-toc" aria-label="本页目录"><button class="toc-toggle" type="button" aria-label="展开本页目录" aria-expanded="false" aria-controls="page-outline"><span aria-hidden="true">⋮</span></button><div class="toc-links" id="page-outline"><a href="#model-need"><span>5.1 一次调用在持续工作中的位置</span></a><a href="#model-api"><span>5.2 调用契约</span></a><a href="#model-results"><span>5.3 结果、流与缓存</span></a><a href="#budget"><span>5.4 预算与并发准入</span></a></div></nav>
 <section aria-labelledby="model" class="chapter"><h1 id="model">05. 模型访问</h1>
 <h3 id="model-need">5.1 一次调用在持续工作中的位置</h3>
 <p>Harness 用模型完成某一步判断，例如提出疑点、评审证据或选择工具。Runtime 接收这次请求，调用选定模型，并保存响应、结束原因、用量和原文。如何检查回答、执行工具，以及是否再次调用模型，由 Harness 决定。</p>
-<p>模型接口接受独立请求，因此同一 Work 可以顺序或并发调用不同上下文。供应商协议适配复用 pi-ai；接入不要求使用特定 Agent 对象、Surface 或全局聊天记录。</p>
+<p>模型接口接受独立请求，因此同一 Work 可以顺序或并发调用不同上下文。访问不要求使用特定 Agent 对象、Surface 或全局聊天记录；供应商适配与原操作的接合见<a href="implementation.html#operation-assembly">模型访问实现</a>。</p>
 <h3 id="model-api">5.2 调用契约</h3>
 <div class="table-wrap" tabindex="0"><table class="api-table">
 <thead>
@@ -86,7 +82,7 @@
 </tr>
 </tbody>
 </table></div>
-<p>请求必须表达本次模型、<code>messages | messages_ref | projection_ref</code> 三选一、输出要求、输出上限和预算范围。工具定义和缓存偏好可选；<code>stage / item / pass</code> 可标明所属阶段、评审项和轮次。缺省值在受理时固定。完整类型见<a href="author-types.html#author-types">附录 A.1</a>。</p>
+<p>请求必须表达本次模型、<code>messages | messages_ref | projection_ref</code> 三选一、输出要求、输出上限和预算范围。工具定义和缓存偏好可选；<code>stage / item / pass</code> 可标明所属阶段、评审项和轮次。缺省值在受理时固定。完整类型见<a href="author-types.html#author-types">第 11 章</a>。</p>
 <div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-3" type="button">复制</button><pre id="code-3"><code class="language-typescript">const response = await work.model.invoke({
   schema_version: 1,
   request_key: "review:document-v7:section-3",
@@ -138,7 +134,7 @@
 </tbody>
 </table></div>
 <p>承诺硬费用上限，必须有可信的单次消耗上界；只有估计值时，应标明软预算，或拒绝硬上限要求。默认不按预计缓存命中缩减保留额。并发槽、费用预算、上下文窗口是三种不同限制。</p>
-</section><nav class="page-pagination" aria-label="阅读顺序"><a href="durable.html">← 持久执行：恢复、等待与内容</a><a href="sandbox.html">Sandbox 与任务内容 →</a></nav>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="durable.html">← 持久执行：恢复、等待与内容</a><a href="sandbox.html">用户环境：Sandbox 调用 →</a></nav>
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>
 <dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>

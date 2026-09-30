@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>Sandbox 与任务内容 · Loom Design Book</title>
+<title>用户环境：Sandbox 调用 · Loom Design Book</title>
 <link rel="stylesheet" href="book.css">
 <script src="book.js" defer></script>
 </head>
@@ -12,172 +12,100 @@
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
 <div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">12</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html">事件与输入</a>
 <a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html">模型访问</a>
-<a href="sandbox.html" class="active" aria-current="page">Sandbox 与任务内容</a>
+<a href="sandbox.html" class="active" aria-current="page">用户环境：Sandbox 调用</a>
 <a href="harness.html">Harness：推进逻辑与组合</a>
+<a href="harness-description.html">Harness 描述与作者入口</a>
 <a href="examples.html">参考 Harness</a>
+<a href="graphs.html">图结构与展示</a>
+<a href="author-types.html">接口类型与编码</a>
 <a href="verification.html">运行与契约验收</a>
 </div></details>
-<details class="nav-group"><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="implementation.html">实现接入与配置</a>
-<a href="author-types.html">接口类型与编码</a>
-<a href="nats.html">NATS／JetStream 接入</a>
-<a href="durable-bindings.html">Durable 组合与接口边界</a>
-<a href="provider-contract.html">Provider 类型与命令载荷</a>
-<a href="providers.html">执行后端接入</a>
-<a href="configuration.html">配置、组件组织与版本</a>
-</div></details>
-<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="provider-srt.html">SRT 官方库</a>
-<a href="provider-apple.html">Apple container CLI</a>
-<a href="provider-podman.html">rootless Podman CLI</a>
-<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
-<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
-<a href="provider-e2b.html">E2B SDK</a>
+<details class="nav-group"><summary><span class="nav-group-title">实现与拼接</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="implementation.html">实现与拼接总览</a>
+<a href="nats.html">事件与输入的实现</a>
+<a href="durable-bindings.html">持久执行的实现</a>
+<a href="harness-execution.html">Harness 执行管理</a>
+<a href="provider-contract.html">Sandbox 调用与工作接合</a>
+<a href="configuration.html">组件拼接与宿主配置</a>
 </div></details>
 <details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</div></details></nav></details>
-<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</div></details>
+</nav></details>
+<div class="side-footer">契约与实现 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
 <main id="top">
-<nav class="page-toc" aria-label="本页目录"><button class="toc-toggle" type="button" aria-label="展开本页目录" aria-expanded="false" aria-controls="page-outline"><span aria-hidden="true">⋮</span></button><div class="toc-links" id="page-outline"><a href="#sandbox-need"><span>6.1 从行动请求到受控执行</span></a><a href="#exec-api"><span>6.2 作者接口与结果</span></a><a href="#provider-catalog"><span>6.3 执行后端的适用范围</span></a><a href="#workspace"><span>6.4 文件与资源</span></a><a href="#sandbox-safety"><span>6.5 权限、失联与回收</span></a></div></nav>
-<section aria-labelledby="sandbox" class="chapter"><h1 id="sandbox">06. Sandbox 与任务内容</h1>
-<h3 id="sandbox-need">6.1 从行动请求到受控执行</h3>
-<p>Harness 提出要执行的命令或文件操作，以及所需的环境能力。Runtime 根据 Target 配置准备环境和获准的工作副本，检查权限、网络及资源限制，再交给 Provider 执行。返回结果须能追溯到原操作；断线后的查询与取消也必须针对同一次执行。</p>
-<p>Harness 作者通过工具或执行接口使用环境，部署者选择具体后端。Provider 的共同接口是 <code>Describe / Acquire / InspectAllocation / Release</code>；命令执行、命令查询、停止、稳定内容和传输按能力分别声明。</p>
-<h3 id="exec-api">6.2 作者接口与结果</h3>
-<div class="table-wrap" tabindex="0"><table class="api-table">
-<thead>
-<tr>
-<th>入口</th>
-<th>必须绑定的输入</th>
-<th>回执含义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td data-label="入口"><code>allocation.acquire</code></td>
-<td data-label="必须绑定的输入">Target、能力要求、资源范围、稳定键。</td>
-<td data-label="回执含义">分配身份已建立；资源已创建与能力 Ready 分别报告。</td>
-</tr>
-<tr>
-<td data-label="入口"><code>execution.submit</code></td>
-<td data-label="必须绑定的输入">稳定键、原 Allocation、argv、cwd、env、stdin、限额。</td>
-<td data-label="回执含义">命令请求及责任已受理，不等于进程成功退出。</td>
-</tr>
-<tr>
-<td data-label="入口"><code>execution.result/inspect</code></td>
-<td data-label="必须绑定的输入">原操作 id。</td>
-<td data-label="回执含义">原执行的结果／状态；输出与 task、wrapper、transport 的观测范围分开。</td>
-</tr>
-<tr>
-<td data-label="入口"><code>execution.cancel</code></td>
-<td data-label="必须绑定的输入">原操作 id、取消键。</td>
-<td data-label="回执含义">请求停止原执行；不能暗中停止其他 Work 共用的环境。</td>
-</tr>
-<tr>
-<td data-label="入口"><code>allocation.release</code></td>
-<td data-label="必须绑定的输入">原分配身份与释放要求。</td>
-<td data-label="回执含义">结束使用和删除资源分别确认；不删除独立 Userspace。</td>
-</tr>
-</tbody>
-</table></div>
-<p>Bash 工具将 <code>command</code> 明确转换为该环境的 Bash argv；通用 Exec 直接接收 argv，不隐式经过 Shell。cwd 使用授权别名与根内相对路径；env 不继承管理凭据。完整载荷和 Provider 类型见<a href="provider-contract.html#provider-contract">附录 A.4</a>。</p>
-<h3 id="provider-catalog">6.3 执行后端的适用范围</h3>
-<div class="table-wrap" tabindex="0"><table>
-<thead>
-<tr>
-<th>位置／用途</th>
-<th>对接工具</th>
-<th>接口</th>
-<th>设计范围</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td data-label="位置／用途">设计中的默认原生执行（macOS／Linux）</td>
-<td data-label="对接工具">Anthropic SRT 官方库</td>
-<td data-label="接口">initialize / wrapWithSandbox / reset，受信进程启动。</td>
-<td data-label="设计范围">普通文件、代码、构建与测试；按锁定平台验证。</td>
-</tr>
-<tr>
-<td data-label="位置／用途">macOS 本机独立任务环境</td>
-<td data-label="对接工具">Apple <code>container</code></td>
-<td data-label="接口">官方 CLI。</td>
-<td data-label="设计范围">按任务的环境和隔离要求显式选择。</td>
-</tr>
-<tr>
-<td data-label="位置／用途">Linux 本机独立任务环境</td>
-<td data-label="对接工具">rootless Podman</td>
-<td data-label="接口">官方 CLI。</td>
-<td data-label="设计范围">不要求任务模型开发镜像，环境由部署配置。</td>
-</tr>
-<tr>
-<td data-label="位置／用途">自部署服务器／集群</td>
-<td data-label="对接工具">OpenSandbox</td>
-<td data-label="接口">官方 Go SDK／Lifecycle、Execd API。</td>
-<td data-label="设计范围">生命周期与命令端点分别认证。</td>
-</tr>
-<tr>
-<td data-label="位置／用途">Cloudflare 账户中的云端环境</td>
-<td data-label="对接工具">Sandbox SDK + 官方 Sandbox Bridge</td>
-<td data-label="接口">部署的 HTTPS Bridge。</td>
-<td data-label="设计范围">不是无需部署的公共共享端点。</td>
-</tr>
-<tr>
-<td data-label="位置／用途">SaaS 环境</td>
-<td data-label="对接工具">E2B</td>
-<td data-label="接口">官方 JavaScript SDK。</td>
-<td data-label="设计范围">只使用沙箱，不接入其 Agent 循环。</td>
-</tr>
-<tr>
-<td data-label="位置／用途">研究项</td>
-<td data-label="对接工具">OpenAI Containers／Hosted Shell</td>
-<td data-label="接口">已研究资料中的容器、文件与模型驱动 Shell。</td>
-<td data-label="设计范围">独立通用 Exec 尚未在所列资料确认，不注册完整 Provider。</td>
-</tr>
-</tbody>
-</table></div>
-<p>各后端的<strong>接口、能力限制与调用时序</strong>见<a href="providers.html#provider-adapters">附录 A.5</a>。表中列出的是设计接入范围；可用性须按发布版本的安装、安全与恢复证据判断。</p>
-<h3 id="workspace">6.4 文件与资源</h3>
-<p>Runtime 将 Target 解析为宿主 Profile、Provider 和服务，并在首次受理时保存实际 Allocation 绑定。查询、停止和归还不按当前 Profile 重新路由；失败也不换 Provider 重跑。</p>
-<div class="table-wrap" tabindex="0"><table>
-<thead>
-<tr>
-<th>文件方式</th>
-<th>执行前后做什么</th>
-<th>必须保留的边界</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td data-label="文件方式"><strong>shared</strong></td>
-<td data-label="执行前后做什么">直接使用或挂载获准的持久工作副本，无需额外传输。</td>
-<td data-label="必须保留的边界">文件可见不等于稳定版本，仍需稳定读取和耐久确认。</td>
-</tr>
-<tr>
-<td data-label="文件方式"><strong>transfer</strong></td>
-<td data-label="执行前后做什么">导入确定基线，执行后从稳定来源导出必要变更。</td>
-<td data-label="必须保留的边界">未交付内容仍是责任，不能先释放临时环境。</td>
-</tr>
-<tr>
-<td data-label="文件方式"><strong>共享项目整合</strong></td>
-<td data-label="执行前后做什么">使用新内容和预期目标基线条件更新。</td>
-<td data-label="必须保留的边界">保存自己的工作副本不自动合入项目；冲突显式返回。</td>
-</tr>
-</tbody>
-</table></div>
-<p>不同 Work 或 Target 默认使用独立可写副本；只读材料可以共享。保存内容前须取得稳定来源，例如确认所有相关写入者已暂停或停止、取得不可变候选，或使用经验证的快照。两次扫描摘要相同不足以证明期间没有并发写入；暂停也不能当作永久停止。</p>
-<h3 id="sandbox-safety">6.5 权限、失联与回收</h3>
-<p>Runtime 按宿主授权限制任务代码可读写的文件、可访问的服务和网络、可使用的预算与资源。任务环境不得取得管理凭据、控制通道或其他 Work 的私有状态。每个后端须验证这些限制；能力不足时拒绝执行，不能自动回退到不受限 Shell。</p>
-<p>默认原生执行的设计目标是不要求 Loom 持有宿主 root；各后端的安装前提须分别声明。环境隔离控制操作的影响范围，业务正确性仍由 Harness 的检查流程判断。</p>
-<p>进程退出码、容器 stopped 状态、PID 或 CLI 退出，不足以单独证明所有相关写入者已经停止。原执行身份不足时保留 unknown，阻止冲突写入；可以继续保存已有结果。保存必要内容和诊断后，把清理交给独立持久任务；清理失败须单独报告，不能覆盖已经取得的业务结果。</p>
+<div class="page-outline" id="page-outline"><details class="page-toc"><summary>本页目录</summary><nav aria-label="本页章节"><a href="#sandbox-need">6.1 Work 工具与 Sandbox</a><a href="#exec-api">6.2 提交、结果与原请求</a><a href="#provider-catalog">6.3 Target 与可选会话</a><a href="#workspace">6.4 文件接管与项目整合</a><a href="#sandbox-safety">6.5 未知、取消与清理</a></nav></details></div>
+<section aria-labelledby="sandbox" class="chapter"><h1 id="sandbox">06. 用户环境：Sandbox 调用</h1>
+<h3 id="sandbox-need">6.1 Work 工具与 Sandbox</h3>
+<p>Harness 通过用户环境执行项目代码、构建、测试或处理文件。受控命令、文件准备、实际执行域、结果与产物交付，以及资源释放，由独立的 <a href="https://github.com/AlexKaiqi/ondemand-sandbox">Sandbox 能力</a>完整提供。Loom 将这项能力接到 Work 的工具接口：限定授权和预算，保存原 Operation，接管结果及必要内容，并让等待和未结责任跨中断继续。</p>
+<p>普通工具一次提交命令、获准 Target、文件要求和限额。Sandbox 在内部完成环境准备、能力核验、文件就绪、命令执行、稳定产物交付及清理；Harness 和 Runtime 不组装后端的 Acquire → Execute → Stabilize → Export → Release。作者不选择供应商 SDK、不填写后端管理参数，也不根据容器或进程状态猜测业务完成。</p>
+<p>本章规定 Loom 如何消费 Sandbox；独立执行的目标与后端定义由 Sandbox 维护，目标材料为该仓库的 <code>docs/user-environment.md</code> 与 <code>docs/backend-reference.md</code>。只有实际绑定的公开版本满足这些要求并通过组合验收，Loom 才能启用该环境。具体交接见<a href="provider-contract.html#provider-contract">Sandbox 调用与工作接合</a>。</p>
+<h4 id="agent-tool">Agent 实际拿到什么</h4>
+<p>在 Basic Harness 中，模型看到的是在获准用户环境执行的 <code>bash</code> 工具：给出命令，读取输出，再决定下一条命令。Harness 把工具接到 Runtime 的 <code>execution.submit/result</code>；Runtime 消费 Sandbox 的完整任务或已绑定公开会话执行能力。其它 Harness 可以提供 Exec、文件或专用工具，不必向模型展示同一组工具。</p>
+<p class="note">模型 tool call → Harness 工具适配 → Runtime 保存原 Operation 并核验授权 → Sandbox 执行 → Runtime 接管结果 → Harness 把工具结果交回模型。</p>
+<p>例如模型提交下面的业务参数。Target 可由 Harness 预先固定；只有需要在多个获准目标间选择时才展示给模型。请求键、服务绑定、文件基线、原生身份和管理凭据由受信侧处理。</p>
+<div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-agent-bash" type="button">复制</button><pre id="code-agent-bash"><code class="language-json">{
+  "name": "bash",
+  "arguments": {
+    "command": "pytest -q",
+    "cwd": {
+      "alias": "app",
+      "path": "."
+    },
+    "timeout_ms": "120000"
+  }
+}</code></pre></div>
+<p>Sandbox 的任务结果由 Runtime 保存，再由 Harness 整理成模型可读的工具结果。下例是 Basic 的结果摘要，不另定义 Sandbox 协议；完整输出、产物和原始观测仍可按受保护引用取得。</p>
+<div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-agent-bash-result" type="button">复制</button><pre id="code-agent-bash-result"><code class="language-json">{
+  "status": "complete",
+  "exit_code": 0,
+  "stdout": "3 passed",
+  "stderr": ""
+}</code></pre></div>
+<p>运行中、输出截断、执行未知或内容尚未接管时，工具结果明确表达这些状态；不能先给模型成功结果再补保存。等待过长时，Harness 可以保留原 Operation 后让模型查询或等待它，停止请求仍指向原命令，不靠再次提交来取得结果。Bash 可以完成读文件、修改和测试；专用文件工具是 Harness 的选择。</p>
+<p>执行 Harness 程序仍需要代码装载、受管 SDK、调用身份和恢复绑定，由<a href="harness-execution.html#harness-execution">Harness 执行管理</a>负责。它可以复用 Sandbox 的运行与隔离设施；一次普通命令提交不会自动成为可恢复的 Harness 调用。</p>
+<h3 id="exec-api">6.2 提交、结果与原请求</h3>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>Loom 作者入口</th><th>输入</th><th>确认与边界</th></tr></thead><tbody>
+<tr><td data-label="Loom 作者入口"><code>execution.submit</code></td><td data-label="输入">稳定键、逻辑 Target、命令、获准文件要求和限额；可选原会话引用。</td><td data-label="确认与边界">Loom 已保存有效请求、固定目的地及执行责任，返回原 Operation。环境准备和执行结果分别观测，不把受理当作命令成功。</td></tr>
+<tr><td data-label="Loom 作者入口"><code>execution.result</code></td><td data-label="输入">原 Operation id。</td><td data-label="确认与边界">等待同一请求的已保存结果、产物接管状态及剩余责任；不创建第二次执行。</td></tr>
+<tr><td data-label="Loom 作者入口"><code>execution.inspect</code></td><td data-label="输入">原 Operation id。</td><td data-label="确认与边界">读取已保存观测，必要时通过 Sandbox 的原请求入口核对。命令、通信、内容和资源状态分别表达。</td></tr>
+<tr><td data-label="Loom 作者入口"><code>execution.cancel</code></td><td data-label="输入">取消键与原 Operation id。</td><td data-label="确认与边界">保存停止原请求的责任，按原 Sandbox 身份请求取消。回执不证明停止、费用结清或资源已删除。</td></tr>
+</tbody></table></div>
+<p>Bash 工具表达 <code>command</code>；通用 Exec 表达 <code>argv</code>，不隐式经过 Shell。Loom 固定这些业务参数和授权资源别名，按 Sandbox 的已绑定公开格式交付；具体 Shell、执行路径与后端映射由 Sandbox 确认。完整业务载荷见<a href="provider-contract.html#section-6-11-tool"><code>tool.exec/1</code></a>。</p>
+<p>返回结果要区分已知命令结果与未知/失败的通信和执行观测。非零退出仍可是一份已知结果，业务是否成功由 Harness 判断。输出缺口、取消、超时、文件未接管和清理失败不能合成一个成功退出码。恢复同一次 <code>result</code> 复用原结果或核对原对象，不用重跑命令取得日志。</p>
+<h3 id="provider-catalog">6.3 Target 与可选会话</h3>
+<p>Harness 从 Work 已获准的逻辑 Target 中选择满足系统、工具、网络、资源、文件和原请求核对要求的环境。宿主将 Target 连接到一个固定版本的 Sandbox 服务或执行方式；Sandbox 负责实际设施与能力检查。必要能力不满足、服务未就绪或绑定版本不相容时明确拒绝，不能自动转到不受限 Shell或另一后端重做原请求。</p>
+<p>普通命令使用完整任务能力；一次提交不要求创建一份新物理环境。连续工具调用固定同一获准工作副本或其已接管内容版本，下一条命令看到前一条已确认的文件修改。shared 可以继续访问原副本，transfer 可以把新版本准备到下一次执行环境；环境重建不能把已确认文件退回初始版本。需要并发修改时另按基线及写入范围协调，不能把未稳定文件当作下一条命令的输入。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>需要持续的状态</th><th>使用方式与保证</th></tr></thead><tbody>
+<tr><td data-label="需要持续的状态">工作文件</td><td data-label="使用方式与保证">以 Userspace 工作副本和 Content 版本持续；与 Shell 是否常驻、物理环境是否重建分别确认。</td></tr>
+<tr><td data-label="需要持续的状态">同一执行环境</td><td data-label="使用方式与保证">通过 Sandbox 已声明的公开会话能力固定原环境。需要保留已安装工具、后台服务或端口时，明确环境保留要求；会话复用不自动保留某个 Shell 的状态。</td></tr>
+<tr><td data-label="需要持续的状态">同一个 Shell／交互终端</td><td data-label="使用方式与保证">只有明确启用持久 Shell 或 PTY 的公开能力时，才保留进程内的 cwd、变量或交互状态。终端输入、输出读取、信号、重连及生命周期保证由 Sandbox 定义，Loom 保存原对象关联；不从“支持会话”推定“支持终端”。</td></tr>
+</tbody></table></div>
+<p>基础 <code>tool.exec/1</code> 每次启动独立的非交互命令，<code>cwd</code> 和 <code>env</code> 每次固定；上一条 <code>cd</code> 或 <code>export</code> 不成为下一条的隐含参数。同一环境里连续执行命令也遵守这一规则。公开会话的创建、执行、重连、续期和结束随 Sandbox 的版本维护；会话引用不授予新 Work、目录、命令或管理权限。持久 Shell／PTY 的进程退出仍可能丢失交互状态，不能冒充工作内容及操作的耐久恢复。</p>
+<p>原来按 <code>allocation.acquire/inspect/release</code> 分解的环境管理，不是普通工具的必经作者流程。确有会话需求时才采用明确的公开会话入口；Loom 保存其受理与剩余责任，并保持查询和取消针对原会话。不可将后端私有 Provider 或原生资源 id 暴露为作者必须组装的接口。</p>
+<p>Sandbox 维护本机进程、独立容器、自部署服务和托管云环境的部署、配置与限制。Loom 只固定获准的逻辑引用、资源范围和消费版本；接口或限制变化按组合验证启用，不按供应商名称推定能力。</p>
+<h3 id="workspace">6.4 文件接管与项目整合</h3>
+<p>请求明确可读/可写资源、确定基线和必须返回的产物范围。Loom 从 Work 授权取得这些要求；Sandbox 提供实际执行路径、准备文件，并通过稳定来源与完整传输交付必要字节。共享与传输是能力内部落实文件要求的方式，作者不靠临时路径或上传成功推断内容已保存。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>交接</th><th>负责方与确认</th></tr></thead><tbody>
+<tr><td data-label="交接">可执行文件</td><td data-label="负责方与确认">Sandbox 核验文件就绪及实际访问范围，给出与原任务/会话绑定的路径映射；Loom 只向作者暴露获准根。</td></tr>
+<tr><td data-label="交接">命令结果与稳定产物</td><td data-label="负责方与确认">Sandbox 给出实际结果范围、输出完整性、稳定来源/产物和必要保留条件；缺少稳定证明时保持未知或未就绪，不要求 Loom 拼冻结与导出步骤。</td></tr>
+<tr><td data-label="交接">Work 内容接管</td><td data-label="负责方与确认">Loom 校验字节及摘要，完成耐久保存和引用保护后确认接管。Sandbox 才可解除相应保留或清理唯一来源；交接失败保持原责任。</td></tr>
+<tr><td data-label="交接">共享项目整合</td><td data-label="负责方与确认">Loom 按新内容和预期基线条件更新，冲突显式返回。执行副本已保存不等于用户项目已更新。</td></tr>
+</tbody></table></div>
+<p>不同 Work 默认使用独立可写副本，只读材料可以共享。Sandbox 负责物理范围与稳定写入边界，Loom 负责 Userspace 的授权、内容版本及整合。暂停、进程退出和相同摘要都不能单独证明内容稳定；相应保证必须来自 Sandbox 已验证的公开交付契约。</p>
+<h3 id="sandbox-safety">6.5 未知、取消与清理</h3>
+<p>任务环境不能取得管理凭据、Loom 控制通道或其他 Work 私有状态。Loom 决定本次 Work 的可用能力与额度；Sandbox 实际落实文件、网络、执行域和资源限制。超时、输出上限或取消后的停止范围随 Sandbox 公开契约确认；后端无法满足必需约束时不执行。</p>
+<p>通信中断不证明未执行，PID、容器 stopped、CLI 退出或客户端 close 都不独立证明原任务及相关写入者已停止。Sandbox 持有原生身份、执行和清理状态，提供原对象查询与停止证据；Loom 保存这些观测及未结 Operation，未知时阻止冲突写入，不换目的地重放。</p>
+<p>Work closing 停止新增业务意图，已有结果接收、原对象核对、内容接管和清理仍须完成或确认持久交接。清理失败单独报告，不能覆盖已知业务结果，不删除独立 Userspace。Sandbox 的执行检查点不决定 Work 下一步，Loom 的 Operation 终态也不伪造 Sandbox 已停止或已删除的事实。</p>
+<p>模型在获准环境编辑或构建 Harness 候选时，只能修改获准材料；不能写 Runtime 私有记录或当前调用的固定代码。范围内 <code>loom</code> CLI 是单独授权的消费入口，不注入普通用户项目命令环境。</p>
 </section><nav class="page-pagination" aria-label="阅读顺序"><a href="model.html">← 模型访问</a><a href="harness.html">Harness：推进逻辑与组合 →</a></nav>
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>

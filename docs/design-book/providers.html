@@ -4,56 +4,44 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>执行后端接入 · Loom Design Book</title>
+<title>Sandbox 环境设计入口 · Loom Design Book</title>
 <link rel="stylesheet" href="book.css">
 <script src="book.js" defer></script>
 </head>
 <body>
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
-<div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group"><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<div class="brand-sub">DESIGN BOOK / Sandbox 设计入口</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a>
+<details class="nav-group"><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">12</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html">事件与输入</a>
 <a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html">模型访问</a>
-<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="sandbox.html">用户环境：Sandbox 调用</a>
 <a href="harness.html">Harness：推进逻辑与组合</a>
+<a href="harness-description.html">Harness 描述与作者入口</a>
 <a href="examples.html">参考 Harness</a>
+<a href="graphs.html">图结构与展示</a>
+<a href="author-types.html">接口类型与编码</a>
 <a href="verification.html">运行与契约验收</a>
 </div></details>
-<details class="nav-group is-current" open><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="implementation.html">实现接入与配置</a>
-<a href="author-types.html">接口类型与编码</a>
-<a href="nats.html">NATS／JetStream 接入</a>
-<a href="durable-bindings.html">Durable 组合与接口边界</a>
-<a href="provider-contract.html">Provider 类型与命令载荷</a>
-<a href="providers.html" class="active" aria-current="page">执行后端接入</a>
-<a href="configuration.html">配置、组件组织与版本</a>
-</div></details>
-<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="provider-srt.html">SRT 官方库</a>
-<a href="provider-apple.html">Apple container CLI</a>
-<a href="provider-podman.html">rootless Podman CLI</a>
-<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
-<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
-<a href="provider-e2b.html">E2B SDK</a>
+<details class="nav-group"><summary><span class="nav-group-title">实现与拼接</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="implementation.html">实现与拼接总览</a>
+<a href="nats.html">事件与输入的实现</a>
+<a href="durable-bindings.html">持久执行的实现</a>
+<a href="harness-execution.html">Harness 执行管理</a>
+<a href="provider-contract.html">Sandbox 调用与工作接合</a>
+<a href="configuration.html">组件拼接与宿主配置</a>
 </div></details>
 <details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</div></details></nav></details>
-<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</div></details>
+</nav></details>
+<div class="side-footer">契约与实现 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
-<main id="top">
-
-<section class="chapter"><h1 id="provider-adapters">A.5 执行后端接入</h1>
-<p>本组接入页说明每种执行后端如何取得环境、执行命令、查询原操作和保存内容。上游 CLI／SDK 的调用封装在各自适配器内；目录、凭据和实例身份来自 Runtime 已确认的绑定。后端缺少所需能力时，适配器须明确拒绝。</p>
-
-<p>接口说明以<a href="research.html#sources">来源页记录的研究版本</a>为依据。部署时须锁定实际版本，并验证接口、权限和故障行为；这些页面不构成已完成接入的证明。</p>
-<ul class="chapter-links"><li><a href="provider-srt.html">SRT 官方库</a></li><li><a href="provider-apple.html">Apple container CLI</a></li><li><a href="provider-podman.html">rootless Podman CLI</a></li><li><a href="provider-opensandbox.html">OpenSandbox SDK／API</a></li><li><a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a></li><li><a href="provider-e2b.html">E2B SDK</a></li></ul></section><nav class="page-pagination" aria-label="阅读顺序"><a href="provider-contract.html">← Provider 类型与命令载荷</a><a href="configuration.html">配置、组件组织与版本 →</a></nav>
-<footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
-</main>
+<main id="top"><section class="chapter"><h1>Sandbox 环境设计入口</h1><p>用户环境的执行、文件交付、原对象查询与停止、资源回收及具体后端适配由 <a href="https://github.com/AlexKaiqi/ondemand-sandbox">OnDemand Sandbox</a> 维护。目标契约入口是该仓库的 <code>docs/user-environment.md</code>；本页所对应材料为 <code>docs/backend-reference.md</code>。</p><p>Loom 通过 Sandbox 的公开任务或会话能力使用环境，保留 Work 授权、Operation、业务预算、结果接管和继续责任。具体接合见<a href="provider-contract.html">Sandbox 调用与工作接合</a>，作者调用见<a href="sandbox.html">用户环境调用</a>。</p><p>此页仅保留原设计书链接入口。SDK／CLI 映射、后端能力与私有选项以 Sandbox 同一版本的设计及公开契约为准；尚未兑现的目标不能标为当前支持，也不能据此启用未验证组合。</p><span id="provider-adapters"></span><span id="backend-catalog"></span></section></main>
 <dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>
 </body>
 </html>

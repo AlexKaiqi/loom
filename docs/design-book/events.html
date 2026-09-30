@@ -12,38 +12,34 @@
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
 <div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">12</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html" class="active" aria-current="page">事件与输入</a>
 <a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html">模型访问</a>
-<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="sandbox.html">用户环境：Sandbox 调用</a>
 <a href="harness.html">Harness：推进逻辑与组合</a>
+<a href="harness-description.html">Harness 描述与作者入口</a>
 <a href="examples.html">参考 Harness</a>
+<a href="graphs.html">图结构与展示</a>
+<a href="author-types.html">接口类型与编码</a>
 <a href="verification.html">运行与契约验收</a>
 </div></details>
-<details class="nav-group"><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="implementation.html">实现接入与配置</a>
-<a href="author-types.html">接口类型与编码</a>
-<a href="nats.html">NATS／JetStream 接入</a>
-<a href="durable-bindings.html">Durable 组合与接口边界</a>
-<a href="provider-contract.html">Provider 类型与命令载荷</a>
-<a href="providers.html">执行后端接入</a>
-<a href="configuration.html">配置、组件组织与版本</a>
-</div></details>
-<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="provider-srt.html">SRT 官方库</a>
-<a href="provider-apple.html">Apple container CLI</a>
-<a href="provider-podman.html">rootless Podman CLI</a>
-<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
-<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
-<a href="provider-e2b.html">E2B SDK</a>
+<details class="nav-group"><summary><span class="nav-group-title">实现与拼接</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="implementation.html">实现与拼接总览</a>
+<a href="nats.html">事件与输入的实现</a>
+<a href="durable-bindings.html">持久执行的实现</a>
+<a href="harness-execution.html">Harness 执行管理</a>
+<a href="provider-contract.html">Sandbox 调用与工作接合</a>
+<a href="configuration.html">组件拼接与宿主配置</a>
 </div></details>
 <details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</div></details></nav></details>
-<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</div></details>
+</nav></details>
+<div class="side-footer">契约与实现 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
 <main id="top">
 <nav class="page-toc" aria-label="本页目录"><button class="toc-toggle" type="button" aria-label="展开本页目录" aria-expanded="false" aria-controls="page-outline"><span aria-hidden="true">⋮</span></button><div class="toc-links" id="page-outline"><a href="#event-need"><span>3.1 接入变化并保留待处理输入</span></a><a href="#event-api"><span>3.2 发布、订阅与处理接口</span></a><a href="#subscription-contract"><span>3.3 起点、筛选与取消</span></a><a href="#input-contract"><span>3.4 接收、重复与处理</span></a><a href="#event-example"><span>3.5 示例：制作与检查</span></a><a href="#event-handoff"><span>3.6 发布、受理与处理的确认边界</span></a></div></nav>
@@ -52,7 +48,7 @@
 <p>持续工作需要接收用户补充、其他 Work 的结果和外部系统的变化。Harness 声明关注的来源与类型；Runtime 在 Harness 离线时仍保留交付责任，待工作可以推进时提供输入。Harness 决定这些信息是否相关、如何处理，以及是否发布新的结果。</p>
 <p>持久发布订阅把信息发布与接收解耦：发布者无需列出全部接收者，接收者也无需保持运行。事件服务负责把记录交到目标 Work；持久执行机制负责保存处理进度和等待状态。外部来源须先接入并获得读取授权，事件正文不能自证来源或授予权限。</p>
 <h3 id="event-api">3.2 发布、订阅与处理接口</h3>
-<p>以下为面向 Harness 作者的目标接口，方法与类型集中定义在<a href="author-types.html#author-types">附录 A.1</a>。<code>events</code> 负责前三个方法；<code>inputs</code> 是所有输入共用的处理接口。</p>
+<p>以下为面向 Harness 作者的目标接口，方法与类型集中定义在<a href="author-types.html#author-types">第 11 章</a>。<code>events</code> 负责前三个方法；<code>inputs</code> 是所有输入共用的处理接口。</p>
 <div class="table-wrap" tabindex="0"><table class="api-table">
 <thead>
 <tr>
@@ -93,9 +89,15 @@
 <td data-label="成功确认">该输入已经明确处置，返回处置回执。</td>
 <td data-label="不确认">不声明业务成功，不取消它发起的未结操作。</td>
 </tr>
+<tr>
+<td data-label="方法"><strong><code>inputs.transfer</code></strong></td>
+<td data-label="输入"><code>request_key, processing_ref, target_run_id</code></td>
+<td data-label="成功确认">同 Work 的目标调用已承担原输入处理责任，返回目标绑定的新 <code>processing_ref</code> 与交接回执；来源处置权已撤销。</td>
+<td data-label="不确认">不完成业务处理，不授予目标普通 Work 邮箱消费权，不创建新 Work。</td>
+</tr>
 </tbody>
 </table></div>
-<p><code>outcome</code> 为 <code>handled | failed | ignored</code>。暂时故障或仍待回复时不要 complete：保留原处理并等待／重试。若把后续处理转交给其他工作，须先确认对方已经接收，再结束当前输入处理。</p>
+<p><code>outcome</code> 为 <code>handled | failed | ignored</code>。暂时故障或仍待回复时不要 complete：保留原处理并等待／重试。跨 Work 转交时，先按目标授权确认另一 Work 已接收独立输入，再完成当前输入；这是两份输入与各自责任。把同一 Work 已领取输入交给另一 Harness 调用，使用 <code>inputs.transfer</code> 交接原处理责任，不能让两个调用各自处置同一输入。</p>
 <h3 id="subscription-contract">3.3 起点、筛选与取消</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
@@ -184,6 +186,8 @@
 </tbody>
 </table></div>
 <p>默认只有一个有效处理者认领某份输入。<code>InputDelivery</code> 携带不透明 <code>processing_ref</code>，SDK 自动传递，Harness 原样使用。complete 核对 Runtime 保存的原输入，不用回传正文覆盖输入。并发调用 next 可取得不同输入，但恢复同一次 next 仍绑定原输入。重新处理已处置输入需要新的业务请求，不靠重投触发。</p>
+<p id="input-transfer">同 Work 的 <code>inputs.transfer</code> 在一份持久决定中核对来源的有效处理权和目标的承接条件，再绑定目标 <code>run_id</code>、生成新的不透明处理身份、撤销旧身份，并保存向目标交付 delivery 的责任。目标通过自己的 <code>inputs.next</code> 领取；下一次普通 Work 输入仍需它单独具备邮箱消费授权。<code>complete</code> 同时检查当前调用 scope、处理身份和执行所有权；来源即使读取到新身份也不能冒充目标。</p>
+<p>同键同内容重试返回原转交回执，检查原回执先于已被撤销的旧身份；同键改目标返回 <code>identity_conflict</code>，旧 delivery 的处置返回 <code>stale_processing</code>。目标拒绝、无权限或已经终止时保持来源原责任，不执行部分转交。目标还未取得 delivery 时，进程退出由 Runtime 保留转交记录并继续交付。closing 可确认既有输入责任的承接与处置，不能通过交接启动新增业务意图；授权撤回仍按当前范围检查。<a href="author-types.html#event-types">输入 DTO</a>。</p>
 <h3 id="event-example">3.5 示例：制作与检查</h3>
 <p>制作 Work 发布候选版本。检查 Work 须事先完成订阅，才能以 <code>from: "now"</code> 收到本次发布：</p>
 <div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-1" type="button">复制</button><pre id="code-1"><code class="language-typescript">await work.events.publish({
@@ -222,7 +226,7 @@ while (true) {
 <figure class="diagram" id="event-contract-seq"><figcaption><span>图 E1 · 订阅、发布、取得与处置</span><button aria-label="放大图 E1 · 订阅、发布、取得与处置" class="zoom" type="button">放大</button></figcaption><p class="diagram-scope">逻辑接口时序：时间向下；实线为请求，虚线为确认。参与者是职责，不表示进程部署。</p><div class="diagram-viewport" tabindex="0"><svg aria-labelledby="event-contract-seq-title" role="img" viewbox="0 0 1160 1433" xmlns="http://www.w3.org/2000/svg"><title id="event-contract-seq-title">图 E1 · 订阅、发布、取得与处置</title><defs><marker id="event-contract-seq-a" markerheight="7" markerwidth="7" orient="auto-start-reverse" refx="9" refy="5" viewbox="0 0 10 10"><path d="M0 0 L10 5 L0 10Z" fill="#18675d"></path></marker></defs><rect fill="#fff" height="1433" width="1160"></rect><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="145.0" x2="145.0" y1="104" y2="1423"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="33.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="145.0" y="48.0">制作 Harness A</text><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="435.0" x2="435.0" y1="104" y2="1423"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="323.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="435.0" y="48.0">Event 服务</text><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="725.0" x2="725.0" y1="104" y2="1423"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="613.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="725.0" y="48.0">Work B 持久输入</text><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="1015.0" x2="1015.0" y1="104" y2="1423"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="903.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="1015.0" y="48.0">检查 Harness B</text><rect fill="#fff" height="34" rx="3" width="564.0" x="443.0" y="132"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="725.0" y="151.0">subscribe(source=A, type=candidate, from=now)</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-width="1.7" x1="1015.0" x2="435.0" y1="175" y2="175"></line><rect fill="#fff" height="34" rx="3" width="274.0" x="443.0" y="201"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="220.0">保存订阅、固定起点并激活</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-width="1.7" x1="435.0" x2="725.0" y1="244" y2="244"></line><rect fill="#fff" height="34" rx="3" width="274.0" x="443.0" y="270"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="289.0">SubscriptionReceipt</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="725.0" x2="435.0" y1="313" y2="313"></line><rect fill="#fff" height="34" rx="3" width="564.0" x="443.0" y="339"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="725.0" y="358.0">订阅已有效；B 可释放专属执行</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="435.0" x2="1015.0" y1="382" y2="382"></line><rect fill="#fff" height="56" rx="3" width="274.0" x="153.0" y="408"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="290.0" y="427.0">publish：候选 v7</text><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="290.0" y="449.0">固定原请求键</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-width="1.7" x1="145.0" x2="435.0" y1="473" y2="473"></line><rect fill="#fff" height="56" rx="3" width="274.0" x="153.0" y="499"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="290.0" y="518.0">PublicationReceipt</text><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="290.0" y="540.0">发布已持久保存</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="435.0" x2="145.0" y1="564" y2="564"></line><rect fill="#fff" height="34" rx="3" width="274.0" x="443.0" y="590"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="609.0">交付原事件；验证订阅、去重并入队</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-width="1.7" x1="435.0" x2="725.0" y1="633" y2="633"></line><rect fill="#fff" height="56" rx="3" width="274.0" x="443.0" y="659"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="678.0">InputReceipt</text><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="700.0">目标已接下处理责任</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="725.0" x2="435.0" y1="724" y2="724"></line><rect fill="#edf3f0" height="42" rx="5" width="1120" x="20" y="755"></rect><text fill="#476365" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="780.0">上述交付不需要检查 Harness 在线。下面是 B 可执行时发生的输入处理。</text><rect fill="#fff" height="34" rx="3" width="274.0" x="733.0" y="820"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="870.0" y="839.0">inputs.next(subscription_id)</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-width="1.7" x1="1015.0" x2="725.0" y1="863" y2="863"></line><rect fill="#fff" height="56" rx="3" width="274.0" x="733.0" y="889"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="870.0" y="908.0">InputDelivery</text><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="870.0" y="930.0">输入与原处理身份</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="725.0" x2="1015.0" y1="954" y2="954"></line><rect fill="#f6f3e9" height="64" rx="5" stroke="#c9d6cd" width="236" x="897.0" y="985"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="1015.0" y="1010.0">调用模型／工具进行检查，使用各</text><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="1015.0" y="1032.0">自持久原语</text><rect fill="#fff" height="56" rx="3" width="564.0" x="443.0" y="1074"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="725.0" y="1093.0">publish：报告</text><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="725.0" y="1115.0">request_key 绑定原输入</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-width="1.7" x1="1015.0" x2="435.0" y1="1139" y2="1139"></line><rect fill="#fff" height="34" rx="3" width="564.0" x="443.0" y="1165"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="725.0" y="1184.0">原报告事件回执</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="435.0" x2="1015.0" y1="1208" y2="1208"></line><rect fill="#fff" height="56" rx="3" width="274.0" x="733.0" y="1234"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="870.0" y="1253.0">inputs.complete</text><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="870.0" y="1275.0">原输入处置为 handled</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-width="1.7" x1="1015.0" x2="725.0" y1="1299" y2="1299"></line><rect fill="#fff" height="56" rx="3" width="274.0" x="733.0" y="1325"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="870.0" y="1344.0">DispositionReceipt</text><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="870.0" y="1366.0">原输入已处置</text><line marker-end="url(#event-contract-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="725.0" x2="1015.0" y1="1390" y2="1390"></line></svg></div></figure>
 <h3 id="event-handoff">3.6 发布、受理与处理的确认边界</h3>
 <p>三种回执对应不同阶段：<code>PublicationReceipt</code> 确认发布记录已保存；<code>InputReceipt</code> 确认目标 Work 已保存输入并承担处理责任；<code>DispositionReceipt</code> 确认 Harness 已记录处理结果。</p>
-<p>NATS ACK 位于 InputReceipt 之后，不等到模型或业务完成。ACK 是传输确认，不是 <code>inputs.complete</code>，也不是启动 Harness 的信号。NATS 与 Temporal 之间的接入见<a href="nats.html#nats-adapter">附录 A.2</a>。</p>
+<p>传输确认和业务处理分别确认：移交给目标 Work 的责任成立后，传输侧才可以确认这次交付；业务处置仍由 <code>inputs.complete</code> 记录。具体事件服务、传输 ACK 和持久输入之间怎样接合，见<a href="nats.html#nats-adapter">事件与输入的实现</a>。</p>
 <p>暂时不可用或过载时，保留待交付记录并限制新请求；永久拒绝时保存原消息和原因。部署须明确容量、历史范围与清理条件。未完成事项依赖的唯一内容必须保留，否则无法继续承诺恢复。</p>
 <p>进程内 <code>pre-request</code>／<code>pre-tool</code> 等 Hook 不属于这套订阅协议。Hook 的改写、拒绝、顺序和清理由<a href="harness.html#composition">Harness 组合契约</a>定义。</p>
 </section><nav class="page-pagination" aria-label="阅读顺序"><a href="work-model.html">← 工作模型与共同约定</a><a href="durable.html">持久执行：恢复、等待与内容 →</a></nav>

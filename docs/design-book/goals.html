@@ -12,38 +12,34 @@
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
 <div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">12</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html" class="active" aria-current="page">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html">事件与输入</a>
 <a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html">模型访问</a>
-<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="sandbox.html">用户环境：Sandbox 调用</a>
 <a href="harness.html">Harness：推进逻辑与组合</a>
+<a href="harness-description.html">Harness 描述与作者入口</a>
 <a href="examples.html">参考 Harness</a>
+<a href="graphs.html">图结构与展示</a>
+<a href="author-types.html">接口类型与编码</a>
 <a href="verification.html">运行与契约验收</a>
 </div></details>
-<details class="nav-group"><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="implementation.html">实现接入与配置</a>
-<a href="author-types.html">接口类型与编码</a>
-<a href="nats.html">NATS／JetStream 接入</a>
-<a href="durable-bindings.html">Durable 组合与接口边界</a>
-<a href="provider-contract.html">Provider 类型与命令载荷</a>
-<a href="providers.html">执行后端接入</a>
-<a href="configuration.html">配置、组件组织与版本</a>
-</div></details>
-<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="provider-srt.html">SRT 官方库</a>
-<a href="provider-apple.html">Apple container CLI</a>
-<a href="provider-podman.html">rootless Podman CLI</a>
-<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
-<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
-<a href="provider-e2b.html">E2B SDK</a>
+<details class="nav-group"><summary><span class="nav-group-title">实现与拼接</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="implementation.html">实现与拼接总览</a>
+<a href="nats.html">事件与输入的实现</a>
+<a href="durable-bindings.html">持久执行的实现</a>
+<a href="harness-execution.html">Harness 执行管理</a>
+<a href="provider-contract.html">Sandbox 调用与工作接合</a>
+<a href="configuration.html">组件拼接与宿主配置</a>
 </div></details>
 <details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</div></details></nav></details>
-<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</div></details>
+</nav></details>
+<div class="side-footer">契约与实现 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
 <main id="top">
 <nav class="page-toc" aria-label="本页目录"><button class="toc-toggle" type="button" aria-label="展开本页目录" aria-expanded="false" aria-controls="page-outline"><span aria-hidden="true">⋮</span></button><div class="toc-links" id="page-outline"><a href="#runtime-capabilities"><span>1.1 Runtime 承担什么</span></a><a href="#principles"><span>1.2 设计必须满足的条件</span></a><a href="#entrypoints"><span>1.3 从责任找到接口</span></a></div></nav>
@@ -52,15 +48,18 @@
 <p><strong>Harness 定义如何推进。</strong> 它把模型调用、工具操作和结果检查组织成连续过程：每一步依据什么信息，哪些工作可以并行，遇到失败如何调整，何时需要用户参与，以及怎样判定任务完成。模型可以参与这些决定；Harness 负责把决定接成可执行的过程。</p>
 <p><strong>Runtime 提供推进所依赖的运行能力。</strong> 它接入获准的信息和服务，准备执行环境，落实权限与资源限制，保存进度和操作结果，并在等待结束或运行中断后恢复执行。更换解题策略时，这些能力及其可靠性约定应当继续适用。</p>
 <p>例如，调研一个问题可以按“收集资料 → 比较证据 → 补查疑点 → 验证结论”推进。Harness 决定查什么、如何判断证据和何时收敛；Runtime 负责取得获准资料、执行调用、保存结果，并在进程重启后接续未完成的步骤。批量评审和事件监控也遵循这个分工，只是推进方式不同。</p>
+<p>同一 Runtime 可以接管不同 Harness 的调用。一个正在推进的 Harness 可以让模型生成另一份程序，固定代码和输入后调用它，等待结果或继续无关工作；被调用程序也可以再调用其他 Harness。动态代码装载、调用身份与恢复是 Runtime 能力，如何分工和怎样使用结果仍由 Harness 决定。参见<a href="harness.html#harness-call">生成与调用 Harness</a>。</p>
 <h3 id="runtime-capabilities">1.1 Runtime 承担什么</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead><tr><th>共同需要</th><th>Runtime 的责任</th><th>Harness 的决定</th></tr></thead>
 <tbody>
 <tr><td data-label="共同需要">取得信息与调用模型</td><td data-label="Runtime 的责任">读取获准资料，接收用户或外部来源的变化，调用模型；保留来源、版本和实际返回。</td><td data-label="Harness 的决定">哪些信息与问题相关，何时采用，怎样组织模型上下文。</td></tr>
 <tr><td data-label="共同需要">准备环境与执行操作</td><td data-label="Runtime 的责任">按任务要求取得环境和工作副本，检查所需能力，执行获准操作并返回结果。</td><td data-label="Harness 的决定">需要什么环境和工具，要执行哪些行动。</td></tr>
+<tr><td data-label="共同需要">运行与组合 Harness</td><td data-label="Runtime 的责任">准备代码、依赖、SDK 和实际执行绑定；持久受理调用、等待与取消，恢复原调用及其未结责任。</td><td data-label="Harness 的决定">采用哪份程序、提供什么输入，何时并行调用，以及如何检查和使用返回结果。</td></tr>
 <tr><td data-label="共同需要">约束影响范围</td><td data-label="Runtime 的责任">执行宿主授予的文件、网络、服务和预算限制；权限或隔离能力不足时拒绝派发。</td><td data-label="Harness 的决定">在已获准范围内选择行动；需要扩大范围时提出请求。</td></tr>
 <tr><td data-label="共同需要">中断后恢复与持续等待</td><td data-label="Runtime 的责任">保存已确认进度、操作身份及待办；复用已有结果，核对未知结果，在条件满足后安排继续。</td><td data-label="Harness 的决定">保存哪些业务状态，等待什么，以及恢复后进入哪个业务分支。</td></tr>
 <tr><td data-label="共同需要">保留依据与产物</td><td data-label="Runtime 的责任">保存必要内容及历史版本，提供可追溯读取和受控整合。</td><td data-label="Harness 的决定">如何使用历史、评价产物，以及是否提出整合或发布请求。</td></tr>
+<tr><td data-label="共同需要">表达与展示工作</td><td data-label="Runtime 的责任">提供获准的事实、内容及可追溯范围，复用通用图组件展示 Harness 生成的快照。</td><td data-label="Harness 的决定">如何映射节点和关系、识别和命名结构，以及如何解释结果。</td></tr>
 </tbody></table></div>
 <p>这些责任不要求每份 Harness 调用全部接口。只做评审的程序可能不需要命令环境，但仍需要模型访问、结果保存和中断恢复；监控程序可以先按规则筛选事件，只在需要判断时调用模型。</p>
 <p>安全边界以实际授权和执行限制为准。Harness 的指令不能自行扩大权限；Runtime 也不能仅凭一次模型判断，保证任意行动没有危害。部署必须说明可限制的资源、隔离范围及无法提供的能力。</p>
@@ -70,10 +69,12 @@
 <tbody>
 <tr><td data-label="目标">推进策略可替换</td><td data-label="可检验的结果">改变上下文选择、工具组合或控制流程，不要求重写输入交付、模型适配和恢复机制。</td></tr>
 <tr><td data-label="目标">工作跨越进程寿命</td><td data-label="可检验的结果">已受理输入、已确认结果和未完成事项在进程退出后仍可恢复；设施恢复或等待条件满足后自动安排继续。</td></tr>
+<tr><td data-label="目标">运行期间可生成和组合程序</td><td data-label="可检验的结果">A 生成 B 并启动，B 再启动 C；回执丢失、代码修改或进程退出后，仍复用原调用、原代码及已确认结果。受管顺序代码和显式状态形式均需声明可兑现的执行绑定。</td></tr>
 <tr><td data-label="目标">决策与受控执行分工明确</td><td data-label="可检验的结果">Harness 提出行动，Runtime 检查授权并通过模型服务或执行后端落实；任务代码不能取得管理端权限。</td></tr>
 <tr><td data-label="目标">等待不占用专属执行资源</td><td data-label="可检验的结果">纯等待不保留每个 Work 的 Agent 进程、模型连接或空转 Sandbox；必要状态由共享服务和存储保留。</td></tr>
+<tr><td data-label="目标">展示可扩展且事实可核对</td><td data-label="可检验的结果">不同 Harness 用通用节点、边和结构表达各自的组织方式；展开后原身份和端点可查，图中状态依据可追溯，展示故障不丢失执行责任。</td></tr>
 </tbody></table></div>
-<p>优先复用成熟组件。先满足可靠性、安全边界和使用契约，再优化速度与资源占用。事件驱动用于离线接收和按需唤醒；具体组件选择见<a href="implementation.html#implementation">实现接入</a>与<a href="research.html#research">选型依据</a>。</p>
+<p>优先复用成熟组件。先满足可靠性、安全边界和使用契约，再优化速度与资源占用。事件驱动用于离线接收和按需唤醒；具体组件选择见<a href="implementation.html#implementation">实现与拼接总览</a>与<a href="research.html#research">选型依据</a>。</p>
 <h3 id="entrypoints">1.3 从责任找到接口</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead><tr><th>要完成的操作</th><th>入口</th><th>详细契约</th></tr></thead>
@@ -82,11 +83,13 @@
 <tr><td data-label="要完成的操作">发布结果或观测</td><td data-label="入口"><code>events.publish</code></td><td data-label="详细契约"><a href="events.html#event-api">发布确认与交付</a></td></tr>
 <tr><td data-label="要完成的操作">调用模型</td><td data-label="入口"><code>model.invoke</code>，或 <code>submit</code> + <code>result</code></td><td data-label="详细契约"><a href="model.html#model-api">模型调用</a></td></tr>
 <tr><td data-label="要完成的操作">执行命令或文件操作</td><td data-label="入口"><code>tools.call</code>／<code>execution.submit</code></td><td data-label="详细契约"><a href="sandbox.html#exec-api">任务执行</a></td></tr>
+<tr><td data-label="要完成的操作">启动、等待或取消另一份 Harness</td><td data-label="入口"><code>harness.start</code>／<code>result</code>／<code>inspect</code>／<code>cancel</code></td><td data-label="详细契约"><a href="harness.html#harness-call">Harness 调用</a></td></tr>
 <tr><td data-label="要完成的操作">等待输入、结果或时间</td><td data-label="入口">受管 <code>next</code>／<code>result</code>／<code>sleep</code></td><td data-label="详细契约"><a href="durable.html#wait-contract">持久等待</a></td></tr>
 <tr><td data-label="要完成的操作">读取资料、保存产物与查阅历史</td><td data-label="入口"><code>content</code>、<code>history</code>、只读事实视图</td><td data-label="详细契约"><a href="durable.html#content-contract">内容与历史</a></td></tr>
+<tr><td data-label="要完成的操作">构图、保存和展示工作结构</td><td data-label="入口">Harness 图映射、<code>content</code>／<code>events.publish</code>、通用工作台</td><td data-label="详细契约"><a href="graphs.html#graph-snapshot">图结构与展示</a></td></tr>
 </tbody></table></div>
 <p>以上是设计接口，各操作使用所属 Work 的身份，并受相应授权与预算约束。Harness 可以用顺序代码、显式状态或模型循环组织推进；Surface 和全局聊天记录都不是接入前提。作者需要定义的内容见<a href="harness.html#harness-minimum">Harness 定义</a>。</p>
-</section><nav class="page-pagination" aria-label="阅读顺序"><a href="../loom-design-book.html">← 总览</a><a href="work-model.html">工作模型与共同约定 →</a></nav>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="../loom-design-book.html">← 设计书总览</a><a href="work-model.html">工作模型与共同约定 →</a></nav>
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>
 <dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>

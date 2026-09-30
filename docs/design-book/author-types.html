@@ -12,45 +12,42 @@
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
 <div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group"><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">12</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html">事件与输入</a>
 <a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html">模型访问</a>
-<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="sandbox.html">用户环境：Sandbox 调用</a>
 <a href="harness.html">Harness：推进逻辑与组合</a>
+<a href="harness-description.html">Harness 描述与作者入口</a>
 <a href="examples.html">参考 Harness</a>
+<a href="graphs.html">图结构与展示</a>
+<a href="author-types.html" class="active" aria-current="page">接口类型与编码</a>
 <a href="verification.html">运行与契约验收</a>
 </div></details>
-<details class="nav-group is-current" open><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="implementation.html">实现接入与配置</a>
-<a href="author-types.html" class="active" aria-current="page">接口类型与编码</a>
-<a href="nats.html">NATS／JetStream 接入</a>
-<a href="durable-bindings.html">Durable 组合与接口边界</a>
-<a href="provider-contract.html">Provider 类型与命令载荷</a>
-<a href="providers.html">执行后端接入</a>
-<a href="configuration.html">配置、组件组织与版本</a>
-</div></details>
-<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="provider-srt.html">SRT 官方库</a>
-<a href="provider-apple.html">Apple container CLI</a>
-<a href="provider-podman.html">rootless Podman CLI</a>
-<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
-<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
-<a href="provider-e2b.html">E2B SDK</a>
+<details class="nav-group"><summary><span class="nav-group-title">实现与拼接</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="implementation.html">实现与拼接总览</a>
+<a href="nats.html">事件与输入的实现</a>
+<a href="durable-bindings.html">持久执行的实现</a>
+<a href="harness-execution.html">Harness 执行管理</a>
+<a href="provider-contract.html">Sandbox 调用与工作接合</a>
+<a href="configuration.html">组件拼接与宿主配置</a>
 </div></details>
 <details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</div></details></nav></details>
-<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</div></details>
+</nav></details>
+<div class="side-footer">契约与实现 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
 <main id="top">
 
-<section class="chapter"><h1 id="author-types">A.1 接口类型与编码</h1>
-<p>本页定义事件、输入和模型调用的数据类型，供 Harness 作者及 SDK 实现者核对。TypeScript 声明描述目标接口；<code>Promise</code> 表达异步返回，持久性由所选执行绑定提供。</p>
-<p>使用 JSON-RPC 2.0 传输时，<code>id</code> 只关联一次请求与响应，<code>request_key</code> 标识可跨连接核对的业务操作。Work 身份和执行所有权由受信通道确认，秘密不进入业务载荷。字节数、序号等大整数使用十进制字符串；大载荷通过摘要、大小及媒体类型组成的引用传递。</p>
-<p>适配器把作者字段转换为传输格式，例如将 <code>event_type + data</code> 保存为事件内容，再用 <code>event_ref</code> 引用。来源、目标和消费位置由 Runtime 绑定，不能由正文覆盖。</p>
+<section class="chapter"><h1 id="author-types">11. 接口类型与编码</h1>
+<p>本页是工作契约中的目标接口，定义事件、输入、模型、Harness 调用和展示快照的数据类型，供 Harness 作者及 SDK 实现者核对；不指定执行引擎或传输组件。TypeScript 声明描述输入、输出与确认边界；<code>Promise</code> 表达异步返回，持久性由所选执行绑定提供。</p>
+<p><code>request_key</code> 标识可跨连接核对的业务操作。Work 身份和执行所有权由受信入口确认，秘密不进入业务载荷。字节数、序号等大整数使用十进制字符串；大载荷通过摘要、大小及媒体类型组成的引用传递。进程内 SDK、CLI 与跨进程传输须保持同一语义，具体封装见<a href="implementation.html#sdk-transport">SDK 与传输接合</a>。</p>
+<p>作者通过 <code>event_type + data</code> 表达事件内容，事件记录保留确定的 <code>event_ref</code>。来源、目标和消费位置由 Runtime 绑定，不能由正文覆盖；具体传输信封不改变这些确认边界。</p>
+<p><code>inputs.transfer</code> 的 <code>processing_ref</code> 引用已领取输入的处理身份，<code>target_run_id</code> 指定同一 Work 内的目标调用；返回的新处理身份绑定目标 scope，回执的持有者不能据此冒充目标处置。交接、领取、重复请求和关闭的完整规则见<a href="events.html#input-transfer">输入处理责任转交契约</a>。</p>
 <details class="reference-detail" id="event-types"><summary>Event／Input 类型 · event-contracts.ts</summary><div class="detail-body"><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-8" type="button">复制</button><pre id="code-8"><code class="language-typescript">// 目标接口；Promise 表达异步返回，运行绑定负责保存状态与恢复。
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 export type Ref = { sha256: string; size_bytes: string; media_type: string };
@@ -115,18 +112,28 @@ export interface EventPort {
   }&gt;;
 }
 export interface InputPort {
-  // 运行绑定为每次逻辑 next 保存稳定调用身份。没有匹配输入时持久等待。
+  // 运行绑定保存稳定 next 身份；候选仅含本 scope 获准的邮箱输入或明确转交的输入。
   next(filter: { subscription_id?: string; types?: string[] }): Promise&lt;NextInput&gt;;
-  // delivery 携带原处理身份；重复完成请求返回原回执，旧执行者不能提交新结果。
+  // 同时核对当前 run scope、有效 processing_ref 和执行所有权；旧身份不能提交新结果。
   complete(delivery: InputDelivery, result: Disposition): Promise&lt;{
     input_id: string; outcome: Disposition['outcome']; receipt_ref: Ref;
+  }&gt;;
+  // 原处理责任在同一 Work 内交给目标调用；目标凭受信 run scope 领取新 delivery。
+  transfer(request: {
+    request_key: string; processing_ref: string; target_run_id: string;
+  }): Promise&lt;{
+    input_id: string; target_run_id: string;
+    processing_ref: string; // 新身份绑定目标 scope；来源拿到回执也不能冒充目标处置
+    receipt_ref: Ref;
   }&gt;;
 }
 export type ContractFailure = {
   kind: 'invalid_request' | 'permission_denied' | 'identity_conflict'
     | 'history_gap' | 'work_closed' | 'subscription_closed'
     | 'stale_processing' | 'not_ready' | 'resource_exhausted'
-    | 'outcome_unknown' | 'internal_error';
+    | 'outcome_unknown' | 'internal_error'
+    | 'invalid_code' | 'dependency_unavailable' | 'unsupported_binding'
+    | 'recovery_incompatible' | 'call_limit_exceeded';
   message: string;
   request_key?: string;
   evidence_ref?: Ref;
@@ -193,7 +200,121 @@ export interface ModelPort {
   // submit + result 的便利入口，不包含 agent loop 或隐式重试。
   invoke(request: ModelRequest): Promise&lt;ModelCallOutcome&gt;;
 }</code></pre></div></div></details>
-</section><nav class="page-pagination" aria-label="阅读顺序"><a href="implementation.html">← 实现接入与配置</a><a href="nats.html">NATS／JetStream 接入 →</a></nav>
+<h3 id="harness-call-types">Harness 调用</h3>
+<p><code>code_ref</code> 指向<a href="harness-description.html#harness-code-descriptor">第 8 章的不可变代码描述</a>；<code>entry</code> 必须是 <code>entries</code> 许可入口，SDK、依赖和必需能力由 Runtime 与宿主 Profile 核对，不能据此自授权。状态推进入口必须声明状态 schema；顺序入口的恢复格式由其执行绑定固定。<code>start</code> 保存原请求、解析后的固定绑定和调用责任后返回受理回执；同键改代码、输入、环境或限制返回 <code>identity_conflict</code>。Work、父调用、执行所有权和授权来源均由受信 scope 确认，正文不能伪造。<code>result</code> 等待已保存结果；业务终态与未结操作责任分别表达，未知外部效果不能被 <code>cancelled</code> 覆盖。<code>tree</code> 仅指同一 Work 的调用后代，独立 Work 的取消遵循其授权。</p>
+<details class="reference-detail" id="harness-types"><summary>Harness 类型 · harness-contracts.ts</summary><div class="detail-body"><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-harness-types" type="button">复制</button><pre id="code-harness-types"><code class="language-typescript">import type { Ref } from &#x27;./event-contracts&#x27;;
+import type { OperationReceipt } from &#x27;./model-contracts&#x27;;
+// 外部 CLI／RPC 必须传 request_key；受管 SDK 从调用日志分配同一逻辑调用的键。
+export type HarnessLimits = {
+  budget_ref?: string;
+  targets?: string[];
+  model_services?: string[];
+  max_parallel_calls?: number; // 正整数，省略即沿用已授权上限
+  max_depth?: number;          // 正整数，省略即沿用已授权上限
+};
+export type HarnessStartRequest = {
+  request_key: string;
+  code_ref: Ref;
+  entry: string;
+  input_ref: Ref;
+  environment: string;        // Work 获准的逻辑 Harness 环境
+  limits?: HarnessLimits;     // 只能收窄 Work／父调用的实际范围
+};
+export type HarnessBinding = {
+  run_id: string;
+  code_ref: Ref;
+  entry: string;
+  input_ref: Ref;
+  runtime_profile: Ref;       // 已解析运行时、Linux 隔离与资源要求快照
+  sdk_ref: Ref;
+  dependency_ref: Ref;
+  binding_ref: Ref;           // 固定执行引擎、适配器与恢复入口
+  compiled_ref?: Ref;         // TS／编译场景固定实际装载产物
+  effective_scope_ref: Ref;
+} &amp; (
+  | { mode: 'managed_sequence'; state_schema?: number }
+  | { mode: 'state_step'; state_schema: number }
+);
+export type HarnessStartReceipt = OperationReceipt &amp; {
+  run_id: string;
+  receipt_ref: Ref;
+};
+export type HarnessResponsibility =
+  | { status: &#x27;settled&#x27;; unsettled_operation_ids: [] }
+  | { status: &#x27;transferred&#x27;; unsettled_operation_ids: string[];
+      transfer_receipt_ref: Ref };
+export type HarnessOutcome = {
+  run_id: string;
+  business_result: {
+    outcome: &#x27;succeeded&#x27; | &#x27;failed&#x27; | &#x27;cancelled&#x27;;
+    result_ref?: Ref;
+    reason_ref?: Ref;
+  };
+  receipt_ref: Ref;
+  responsibility: HarnessResponsibility;
+};
+export interface HarnessPort {
+  start(request: HarnessStartRequest): Promise&lt;HarnessStartReceipt&gt;;
+  result(request: { run_id: string }): Promise&lt;HarnessOutcome&gt;;
+  inspect(request: { run_id: string }): Promise&lt;{
+    run_id: string;
+    binding: HarnessBinding;
+    status: &#x27;accepted&#x27; | &#x27;running&#x27; | &#x27;waiting&#x27; | &#x27;blocked&#x27; | &#x27;unknown&#x27; | &#x27;complete&#x27;;
+    cancellation: &#x27;none&#x27; | &#x27;requested&#x27; | &#x27;stop_confirmed&#x27; | &#x27;unknown&#x27;;
+    blocked_reason_ref?: Ref;
+    unsettled_operation_ids: string[];
+    observation_ref: Ref;
+    result?: HarnessOutcome;
+  }&gt;;
+  cancel(request: {
+    request_key: string; run_id: string; scope: &#x27;self&#x27; | &#x27;tree&#x27;;
+  }): Promise&lt;{
+    operation_id: string; run_id: string; scope: &#x27;self&#x27; | &#x27;tree&#x27;;
+    status: &#x27;cancellation_requested&#x27;; receipt_ref: Ref;
+  }&gt;;
+}
+export interface ManagedHarnessPort extends Omit&lt;HarnessPort, &#x27;start&#x27; | &#x27;cancel&#x27;&gt; {
+  start(request: Omit&lt;HarnessStartRequest, &#x27;request_key&#x27;&gt; &amp; {
+    request_key?: string;
+  }): Promise&lt;HarnessStartReceipt&gt;;
+  cancel(request: {
+    request_key?: string; run_id: string; scope: &#x27;self&#x27; | &#x27;tree&#x27;;
+  }): ReturnType&lt;HarnessPort[&#x27;cancel&#x27;]&gt;;
+}</code></pre></div></div></details>
+<p>所有操作复用共同 <code>ContractFailure</code>。代码或入口不能验证返回 <code>invalid_code</code>；依赖无法取得返回 <code>dependency_unavailable</code>；作者形式或隔离 SDK 接合不支持返回 <code>unsupported_binding</code>；原版本恢复约束不相容返回 <code>recovery_incompatible</code>；超过获准深度或并发返回 <code>call_limit_exceeded</code>。配置尚未解析是 <code>not_ready</code>，已获准资源耗尽是 <code>resource_exhausted</code>；已派发但无法核对的调用保持 <code>outcome_unknown</code>。受理前拒绝不得留下可独立执行的第二份调用。深度与并发按已保存的调用树和 Work 配额核对，子调用不能通过重新声明限制重置上限；<code>tree</code> 取消与新后代受理由同一控制顺序裁决。</p>
+
+<p>调用深度、并发和名额释放统一按<a href="harness.html#harness-limits">Harness 调用限额</a>定义；DTO 只表达请求的收窄值，不另定义计数规则。</p>
+<h3 id="state-step-abi">显式状态作者入口</h3>
+<p><span id="state-step-types"></span><span id="code-state-step-types"></span>完整 ABI 与类型定义见<a href="harness-description.html#state-step-abi">第 8 章显式状态入口</a>；受管顺序入口见<a href="harness-description.html#managed-sequence-entry">同章受管顺序入口</a>。本页的调用与结果类型供这两种作者形式共用。</p>
+
+<h3 id="graph-publication-types">展示快照</h3>
+<p>来源范围、图中判断的依据及更新竞争按<a href="graphs.html#graph-snapshot">图与结构展示契约</a>处理。<code>graph</code> 不另复制图组件的节点、边和结构类型；载入前调用其公开校验入口。快照先保存为 Content 引用，再通过既有事件发布该引用与范围，不添加另一套图调度或存储权威。</p>
+<details class="reference-detail" id="graph-types"><summary>Graph 类型 · graph-contracts.ts</summary><div class="detail-body"><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-graph-types" type="button">复制</button><pre id="code-graph-types"><code class="language-typescript">import type { Json, Ref } from &#x27;./event-contracts&#x27;;
+// Loom 只定义来源信封；内部 graph/view 按所固定图组件契约校验。
+export type GraphPublication = {
+  format: &#x27;loom.graph&#x27;;
+  version: 1;
+  source: {
+    work_id: string;          // 受信发布范围核对，不能据此取得权限
+    producer_ref: Ref;
+    view_id: string;          // 同 producer 可提供多个命名视图
+    definition_ref: Ref;
+    revision: number;         // 正安全整数，由持久来源记录分配
+    records: {
+      after?: string;         // 排他；与 through 同属记录来源
+      through: string;        // 包含；游标不做词法比较
+      coverage: &#x27;complete&#x27; | &#x27;partial&#x27;;
+    };
+  };
+  snapshot: {
+    format: &#x27;graph-workbench&#x27;;
+    version: 1;
+    graph: Json;
+    view: { collapsed: string[] };
+  };
+};</code></pre></div></div></details>
+
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="graphs.html">← 图结构与展示</a><a href="verification.html">运行与契约验收 →</a></nav>
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>
 <dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>

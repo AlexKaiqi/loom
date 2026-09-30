@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Harness 描述与作者入口 · Loom Design Book</title>
+<link rel="stylesheet" href="book.css">
+<script src="book.js" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+<a class="brand" href="../loom-design-book.html">LOOM</a>
+<div class="brand-sub">DESIGN BOOK / 工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">12</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="goals.html">目标与范围</a>
+<a href="work-model.html">工作模型与共同约定</a>
+<a href="events.html">事件与输入</a>
+<a href="durable.html">持久执行：恢复、等待与内容</a>
+<a href="model.html">模型访问</a>
+<a href="sandbox.html">用户环境：Sandbox 调用</a>
+<a href="harness.html">Harness：推进逻辑与组合</a>
+<a href="harness-description.html" class="active" aria-current="page">Harness 描述与作者入口</a>
+<a href="examples.html">参考 Harness</a>
+<a href="graphs.html">图结构与展示</a>
+<a href="author-types.html">接口类型与编码</a>
+<a href="verification.html">运行与契约验收</a>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">实现与拼接</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="implementation.html">实现与拼接总览</a>
+<a href="nats.html">事件与输入的实现</a>
+<a href="durable-bindings.html">持久执行的实现</a>
+<a href="harness-execution.html">Harness 执行管理</a>
+<a href="provider-contract.html">Sandbox 调用与工作接合</a>
+<a href="configuration.html">组件拼接与宿主配置</a>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="research.html">选型依据与验证范围</a>
+</div></details>
+</nav></details>
+<div class="side-footer">契约与实现 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</aside>
+<main id="top">
+<nav class="page-toc" aria-label="本页目录"><button class="toc-toggle" type="button" aria-label="展开本页目录" aria-expanded="false" aria-controls="page-outline"><span aria-hidden="true">⋮</span></button><div class="toc-links" id="page-outline"><a href="#harness-code-descriptor"><span>8.1 作者提交什么</span></a><a href="#managed-sequence-entry"><span>8.2 受管顺序入口</span></a><a href="#state-step-abi"><span>8.3 显式状态入口</span></a><a href="#work-configuration"><span>8.4 初始 Work 配置</span></a><a href="#harness-author-check"><span>8.5 生成、调用与结果检查</span></a></div></nav>
+<section class="chapter" aria-labelledby="harness-description"><h1 id="harness-description">08. Harness 描述与作者入口</h1>
+<p>本章定义作者怎样把推进程序交给 Runtime：代码描述固定可运行材料和许可入口，入口约定说明程序如何使用受管能力，Work 配置声明初始调用及逻辑资源。这些是目标契约；具体装载、隔离执行和恢复机制见<a href="harness-execution.html">Harness 执行管理</a>，示例不表示 SDK 已发布。</p>
+<p>Harness 可以由作者预先编写，也可以由正在运行的 A 让模型生成 B。两者提交相同描述并使用相同调用契约；无需先发布发行包或重新部署整个 Runtime。推进策略和动态调用的行为见<a href="harness.html">第 7 章</a>。</p>
+<h3 id="harness-code-descriptor">8.1 作者提交什么</h3>
+<p><code>code_ref</code> 指向一份固定的 <code>HarnessCodeDescriptor</code>。描述与所引用的源码、依赖及必要能力材料均使用不可变内容；文件路径、同名分支和 <code>latest</code> 不足以固定正在运行的版本。业务输入由独立的 <code>input_ref</code> 提供，不混入代码描述。</p>
+<div class="table-wrap" tabindex="0"><table class="api-table"><thead><tr><th>作者材料</th><th>确定含义</th></tr></thead><tbody>
+<tr><td data-label="作者材料"><code>source_ref</code></td><td data-label="确定含义">固定源码或可执行内容。许可入口须能从该版本装载；候选文件的后续编辑只影响新调用。</td></tr>
+<tr><td data-label="作者材料"><code>sdk_ref</code></td><td data-label="确定含义">声明所需 Loom SDK 契约与版本约束。它不是宿主凭据，也不替代 Runtime 对实际 SDK 内容的固定。</td></tr>
+<tr><td data-label="作者材料"><code>dependency_ref</code></td><td data-label="确定含义">固定依赖快照及其获取依据；恢复不能重新解析远程最新版本。</td></tr>
+<tr><td data-label="作者材料"><code>entries</code></td><td data-label="确定含义">允许调用的入口与作者形式。<code>managed_sequence</code> 使用受管 SDK；<code>state_step</code> 使用有限推进约定并声明 <code>state_schema</code>。</td></tr>
+<tr><td data-label="作者材料"><code>requirements_ref</code></td><td data-label="确定含义">可选的必需运行能力声明。Runtime 核验它与获准环境是否相容；声明不能授予网络、文件、模型服务或额外预算。</td></tr>
+</tbody></table></div>
+<details class="reference-detail" id="harness-code-types"><summary>代码描述类型 · harness-code-contracts.ts</summary><div class="detail-body"><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-harness-descriptor" type="button">复制</button><pre id="code-harness-descriptor"><code class="language-typescript">import type { Ref } from './event-contracts';
+export type HarnessCodeDescriptor = {
+  format: &#x27;loom.harness-code&#x27;;
+  version: 1;
+  source_ref: Ref;
+  sdk_ref: string;             // 所需 Loom SDK 契约／版本约束，不是宿主凭据
+  dependency_ref: Ref;         // 锁定依赖及获取依据，不能是 latest
+  entries: Record&lt;string,
+    | { mode: &#x27;managed_sequence&#x27;; state_schema?: number }
+    | { mode: &#x27;state_step&#x27;; state_schema: number }&gt;;
+  requirements_ref?: Ref;     // 必需运行能力；不能据此扩大授权
+};
+</code></pre></div></div></details>
+<p>Runtime 根据这份描述、调用请求和受信授权生成 <a href="author-types.html#harness-types"><code>HarnessBinding</code></a>：保存实际 SDK、依赖、编译产物、环境、有效范围与恢复绑定。作者不填写引擎管理地址、Worker 队列或私有凭据；描述中的 SDK 约束也不能覆盖已受理调用的实际绑定。</p>
+<p>图映射和结构定义可以作为同一 Harness 版本的材料保存，按<a href="graphs.html#graph-structures">图结构契约</a>固定其规则与来源。它们是可选的表达材料，不决定执行身份与权限，也不替代可运行代码的描述。</p>
+<h3 id="managed-sequence-entry">8.2 受管顺序入口</h3>
+<p><code>managed_sequence</code> 入口以 <code>main(work, input)</code> 形式编写控制流程。<code>input</code> 是 Runtime 根据固定 <code>input_ref</code> 装载的业务输入；<code>work</code> 提供当前调用获准的模型、工具、内容、事件、输入、等待和 Harness 调用入口。业务输入的校验和返回结果的含义由这份 Harness 定义；Runtime 保存结果与剩余责任，不以返回值代替业务验收。</p>
+<p>作者通过受管 SDK 取得非确定信息和执行外部操作，再用顺序、分支或并发组织结果。执行绑定记录稳定操作身份、已确认结果与等待，恢复原控制流程；作者不手工拆分 continuation，也不维护第二份推进游标。普通网络 Promise、可变文件读取和 Shell 内存不自动具有持久语义；需要跨中断复用的结果须经过受管入口。</p>
+<p>子 Harness 默认只取得固定调用输入，不自动接收父调用聊天记录或 Work 邮箱。显式转交已领取输入使用 <a href="events.html#input-transfer"><code>inputs.transfer</code></a>；并发、等待、取消和结果责任按<a href="harness.html#harness-call">Harness 调用契约</a>处理。A→B→C 的调用轨迹与代码片段见<a href="examples.html#generated-harness">生成与组合示例</a>。</p>
+<h3 id="state-step-abi">8.3 显式状态入口</h3>
+<p><code>state_step</code> 入口接收 Runtime 根据 <code>input_ref</code> 装载的固定业务输入，以及同次推进固定的 frame。首次 frame 的 <code>state</code> 为 <code>null</code>、<code>base_revision</code> 为 <code>"0"</code>，作者据固定业务输入构造符合 <code>state_schema</code> 的首个状态；此后使用上一份已确认状态。原操作结果、获准输入批次和执行 fence 均由 Runtime 提供；结果和输入只是当前调用获准的范围，不是全部 Work 邮箱或历史。入口只作一次有限纯计算，返回新状态、操作意图以及等待或业务结果，不直接调用 SDK、网络、模型、工具或子 Harness。</p>
+<details class="reference-detail" id="state-step-types"><summary>State step 类型 · state-step-contracts.ts</summary><div class="detail-body"><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-state-step-types" type="button">复制</button><pre id="code-state-step-types"><code class="language-typescript">import type { Json, Ref, InputDelivery } from &#x27;./event-contracts&#x27;;
+import type { HarnessOutcome } from &#x27;./harness-contracts&#x27;;
+export type AdvanceFrame = {
+  run_id: string;
+  binding_ref: Ref;
+  state_schema: number;
+  state: Json;
+  base_revision: string;
+  saved_results: Array&lt;{
+    operation_id: string;
+    outcome_ref: Ref;
+    value: Json;              // 原操作 DTO；大载荷仍以 Ref 表达
+  }&gt;;
+  batch_deliveries: InputDelivery[];
+  fence: string;              // Runtime 给出；函数原样返回，不能自行生成
+};
+export type AdvanceIntent = {
+  method: string;             // 已登记的受管端口方法，不是任意 RPC 方法
+  request: Json;              // 对应方法的请求 schema，去掉 Runtime 身份／请求键字段
+};
+export type AdvanceWait =
+  | { kind: &#x27;operations&#x27;; join: &#x27;all&#x27; | &#x27;any&#x27;;
+      operations: Array&lt;
+        | { operation_id: string; intent_index?: never }
+        | { intent_index: number; operation_id?: never }&gt;; }
+  | { kind: &#x27;inputs&#x27;; filter: { subscription_id?: string; types?: string[] } }
+  | { kind: &#x27;until&#x27;; deadline: string };
+export type AdvanceDecision = {
+  base_revision: string;
+  fence: string;
+  state: Json;
+  intents: AdvanceIntent[];
+} &amp; (
+  | { wait: AdvanceWait; result?: never }
+  | { result: HarnessOutcome[&#x27;business_result&#x27;]; wait?: never }
+);
+// Runtime 先按 input_ref 装载固定业务输入；此入口只进行一次有限纯计算。
+export type StateStepEntry = (input: Json, frame: AdvanceFrame) =&gt; AdvanceDecision;</code></pre></div></div></details>
+<p><code>intents</code> 按数组顺序持久登记，以该阶段及意图位置形成稳定身份；函数不能自行生成 Operation 身份、请求键或派发。同批次意图的请求必须自足且可共同登记，独立外部操作可以并行，保存的顺序不随完成顺序改变。需要依据某项结果或确认停止决定后续请求时，先等待原操作，再由下一 frame 计算；跨阶段的先后关系由已保存推进状态确定，不另设批次执行器或预填未知结果。<code>intent_index</code> 是本次数组的零起始位置；等待列表非空、引用有效，<code>deadline</code> 使用明确时区的绝对时间。输入等待仍使用当前 scope 的领取规则。</p>
+<p>Runtime 检查原 <code>base_revision</code>、fence、状态 schema、方法请求与授权，将新状态、操作身份、等待或业务结果在同一持久决定中确认。<code>inputs.complete</code>／<code>inputs.transfer</code> 等控制意图直接在这一被接受的推进提交中核对并确认，不作为稍后可重试的外部效果；不能先保存新状态，再单独改变输入处置权。模型、工具、Harness 启动等外部意图登记 Operation 后由已有机制派发；需要其回执或结果才能处置输入时，等待原操作，再由下一 frame 作决定。等待与业务终态互斥；业务结果同时有未结操作时，沿用 HarnessOutcome 的责任接管要求。重复推进复用已接受的决定；旧修订或旧执行者不能再次提交。<code>AdvanceIntent.request</code> 使用已有模型、工具、内容、事件、输入和 Harness 端口的请求 schema，受信身份与请求键仅由 Runtime 填入；意图若自行携带这些字段、使用未知方法或不相容请求，在阶段提交前拒绝，不维护另一套语义相似的操作定义。</p>
+
+
+<h3 id="work-configuration">8.4 初始 Work 配置</h3>
+<p>Work 配置声明初始 Harness 的代码引用、入口、逻辑执行环境、模型服务和任务资源；宿主配置决定实际服务、版本及授权。下面是与执行引擎无关的 <code>work.toml</code> 目标结构 4；动态子调用使用同样的 Harness 请求契约，不要求为每份新代码发布 Worker 或建立新 Work。示例中的逻辑引用均须先解析，不能把未验证的组合标成可用。</p>
+<div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-21" type="button">复制</button><pre id="code-21"><code class="language-toml">schema_version = 4
+
+[harness]
+code_ref = "harness:basic@locked"
+entry = "main"
+environment = "harness-js"
+
+[runtime]
+service = "primary-runtime"
+
+[model]
+service = "primary-model"
+
+[userspaces.app]
+resource = "project-app"
+access = "write"
+delivery = "per-tool"
+
+[targets.default]
+profile = "local-default"
+userspaces = ["app"]
+</code></pre></div>
+<p><code>code_ref</code> 解析为本章规定的不可变代码描述及材料；描述中的许可入口决定 <code>mode</code>、<code>state_schema</code> 和依赖要求，宿主解析实际 SDK、依赖摘要、运行时与执行绑定。Basic 不要求 <code>[surface]</code>；Worksurface 入口要求其 Surface 资源。Work 只声明逻辑资源，物理目录、引擎端点与私有 credential_ref 留在宿主。结构 3 的 T 专用 <code>workflow_type</code> 不再属于公开 Harness 配置；迁移时解析原预装代码与绑定，不静默把它变成动态顺序程序。</p>
+<p>工具使用的 <code>targets</code> 声明用户环境；<code>harness.environment</code> 声明执行推进程序所需的逻辑环境，两者分别核验入口和资源范围。需要给一个 Target 提供多个 Userspace 时，可采用下面的公开配置片段；<code>app</code> 与 <code>reference</code> 均须有相应资源声明和授权。</p>
+<div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-22" type="button">复制</button><pre id="code-22"><code class="language-toml"># work.toml 结构 4 的默认 Target 配置片段。
+[targets.default]
+profile = "local-default"
+userspaces = ["app", "reference"]</code></pre></div>
+<p>公开逻辑配置不包含秘密、物理目录、原生资源 ID 或执行引擎连接。宿主服务与实际 Profile 的解析见<a href="configuration.html">组件拼接与宿主配置</a>；代码保存、版本固定与运行权限分别确认，不能靠复制配置取得原调用的执行权。</p>
+<h3 id="harness-author-check">8.5 生成、调用与结果检查</h3>
+<ol>
+<li>编写或生成程序，选择受管顺序或显式状态入口，定义业务输入、状态格式及结果判断；只使用当前调用获准的受管能力。</li>
+<li>保存固定代码与依赖材料，形成完整代码描述并取得 <code>code_ref</code>。图定义按需要另保存为同版本材料，不能替代代码或实际运行依据。</li>
+<li>在创建 Work 时声明初始入口，或从已有调用通过 <code>harness.start</code> 提交固定代码、入口、输入、逻辑环境与收窄限额。启动回执确认 Runtime 已承担责任；丢失回执时核对原键，不换键重启。</li>
+<li>使用 <code>result</code> 等待结果，使用 <code>inspect</code> 核对绑定、阻塞和未结责任，再按本 Harness 的完成条件检查产物。保存业务结果、确认实际停止和结清责任分别判断。</li>
+</ol>
+<p>不可装载的代码或入口返回 <code>invalid_code</code>，缺失依赖返回 <code>dependency_unavailable</code>，作者形式或 SDK 接合不相容返回 <code>unsupported_binding</code>。尚未解析的配置返回 <code>not_ready</code>；原版本无法恢复时保留责任并报告 <code>recovery_incompatible</code> 或具体阻塞原因。授权、限额和重复请求仍按共同规则检查，完整失败与调用类型见<a href="author-types.html#harness-call-types">第 11 章</a>。</p>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="harness.html">← Harness：推进逻辑与组合</a><a href="examples.html">参考 Harness →</a></nav>
+<footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
+</main>
+<dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>
+</body>
+</html>

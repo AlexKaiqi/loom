@@ -4,53 +4,53 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>Provider 类型与命令载荷 · Loom Design Book</title>
+<title>Sandbox 调用与工作接合 · Loom Design Book</title>
 <link rel="stylesheet" href="book.css">
 <script src="book.js" defer></script>
 </head>
 <body>
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
-<div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group"><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<div class="brand-sub">DESIGN BOOK / 实现与拼接</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a>
+<details class="nav-group"><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">12</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html">事件与输入</a>
 <a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html">模型访问</a>
-<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="sandbox.html">用户环境：Sandbox 调用</a>
 <a href="harness.html">Harness：推进逻辑与组合</a>
+<a href="harness-description.html">Harness 描述与作者入口</a>
 <a href="examples.html">参考 Harness</a>
+<a href="graphs.html">图结构与展示</a>
+<a href="author-types.html">接口类型与编码</a>
 <a href="verification.html">运行与契约验收</a>
 </div></details>
-<details class="nav-group is-current" open><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="implementation.html">实现接入与配置</a>
-<a href="author-types.html">接口类型与编码</a>
-<a href="nats.html">NATS／JetStream 接入</a>
-<a href="durable-bindings.html">Durable 组合与接口边界</a>
-<a href="provider-contract.html" class="active" aria-current="page">Provider 类型与命令载荷</a>
-<a href="providers.html">执行后端接入</a>
-<a href="configuration.html">配置、组件组织与版本</a>
-</div></details>
-<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="provider-srt.html">SRT 官方库</a>
-<a href="provider-apple.html">Apple container CLI</a>
-<a href="provider-podman.html">rootless Podman CLI</a>
-<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
-<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
-<a href="provider-e2b.html">E2B SDK</a>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">实现与拼接</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="implementation.html">实现与拼接总览</a>
+<a href="nats.html">事件与输入的实现</a>
+<a href="durable-bindings.html">持久执行的实现</a>
+<a href="harness-execution.html">Harness 执行管理</a>
+<a href="provider-contract.html" class="active" aria-current="page">Sandbox 调用与工作接合</a>
+<a href="configuration.html">组件拼接与宿主配置</a>
 </div></details>
 <details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</div></details></nav></details>
-<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</div></details>
+</nav></details>
+<div class="side-footer">契约与实现 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
 <main id="top">
-
-<section class="chapter"><h1 id="provider-contract">A.4 Provider 类型与命令载荷</h1>
-<p>本页面向 Provider 与工具适配器的实现者，定义 <code>sandbox.provider/2</code>、<code>sandbox.exec/1</code> 和 <code>workspace.access/1</code> 的操作、字段及 schema。任务模型只提供命令、目标等业务参数；Runtime 绑定工作身份、授权和执行记录。<code>round_id</code> 标识所属推进批次，<code>epoch</code> 区分执行所有权的世代，均由所选运行绑定提供。</p>
-<details class="reference-detail" id="section-6-11-tool"><summary>命令载荷：字段、路径、超时与输出</summary><div class="detail-body">
-<p>参考工具调用为 <code>bash(environment="sandbox", target="backend", command="…", cwd={alias:"app", path:"."})</code>。Bash 桥使用该环境已确认的 Bash 路径，转换为 <code>argv=[bash, "--noprofile", "--norc", "-c", command]</code>；通用 Exec 则直接执行 argv，不隐式经过 Shell。以下规范化载荷保存在 <code>payload_ref</code> 中；仅 command/target 等业务参数需要模型提供，默认值由桥和宿主要求补齐并固定。</p>
+<section class="chapter"><h1 id="provider-contract">A.4 Sandbox 调用与工作接合</h1>
+<p>本页定义 Loom 如何消费独立的 <a href="https://github.com/AlexKaiqi/ondemand-sandbox">Sandbox 能力</a>：将模型工具参数固定成 Work 的原请求，绑定授权和预算，调用完整执行能力，保存公开检查点并接管结果及产物。Sandbox 的目标契约、后端配置和接口由该仓库维护；目标材料为 <code>docs/user-environment.md</code> 与 <code>docs/backend-reference.md</code>。Loom 不另定义 Provider、不导入后端 SDK，也不组装环境准备、稳定化、传输和清理流程。</p>
+<p>Sandbox 持有实际执行域、原生命令、文件交付与清理状态；Loom 持有消费侧 Operation、授权和继续依据。公开检查点与结果是二者的交接证据，不能把同一份本地 journal 变成两套 Work 控制权。选定 Sandbox 公开版本不能表达必需要求或尚未通过接合验收时返回 <code>not_ready</code>，不以当前实现反向降低目标。</p>
+<h3 id="agent-tool-bridge">从模型工具到 Sandbox 调用</h3>
+<p>模型可见的 <code>bash</code> 示例见<a href="sandbox.html#agent-tool">第 6 章</a>。Harness 注册工具说明和参数 schema；收到原模型响应中的 tool call 后，根据原模型操作及 tool call 身份固定这次工具操作，验证业务参数，将 <code>command</code> 作为获准 Bash 的字面输入转换为 Exec 请求，并补齐已声明的默认值。相同逻辑调用恢复时复用原键，不能重取一个键再执行。</p>
+<p>工具适配调用 <code>execution.submit</code>，取得原 Operation，再通过 <code>execution.result</code> 等待结果或 <code>execution.inspect/cancel</code> 处理原执行。Runtime 按本页固定授权、预算、Sandbox Binding 及文件版本；Sandbox 的公开 SDK／CLI 接合只存在于受信执行路径中，模型不直接操作部署或供应商 SDK。连续调用的文件版本及会话／终端区别由<a href="sandbox.html#provider-catalog">第 6 章</a>定义。</p>
+<p>模型需要输出、真实执行状态及必要产物信息；Harness 可以返回摘要或流式预览，Runtime 仍保存完整结果及缺口。流式输出是否可用随公开能力判断，流式输出本身不意味着存在 PTY。后续模型请求采用已保存工具结果；结果确认丢失时回取原结果，不重新运行命令。</p>
+<details class="reference-detail" id="section-6-11-tool" open><summary>A.4.1 模型工具参数：tool.exec/1</summary><div class="detail-body">
+<p>模型只提供命令、逻辑 Target 和获准资源内的位置等业务参数。Bash 桥明确把 <code>command</code> 作为指定 Shell 程序的输入；通用 Exec 使用 <code>argv</code>，不隐式经过 Shell。Loom 保存原业务请求，并把参数转换为所选 Sandbox 的公开任务格式；后端仅支持字符串时的 Shell 参数引用、实际 Bash 路径和启动文件安全由 Sandbox 接合验证，不能靠未经验证的字符串拼接执行。</p>
 <div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-10" type="button">复制</button><pre id="code-10"><code class="language-json">{
   "schema_version": 1,
   "argv": [
@@ -65,7 +65,18 @@
   "stdin_ref": null,
   "timeout_ms": "120000",
   "capture_limit_bytes": "8388608"
-}</code></pre></div><div class="table-wrap" tabindex="0"><table><thead><tr><th>字段</th><th>固定语义</th></tr></thead><tbody><tr><td data-label="字段"><code>argv</code></td><td data-label="固定语义">非空字符串数组；首项非空，不允许 NUL。直接传给执行设施；不拼接成宿主 Shell 字符串。包含 Bash 语法时由桥明确选择 Bash。</td></tr><tr><td data-label="字段"><code>cwd</code></td><td data-label="固定语义">必需的授权资源别名和根内相对路径。<code>.</code> 指向绑定的执行根。拒绝绝对路径、NUL、<code>..</code> 路径段及实际根外解析；字符串校验之后仍检查软链与物理授权范围。本 v1 只覆盖具备文件工作副本的任务。</td></tr><tr><td data-label="字段"><code>env / stdin_ref</code></td><td data-label="固定语义">env 为经授权的非秘密业务变量，默认空；不自动继承 HOME、代理／调试注入或管理环境变量。stdin_ref 为已授权原始字节引用，null 表示空输入并关闭 stdin。Provider 凭据不在载荷中。</td></tr><tr><td data-label="字段"><code>timeout_ms</code></td><td data-label="固定语义">正十进制字符串。桥从 Profile 和宿主上限取允许值并写入请求；它是执行超时，不是 RPC 等待超时。实现不能落实相应超时／停止语义时，在派发前拒绝。超时后是否停止仍需原生证据。</td></tr><tr><td data-label="字段"><code>capture_limit_bytes</code></td><td data-label="固定语义">stdout 与 stderr 合计的完整捕获上限；本例为 8 MiB，仅是示例配置，不是全局默认。超过时请求停止，保留已得字节和 output_limit 诊断，不能标记完整输出。面向模型的预览和分页还须遵守所选 Harness 的<a href="harness.html#harness-minimum">上下文容量策略</a>。</td></tr><tr><td data-label="字段">执行模式</td><td data-label="固定语义">v1 只提供非交互前台执行，不打开 TTY。不得把命令中的后台进程视为独立已登记任务；需要 async、TTY、长服务或端口会话时，须另行协商其生命周期能力。一个活跃 Allocation 内可顺序运行多条命令。</td></tr></tbody></table></div><details class="sb-details"><summary>ToolExecRequest v1 · 可复制的 JSON Schema</summary><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-11" type="button">复制</button><pre id="code-11"><code class="language-json">{
+}</code></pre></div>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>字段</th><th>Loom 工具语义与消费检查</th></tr></thead><tbody>
+<tr><td data-label="字段"><code>argv</code></td><td data-label="Loom 工具语义与消费检查">非空字符串数组，首项非空，不允许 NUL。原样表达程序参数；适配到不同执行方式时不修改业务身份。包含 Shell 语法的工具必须明确选择 Shell。</td></tr>
+<tr><td data-label="字段"><code>cwd</code></td><td data-label="Loom 工具语义与消费检查">授权资源别名和根内相对路径；<code>.</code> 是该执行根。拒绝绝对路径、NUL 和 <code>..</code> 路径段；Sandbox 仍须在实际执行域核验软链及根范围，不以字符串检查代替物理限制。</td></tr>
+<tr><td data-label="字段"><code>env / stdin_ref</code></td><td data-label="Loom 工具语义与消费检查">仅传经授权的非秘密业务变量，默认空，不继承管理环境或调试注入。stdin 使用已授权的固定字节；null 表示空输入并关闭 stdin。Sandbox 凭据不进入载荷。</td></tr>
+<tr><td data-label="字段"><code>timeout_ms</code></td><td data-label="Loom 工具语义与消费检查">正十进制字符串，是任务执行期限；Loom 按 Work／Target 要求固定，Sandbox 按公开能力验证和落实。RPC 等待超时独立表达，不能当作原任务已停止。</td></tr>
+<tr><td data-label="字段"><code>capture_limit_bytes</code></td><td data-label="Loom 工具语义与消费检查">stdout/stderr 合计捕获上限，示例 8 MiB 不是默认保证。上限处置与停止要求交给 Sandbox；保留已得字节及缺口，不能标完整输出。模型预览由 Harness 控制。</td></tr>
+<tr><td data-label="字段">模式</td><td data-label="Loom 工具语义与消费检查">此工具 v1 表达非交互前台任务，不打开 TTY；后台服务、端口或长会话必须使用已声明的公开会话能力，不能靠命令中的后台符号逃离责任。</td></tr>
+</tbody></table></div>
+<p><code>tool.exec/1</code> 是 Loom 模型工具的业务载荷，不是 Sandbox 的执行协议；Sandbox 公开请求与返回格式随所绑定版本维护。</p>
+<h4>ToolExecRequest v1 · 业务载荷 Schema</h4>
+<div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-11" type="button">复制</button><pre id="code-11"><code class="language-json">{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:loom:tool-exec:1",
   "title": "ToolExecRequest v1",
@@ -168,8 +179,12 @@
       }
     }
   }
-}</code></pre></div></details>
-<p>Schema 只检查结构；首项、范围、平台、路径解析、预算和实际授权另作语义校验。所有未知键拒绝。声明大小不能替代实际字节校验；request_key 按身份与原操作契约绑定第一次保存的原始载荷，不因桥重启重新生成业务身份。</p>
+}</code></pre></div>
+<p>Schema 只检查结构；资源权限、预算、实际能力、路径与停止语义还须验证。未知业务键拒绝；声明字节大小不能替代实际内容校验。同一稳定键绑定首次保存的原始有效载荷，桥重启不另生成业务身份。</p>
+</div></details>
+<h3 id="sandbox-binding">A.4.2 Work 授权、原 Operation 与固定目的地</h3>
+<p>Loom 将逻辑 Target 解析为获准 Sandbox 入口、确定公开版本和非秘密 Binding，并固定获准文件来源、基线、实际要求及预算。Sandbox 的配置与参数语义由 Sandbox 负责；Loom 保存原目的地的公开绑定快照或引用，不读取或维护后端私有 options。凭据在受信侧按服务注入，不写 Work、检查点或任务环境。</p>
+<p>派发前先保存有效请求、原 Operation 及执行责任，按当前授权核验本次消费范围和预算。请求中自报的目录、环境、Work 或 fence 不授权限。以下是 Loom 内部 <code>loom/2</code> 封装，<code>work_id</code>、<code>round_id</code> 和 <code>operation_id</code> 用于工作关联；Work 身份与所有权从受信连接确认，不把这些字段作为 Sandbox 必须理解的业务概念。</p>
 <div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-12" type="button">复制</button><pre id="code-12"><code class="language-json">{
   "jsonrpc": "2.0",
   "id": "rpc-42",
@@ -191,276 +206,72 @@
     "operation_id": "work-card/input/42/step/12/tool/2"
   }
 }</code></pre></div>
-<p>分配和查询入口采用 <code>loom/2</code>；params 带 <code>schema_version=1</code>，并匹配受信 Worker／Activity 身份。写操作提供 request_key，只读操作不创建执行责任。<code>observation_ref</code> 指向已保存观测，其含义由观测类型确定。</p>
-<div class="table-wrap" tabindex="0"><table class="sb-inline-contract"><thead><tr><th>公开操作</th><th>params 必需字段</th><th>返回的最小字段</th></tr></thead><tbody>
-<tr><td data-label="公开操作"><code>allocation.acquire</code></td><td data-label="params 必需字段"><code>request_key, target</code>；Profile 和资源要求从本 Work 的确定配置取得，不接受模型覆盖管理 options。</td><td data-label="返回的最小字段"><code>allocation_id, effect_id, accepted_fact_id, observation_ref</code>；最后一项可为 null，表示还没有就绪观察。申请身份先分配并持久保存，原生资源 ID 可以晚到。</td></tr>
-<tr><td data-label="公开操作"><code>allocation.inspect</code></td><td data-label="params 必需字段"><code>allocation_id</code>；只查询原申请／原分配。</td><td data-label="返回的最小字段"><code>allocation_id, provider_binding_ref, observation_ref, workspace_access_ref</code>；未知项为 null。原生状态、每项能力与证据通过观察记录读取。</td></tr>
-<tr><td data-label="公开操作"><code>allocation.release</code></td><td data-label="params 必需字段"><code>request_key, allocation_id</code>；提出结束本次使用，不授权删除 Userspace。</td><td data-label="返回的最小字段"><code>effect_id, accepted_fact_id</code>；后续按该 Effect 查询实际归还。是否删除底层专属对象由受信保留／清理规则决定。</td></tr>
-<tr><td data-label="公开操作"><code>effect.inspect / cancel</code></td><td data-label="params 必需字段">inspect：<code>effect_id</code>。cancel：<code>request_key, effect_id</code>；绑定原对象，不要求调用者再提供当前 target。</td><td data-label="返回的最小字段">inspect 返回下文 Observation 类型所定义的当前状态与记录引用；cancel 返回原 <code>effect_id, accepted_fact_id</code>，仅说明取消请求已保存。首次取消已确认后重复请求返回同一回执。</td></tr>
-</tbody></table></div>
-<p>工具桥发现 Target 尚无分配时，先以从该工具意图稳定派生的申请 key 完成 <code>allocation.acquire</code> 和 Ready 检查，再受理有具体目的地的工具 Effect。申请本身有独立 Effect，不能无记录地启动环境。申请超时就核对原申请；不能为了让工具继续而另建第二台环境。Harness 也可预先取得环境；不要求模型每次手动 acquire。</p>
+<p>普通工具把命令和文件要求交给 Sandbox 的完整任务入口，不先向后端创建环境再自行调用 Execute。申请、文件准备、实际执行、稳定产物和资源结束由 Sandbox 维护；消费侧只保存公开交接。需要会话时，固定该公开会话的原引用及有效范围，不授予其他 Work 或新命令权限。</p>
 <div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-13" type="button">复制</button><pre id="code-13"><code class="language-json">{
-  "jsonrpc": "2.0",
-  "id": "rpc-42",
-  "result": {
-    "schema_version": 1,
-    "effect_id": "E42",
-    "request_ref": {
-      "sha256": "09ec641743c97103cdf2e88f46e43efee2983e3246c705d277c3b31334e2f354",
-      "size_bytes": "174",
-      "media_type": "application/json"
+  &quot;jsonrpc&quot;: &quot;2.0&quot;,
+  &quot;id&quot;: &quot;rpc-42&quot;,
+  &quot;result&quot;: {
+    &quot;schema_version&quot;: 1,
+    &quot;effect_id&quot;: &quot;E42&quot;,
+    &quot;request_ref&quot;: {
+      &quot;sha256&quot;: &quot;09ec641743c97103cdf2e88f46e43efee2983e3246c705d277c3b31334e2f354&quot;,
+      &quot;size_bytes&quot;: &quot;174&quot;,
+      &quot;media_type&quot;: &quot;application/json&quot;
     },
-    "accepted_fact_id": "F120",
-    "destination_binding": {
-      "target": "default",
-      "allocation_id": "A7",
-      "binding_generation": "2",
-      "provider_scope": {
-        "provider": "local-process/v1",
-        "service_id": "local",
-        "endpoint": "local://host-6"
+    &quot;accepted_fact_id&quot;: &quot;F120&quot;,
+    &quot;destination_binding&quot;: {
+      &quot;target&quot;: &quot;default&quot;,
+      &quot;sandbox_binding_ref&quot;: {
+        &quot;sha256&quot;: &quot;05cb734f1b7b9ccd456fd397f654b453f5757365edf286051ddbffda885436a3&quot;,
+        &quot;size_bytes&quot;: &quot;23&quot;,
+        &quot;media_type&quot;: &quot;application/json&quot;
       },
-      "provider_binding_ref": {
-        "sha256": "05cb734f1b7b9ccd456fd397f654b453f5757365edf286051ddbffda885436a3",
-        "size_bytes": "23",
-        "media_type": "application/json"
+      &quot;userspace_bindings_ref&quot;: {
+        &quot;sha256&quot;: &quot;14b363397647f7c4616a05d8445979bb5b4b287b7a82d2c16d5e8536dbbad8ea&quot;,
+        &quot;size_bytes&quot;: &quot;25&quot;,
+        &quot;media_type&quot;: &quot;application/json&quot;
       },
-      "userspace_bindings_ref": {
-        "sha256": "14b363397647f7c4616a05d8445979bb5b4b287b7a82d2c16d5e8536dbbad8ea",
-        "size_bytes": "25",
-        "media_type": "application/json"
-      },
-      "workspace_access_ref": {
-        "sha256": "5e9e42074c1393394f9f66fb6d5000bffcde84087bb6b1434184f9eca2c69694",
-        "size_bytes": "23",
-        "media_type": "application/json"
-      }
+      &quot;workspace_access_ref&quot;: null
     }
   }
 }</code></pre></div>
-<p><code>request_ref</code> 是按该 kind 验证后持久保存的原载荷；<code>destination_binding</code> 是另行固定的目的地。二者共同绑定请求，不将可变 Profile 作为后续查询依据。provider_binding_ref 包含本章 Target 与绑定规则的完整 options_json；workspace_access_ref 是下文执行路径映射。受理回执不包含可重用的派发许可。</p>
-</div></details><details class="reference-detail" id="section-6-11-provider"><summary>Provider 核心、可选接口、DTO 与能力 Schema</summary><div class="detail-body">
-<p><code>sandbox.provider/2</code> 是 Loom 内部适配契约。共同核心提供资源描述、取得、查询和归还；执行、命令查询、停止、稳定内容与传输分别协商。所有变更经过原操作身份与本次有效的派发许可；只读查询不会重新执行原动作。能力描述覆盖完整适配组合，包括提供稳定来源或停止证据的执行及内容组件。</p>
-<div class="table-wrap" tabindex="0"><table><thead><tr><th>操作／能力</th><th>输入</th><th>输出与必要约束</th></tr></thead><tbody><tr><td data-label="操作／能力">Describe · 核心</td><td data-label="输入">固定的 Provider／service 绑定</td><td data-label="输出与必要约束">兼容接口版本、宿主/执行平台范围、可用操作与限制；只报告能力，不运行用户代码，不授权。</td></tr><tr><td data-label="操作／能力">Acquire · 核心</td><td data-label="输入">申请 Effect、原 key、已选 Profile、获准根与资源绑定</td><td data-label="输出与必要约束">Allocation 的原生关联、workspace access 与实际能力证据；已接受、已创建和 Ready 分开。</td></tr><tr><td data-label="操作／能力">InspectAllocation · 核心</td><td data-label="输入">原 scope/key/Allocation；已知时带 native resource ref</td><td data-label="输出与必要约束">found／not_found／unknown；查询未找到不单独证明从未创建。</td></tr><tr><td data-label="操作／能力">Release · 核心</td><td data-label="输入">原分配、归还 Effect、释放范围与内容保留依据</td><td data-label="输出与必要约束">使用结束、执行隔离、对象删除分别确认；不删除 Userspace。</td></tr><tr><td data-label="操作／能力">Execute · exec/1</td><td data-label="输入">原 Effect／Allocation，argv、解析的 cwd/env/stdin 和预算</td><td data-label="输出与必要约束">原生观察与流；结果注明 task／wrapper／transport 范围，不能混成一个 exit code。</td></tr><tr><td data-label="操作／能力">InspectExecution · exec.query/1</td><td data-label="输入">原命令身份及对应调用绑定</td><td data-label="输出与必要约束">只取原操作状态／可重取字节；不支持时暴露能力缺失，已有本地记录仍可读取。</td></tr><tr><td data-label="操作／能力">StopExecution · exec.stop/1</td><td data-label="输入">取消 Effect、原执行对象、已授权停止范围</td><td data-label="输出与必要约束">返回停止请求及实际证据。仅能停止整个 Allocation 时，须明确返回该范围，由 Runtime 判断是否允许，不能暗中扩大取消。</td></tr><tr><td data-label="操作／能力">Stabilize · content.stable/1</td><td data-label="输入">明确副本范围、要求的 frozen／snapshot／stopped 方式</td><td data-label="输出与必要约束">返回实际可读取的稳定来源和覆盖范围；shared 来源可由宿主执行组件与 ContentPort 共同提供。来源方式、句柄和证据必须相符。</td></tr><tr><td data-label="操作／能力">Resume · content.resume/1</td><td data-label="输入">原分配与原 hold_ref</td><td data-label="输出与必要约束">仅解除原冻结；只有声明 frozen 的组合必须提供，不要求所有 VM 有冻结功能。</td></tr><tr><td data-label="操作／能力">ImportContent / ExportContent · content.transfer/1</td><td data-label="输入">确定内容或稳定来源，原副本与预期基线</td><td data-label="输出与必要约束">传输回执和完整性；shared 不调用，无需为了统一调用顺序而额外复制。</td></tr></tbody></table></div><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-14" type="button">复制</button><pre id="code-14"><code class="language-go">type Provider interface {
-    Describe(context.Context) (ProviderDescriptor, error)
-    Acquire(context.Context, AcquireRequest) (AllocationObservation, error)
-    InspectAllocation(context.Context, AllocationQuery) (AllocationObservation, error)
-    Release(context.Context, ReleaseRequest) (ReleaseObservation, error)
-}
-
-// Independent optional interfaces; the descriptor declares tested constraints.
-type Executor interface {
-    Execute(context.Context, ExecRequest, ObservationSink) (ExecutionObservation, error)
-}
-type ExecutionInspector interface {
-    InspectExecution(context.Context, ExecutionQuery) (ExecutionObservation, error)
-}
-type ExecutionStopper interface {
-    StopExecution(context.Context, StopRequest) (ExecutionObservation, error)
-}
-type StableContentProvider interface {
-    Stabilize(context.Context, StabilizeRequest) (StableSource, error)
-}
-type ContentResumer interface {
-    Resume(context.Context, ResumeRequest) (ResumeObservation, error)
-}
-type TransferProvider interface {
-    ImportContent(context.Context, ContentImport) (TransferObservation, error)
-    ExportContent(context.Context, ContentExport, ContentSink) (TransferObservation, error)
-}</code></pre></div>
-<p>Provider 负责执行与资源管理；推进策略和业务完成判断由 Harness 负责，工作状态由 Runtime 保存。稳定内容与传输是可选能力，但声明可写文件且承诺 <code>per-tool</code> 保存的 Profile，必须在每次工具执行后提供可用的稳定读取路径。Loom 的内容库统一写 Git 与 records；Provider 只提供稳定来源或传输，不各自维护另一份权威文件历史。Execute 的前台超时约束由该锁定后端实际实现；可选 exec.stop/1 指另外发起取消所需的接口，不免除已经承诺的超时与清理责任。</p>
-<div class="table-wrap" tabindex="0"><table><thead><tr><th>类型</th><th>最小字段与约束</th></tr></thead><tbody><tr><td data-label="类型">公共操作绑定</td><td data-label="最小字段与约束"><code>schema_version=1</code>、<code>operation_id</code>（对应已登记的 Effect ID）、<code>work_id / round_id / epoch</code>、<code>allocation_id / binding_generation</code>、<code>provider_binding_ref</code>、原请求引用。Describe 和只读查询不要求新的 operation_id。有效身份来自受信调用与 Runtime，不信任任务自报。</td></tr><tr><td data-label="类型"><code>AcquireRequest / AllocationQuery</code></td><td data-label="最小字段与约束">AcquireRequest：公共调用绑定 + 预分配的 allocation_id/binding_generation、request_key、target、profile_ref、provider_binding_ref、userspace_bindings_ref、requirements、trusted_roots。requirements 固定所需能力；trusted_roots 是宿主核验后的物理资源句柄集合，不由任务填写。AllocationQuery：原 provider_binding_ref、allocation_id、binding_generation、原 request_key，及可为空的 native_resource_ref；不传新的目标定义。</td></tr><tr><td data-label="类型"><code>ExecutionQuery / StopRequest</code></td><td data-label="最小字段与约束">查询包含原 effect_id、allocation_id、binding_generation、provider_binding_ref 和 nullable native_execution_ref；没有原生 ID 时按该后端声明的 request_key 核对。StopRequest 另带取消责任 operation_id 与请求范围，不另造 command；目标只能是原执行及它的受管后代，不能因无命令级停止能力而误停共享环境中的其他任务。</td></tr><tr><td data-label="类型"><code>ReleaseRequest</code></td><td data-label="最小字段与约束">原分配绑定 + operation_id + disposition（end_usage 或 destroy）+ retention_clearance_ref。end_usage 结束本次使用；随后删除保留的专属对象，用 disposition=destroy 和独立清理 Effect。清理许可绑定明确内容保留及身份；上游释放不可避免地删除对象时，必须在调用前满足对应保留条件，否则拒绝销毁。对外 allocation.release 不直接授予模型修改这些管理字段的权限。</td></tr><tr><td data-label="类型"><code>StabilizeRequest / ResumeRequest</code></td><td data-label="最小字段与约束">StabilizeRequest：原分配、operation_id、working_copy_id、scope_ref、expected_base_ref、mode（frozen/snapshot/stopped）。后端不得静默换 mode。ResumeRequest：原分配、operation_id、hold_ref；只解除同一冻结，不启动新的任务。ResumeObservation：resumed/not_applicable/unknown + 原 hold_ref 与证据；快照或已停来源不用伪造一次 Resume。</td></tr><tr><td data-label="类型"><code>ContentImport / ContentExport</code></td><td data-label="最小字段与约束">公共绑定 + working_copy_id、scope_ref、expected_base_ref。Import 提供 source_content_ref；Export 提供 stable_source_ref。字节经过受信内容源／sink，临时路径限于适配器内部。传输请求与结果保存到 Effect／records。</td></tr><tr><td data-label="类型"><code>ProviderDescriptor</code></td><td data-label="最小字段与约束"><code>interface_version="sandbox.provider/2"</code>、<code>provider</code>、<code>capabilities</code>（name/version/constraints）；<code>platform_pairs</code> 每项声明 host_os、execution_os 与 architecture_relation（native/declared_by_allocation）；按组合校验，不把两个 OS 列表作笛卡尔积，location 为 local/remote；content_modes 为 shared/transfer；网络规则与停止/硬配额的真实范围见 constraints。<code>query_by_request_key</code>、<code>execution_lookup</code>（native_id/request_key/none）、<code>result_retention</code>（scope/expiry/可否重取）、<code>disconnect_behavior</code>（continues/stops/unknown）均不可缺省推成支持。描述特定锁定组合，而非整个品牌永久能力。</td></tr><tr><td data-label="类型"><code>AllocationObservation</code></td><td data-label="最小字段与约束"><code>request_key / allocation_id / binding_generation</code>、<code>provider_binding_ref</code>、nullable <code>native_resource_ref</code>、<code>resource_state</code>（creating/running/stopped/missing/unknown）、<code>capability_observations</code>、<code>workspace_access_ref</code>、<code>observed_at / evidence_refs</code>。未知/未支持明确表达；资源存在并不表示任一能力 Ready。</td></tr><tr><td data-label="类型"><code>ExecRequest</code></td><td data-label="最小字段与约束">公共绑定 + <code>payload_ref</code>、解析后的 <code>argv/cwd/env/stdin</code>、<code>workspace_access_ref</code>、实际预算；派发由当前受信调用授权，不把可缓存的布尔许可作为字段。原生执行引用取得后追加绑定，不回写旧请求。</td></tr><tr><td data-label="类型"><code>ExecutionObservation</code></td><td data-label="最小字段与约束">原 Effect／Allocation／native execution ref，observed_at、evidence_refs、原生状态与输出；<code>outcome_scope</code> 必需为 task/wrapper/transport。exit(code) 与 signal 分别表达；超时、失联只是观测原因。包装进程（wrapper）或传输连接（transport）退出，不能直接认定任务（task）成功，只有对应后端明确保证等价并保存证据才能映射。保留 partial 输出，缺少完整流或终态不确认完整 native_result。</td></tr><tr><td data-label="类型"><code>StableSource</code></td><td data-label="最小字段与约束"><code>working_copy_id</code>、<code>scope_ref</code>、<code>mode</code>（frozen/snapshot/stopped）、<code>stable_source_ref</code>、<code>evidence_refs</code>、nullable <code>hold_ref</code>；只证明本次范围可稳定读取。freeze 申请与恢复由已有责任保护，失败保持阻塞，不作为普通临时缓存。</td></tr><tr><td data-label="类型"><code>TransferObservation</code></td><td data-label="最小字段与约束">原导入/导出 Effect、源引用、目标副本及范围、字节摘要、完整性、原生回执引用。Loom 完成内容耐久和版本提交后才形成 <code>content_delivery=confirmed</code>，不能把上传 HTTP 200 当内容版本已确认。</td></tr><tr><td data-label="类型"><code>ReleaseObservation</code></td><td data-label="最小字段与约束">原 Allocation；<code>usage</code>（held/ended/unknown）、<code>execution</code>（active/fenced/unknown）、<code>resource</code>（retained/removed/unknown）、原生计费观测（可未知）与 evidence_refs。若有已登记独立清理责任，Harness 无需为清理常驻。</td></tr></tbody></table></div>
-<div class="note"><p>稳定来源必须支持捕获方的实际读取路径。暂停环境会同时停止其文件服务时，须采用可用的快照或共享存储读取。容器 rootfs 导出不包括未经验证的挂载副本快照。要求 <code>per-tool</code> 保存的可写 Profile 必须具备稳定读取能力，否则拒绝该配置。</p></div><details class="sb-details"><summary>实现用最小 Descriptor JSON Schema（随本书定义）</summary><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-15" type="button">复制</button><pre id="code-15"><code class="language-json">{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Loom sandbox.provider/2 descriptor (minimum contract)",
-  "type": "object",
-  "required": [
-    "interface_version",
-    "provider",
-    "location",
-    "platform_pairs",
-    "capabilities",
-    "content_modes",
-    "execution_lookup",
-    "query_by_request_key",
-    "result_retention",
-    "disconnect_behavior"
-  ],
-  "properties": {
-    "interface_version": {
-      "const": "sandbox.provider/2"
-    },
-    "provider": {
-      "type": "string",
-      "minLength": 1
-    },
-    "location": {
-      "enum": [
-        "local",
-        "remote"
-      ]
-    },
-    "capabilities": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "name",
-          "version",
-          "constraints"
-        ],
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "version": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "constraints": {
-            "type": "object"
-          }
-        },
-        "additionalProperties": false
-      }
-    },
-    "content_modes": {
-      "type": "array",
-      "items": {
-        "enum": [
-          "shared",
-          "transfer"
-        ]
-      },
-      "uniqueItems": true
-    },
-    "execution_lookup": {
-      "enum": [
-        "native_id",
-        "request_key",
-        "none"
-      ]
-    },
-    "query_by_request_key": {
-      "type": "boolean"
-    },
-    "result_retention": {
-      "type": "object",
-      "required": [
-        "scope",
-        "expiry",
-        "refetch"
-      ],
-      "properties": {
-        "scope": {
-          "type": "string"
-        },
-        "expiry": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "refetch": {
-          "type": "boolean"
-        }
-      }
-    },
-    "disconnect_behavior": {
-      "enum": [
-        "continues",
-        "stops",
-        "unknown"
-      ]
-    },
-    "platform_pairs": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "object",
-        "required": [
-          "host_os",
-          "execution_os",
-          "architecture_relation"
-        ],
-        "properties": {
-          "host_os": {
-            "enum": [
-              "darwin",
-              "linux"
-            ]
-          },
-          "execution_os": {
-            "type": "string",
-            "minLength": 1
-          },
-          "architecture_relation": {
-            "enum": [
-              "native",
-              "declared_by_allocation"
-            ]
-          }
-        },
-        "additionalProperties": false
-      }
-    }
-  },
-  "additionalProperties": false
-}</code></pre></div></details><div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-16" type="button">复制</button><pre id="code-16"><code class="language-json">{
-  "interface_version": "sandbox.provider/2",
-  "provider": "local-process/v1",
-  "location": "local",
-  "capabilities": [
-    {
-      "name": "exec",
-      "version": 1,
-      "constraints": {
-        "mode": "foreground",
-        "stdio": "separate",
-        "persistent_lookup": false
-      }
-    },
-    {
-      "name": "content.stable",
-      "version": 1,
-      "constraints": {
-        "modes": [
-          "stopped"
-        ],
-        "provided_by": "host execution/store; must be verified before Ready"
-      }
-    }
-  ],
-  "content_modes": [
-    "shared"
-  ],
-  "execution_lookup": "none",
-  "query_by_request_key": false,
-  "result_retention": {
-    "scope": "Loom records after confirmed capture",
-    "expiry": null,
-    "refetch": false
-  },
-  "disconnect_behavior": "unknown",
-  "platform_pairs": [
-    {
-      "host_os": "darwin",
-      "execution_os": "darwin",
-      "architecture_relation": "native"
-    },
-    {
-      "host_os": "linux",
-      "execution_os": "linux",
-      "architecture_relation": "native"
-    }
-  ]
-}</code></pre></div></div></details><details class="reference-detail" id="section-6-11-files"><summary>workspace.access/1：shared 与 transfer</summary><div class="detail-body">
-<p><code>userspace.binding/1</code> 保存逻辑资源、授权和基线；<code>workspace.access/1</code> 记录相应执行路径及 shared／transfer 方式。Runtime 在获准的 <code>allocation.inspect</code> 回执中提供任务可用路径，管理路径、密钥和挂载句柄仅在受信侧使用。</p>
-<div class="table-wrap" tabindex="0"><table><thead><tr><th>字段</th><th>类型与语义</th></tr></thead><tbody><tr><td data-label="字段">记录头</td><td data-label="类型与语义"><code>schema_version=1</code>、<code>allocation_id</code>、<code>binding_generation</code>、<code>userspace_bindings_ref</code>；<code>roots</code> 为根映射数组。</td></tr><tr><td data-label="字段">每个根</td><td data-label="类型与语义"><code>alias / working_copy_id / access</code>（read/write）、<code>content_mode</code>（shared/transfer）、<code>execution_root</code>、<code>base_ref</code>、<code>scope_ref</code>。其中身份和范围必须与原 userspace 绑定匹配。</td></tr><tr><td data-label="字段"><code>execution_root</code></td><td data-label="类型与语义">本执行环境内的实际绝对路径；local 模式是已授权真实宿主路径，Linux VM 可以是 /workspace。路径只在该 Allocation 内有效，不作为可移植资源身份。发布给模型前过滤未获准根。</td></tr><tr><td data-label="字段"><code>content_mode=shared</code></td><td data-label="类型与语义">执行域与获准持久存储使用同一份副本（直接使用、bind mount 或经验证的持久卷）。不调用内容导入/导出；仍需稳定来源与版本确认。</td></tr><tr><td data-label="字段"><code>content_mode=transfer</code></td><td data-label="类型与语义">运行期文件位于不能共享的任务存储。先导入确定基线，后从稳定来源导出；必要文件未确认前不能按临时盘策略销毁。</td></tr><tr><td data-label="字段">受信物理绑定</td><td data-label="类型与语义">真实 storage_scope、存储 locator／根句柄、路径规范化证据、挂载参数、共享卷与访问凭据由宿主解析。不得用模型提供的目录名、软链或环境名绕过根范围；远程 Provider 不能把控制主机路径当自己的 hostPath。</td></tr></tbody></table></div>
-<p>同一个 Profile 可以选择一种已支持内容方式，但不可在某次传输失败后静默切换；方式、路径和副本绑定在 Allocation 中固定，重新分配另留新绑定。可写请求默认按可能修改必要文件处理，不依赖模型说“只读”降低保存要求。纯只读资源或无文件操作可返回 <code>content_delivery=not_required</code>，需有真实授权依据。</p>
+<p><code>request_ref</code> 固定本次业务载荷，<code>sandbox_binding_ref</code> 固定 Sandbox 公开消费版本及原目的地。<code>workspace_access_ref</code> 在实际路径尚未交付时为 null；后来取得路径和原生观测时追加记录，不回写原请求。受理回执不包含可重用的派发许可，也不确认 Sandbox 已执行成功。</p>
+<h3 id="sandbox-checkpoints">A.4.3 公开检查点与执行接管</h3>
+<p>Sandbox 的公开 <code>TaskExecutor</code> 或会话入口交付任务结果及恢复证据；具体请求字段以所绑定公开版本为准，不要求 Loom 导入 <code>Provider</code> 私有接口。消费接合将原 Operation 身份关联到该任务请求，固定实际 Binding；查询、取消和归还始终引用原公开对象，不按当前 Profile 重新路由。</p>
+<p>采用 <code>TaskExecutor.Execute</code> 的公开 Checkpoint 回调时，Loom 先核验检查点属于原请求及绑定，保存相应原生关联、阶段、Readiness、输出/产物引用和必要字节，并完成耐久确认，再向回调返回成功。保存失败必须返回失败，由 Sandbox 按其公开契约停止继续该交接或保留原执行与清理责任；不能先确认，再异步补 journal。</p>
+<p>消费 journal 记录 Sandbox 已交付的公开检查点，供 Loom 恢复原 Operation 和重取原对象；它不解释后端私有阶段、不自行决定创建/启动/导出步骤，也不替代 Sandbox 对实际状态的查询。相同交接重复时核对原证据并复用，冲突不覆盖已有记录。尚未取得原生 id 时仍保留已派发记录，不能把空 id 当作未创建或未运行。</p>
+<p>客户端通信成功、Checkpoint 已保存、原任务终态和 Work 已接管内容是不同确认。Sandbox 若只交付包装进程或连接结果，Loom 不将其提升为任务结果；组合须提供真实结果范围、完整性及缺失状态，能力不足时拒绝对应保证。</p>
+<h3 id="sandbox-result-handoff">A.4.4 结果、稳定产物与接管确认</h3>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>Sandbox 交付</th><th>Loom 确认</th><th>失败时保留</th></tr></thead><tbody>
+<tr><td data-label="Sandbox 交付">原命令的结果、输出、用量/费用观测及范围</td><td data-label="Loom 确认">核验原请求，保存实际退出/信号、输出流 separate/combined、完整性与原文。非零退出仍保存为已知结果，业务判断留给 Harness。</td><td data-label="失败时保留">部分输出、已知结果、缺口与费用未知；通信错误不改写为任务退出。</td></tr>
+<tr><td data-label="Sandbox 交付">稳定产物或可读取的稳定来源、范围、摘要和保留条件</td><td data-label="Loom 确认">经 Content 入口校验字节，耐久保存并建立受保护引用；完成接管后才给出内容交接确认。</td><td data-label="失败时保留">Sandbox 的原产物/来源及交付责任；不得提前销毁唯一必要字节。</td></tr>
+<tr><td data-label="Sandbox 交付">资源使用、停止和清理结果</td><td data-label="Loom 确认">保存原对象证据；已接管内容对应的保留条件满足后，确认允许后续结束/清理。</td><td data-label="失败时保留">原查询/取消/清理身份及剩余责任；不覆盖业务结果，不推定费用为零。</td></tr>
+</tbody></table></div>
+<p>Sandbox 在完整任务能力内取得稳定来源、协调必要冻结/快照/停止及文件交付；Loom 不再选择私有 Stabilize／Resume／Export 调用顺序。shared 和 transfer 的实际读取/传输必须随 Sandbox 的公开交付保证核验，HTTP 成功、相同摘要或挂载存在都不能单独证明内容稳定或已持久接管。</p>
+<p>接管顺序是取得可验证字节 → 校验及耐久保存 → 保护内容引用 → 提交原 Operation 的结果/交付记录 → 确认接管。确认通过绑定版本的公开 sink、回调或交付回执表达，不自行发明后端私有 ACK。Sandbox 已把字节交给经确认的持久 sink 时可据该证明清理；没有接管证明时必须保留原来源或明确未满足条件。</p>
+<p><code>content_delivery=confirmed</code> 只表示 Loom 已完成相应内容接管和版本提交，不是 Sandbox 上传成功或原任务已退出。共享项目整合继续通过 <code>content.apply</code> 的预期基线校验完成；执行副本的产物保存不直接更新用户项目。</p>
+<h3 id="sandbox-recovery">A.4.5 原请求查询、取消与 Work 关闭</h3>
+<p>重启先读取原 Operation、公开 Binding 和 Checkpoint。已确认结果直接复用；可能已派发则通过原 <code>Query</code>／会话查询入口核对，缺少原生身份或不支持查询时保持 unknown。只读核对不启动、重建或重做原任务；对环境进行 resume、续期等变更需按公开语义另受理。</p>
+<p>取消先保存原 Operation 的取消责任，再通过 <code>Cancel</code>／公开会话入口请求停止原任务及授权后代。只有整会话停止能力时，Sandbox 明确返回影响范围，Loom 核对独占性及 Work 授权；不能暗中停止共享环境中的其他任务。原生停止、可能已发生的结果、费用和资源删除分别确认。</p>
+<p>closing 拒绝新的业务意图，但允许核对原对象、接收迟到结果、接管必要字节和处理清理。必要内容受保护后，Sandbox 的原资源释放经公开 <code>Release</code> 或对应会话入口处理。Loom 可将消费侧剩余核对任务交给独立持久承接者，取得承接回执后让原 Harness 结束；承接者仍调用 Sandbox 查询原状态，不复制另一份执行控制。</p>
+<p>Sandbox 的实际未释放状态和 Loom 的未结责任必须同时可查询。客户端关闭、Work 引擎终态和单次 Release 返回不能替代相应公开资源/停止保证；失败分别报告，独立 Userspace 不随清理删除。</p>
+<details class="reference-detail" id="section-6-11-files" open><summary>A.4.6 workspace.access/1：消费侧文件映射</summary><div class="detail-body">
+<p><code>userspace.binding/1</code> 维护 Loom 的逻辑资源、授权与基线；<code>workspace.access/1</code> 将这些根关联到 Sandbox 对原任务/会话交付的公开执行路径。路径从实际能力回执取得，不由 Loom 推断镜像、挂载或供应商目录，也不由模型提供宿主路径。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>映射信息</th><th>消费语义</th></tr></thead><tbody>
+<tr><td data-label="映射信息">原环境关联</td><td data-label="消费语义">v1 的 <code>allocation_id</code> 与 <code>binding_generation</code> 是消费侧对原公开任务/会话环境的固定关联；同时保留原 Sandbox Binding 与来源回执。它们不授予后端管理权，不要求作者先自行分配环境。</td></tr>
+<tr><td data-label="映射信息">获准根</td><td data-label="消费语义"><code>roots</code> 保存 <code>alias / working_copy_id / access / base_ref / scope_ref</code>，匹配原 Userspace 授权。只向作者提供其可用范围，不发布管理路径或凭据。</td></tr>
+<tr><td data-label="映射信息">执行路径</td><td data-label="消费语义"><code>execution_root</code> 来自 Sandbox 原任务/会话的公开文件映射，只在该对象与世代内有效，不当作可移植资源身份。Sandbox 验证实际根及软链限制，Loom 根据别名和根内相对路径选择获准资源。</td></tr>
+<tr><td data-label="映射信息">内容方式</td><td data-label="消费语义"><code>content_mode</code> 的 shared/transfer 记录该次已固定交付方式。Sandbox 落实共享访问或完整传输；Loom 按公开来源取得并接管内容。失败不静默改变方式或目的地。</td></tr>
+</tbody></table></div>
+<p>物理 storage locator、根句柄、挂载和文件服务凭据归 Sandbox 的宿主配置与实现；Loom 仅通过公开资源/文件契约传递获准来源及范围。可写请求默认要求保存必要变更，不凭模型说“只读”降低保证；纯只读或无产物操作可记录 <code>content_delivery=not_required</code>，须有真实授权与要求依据。</p>
 </div></details>
-</section><nav class="page-pagination" aria-label="阅读顺序"><a href="durable-bindings.html">← Durable 组合与接口边界</a><a href="providers.html">执行后端接入 →</a></nav>
+<details class="reference-detail" id="section-6-11-provider"><summary>旧 Provider 材料的权威归属</summary><div class="detail-body">
+<p>原 <code>sandbox.provider/2</code> 的 Provider 接口、能力 Descriptor、后端 DTO 与配置 schema 已移归 <a href="https://github.com/AlexKaiqi/ondemand-sandbox">Sandbox</a>，定义见 <code>docs/backend-contract.md</code>，后端入口见 <code>docs/backend-reference.md</code>。Loom 不继续维护第二份定义，也不把它们作为自己的消费接口；当前绑定是否满足用户环境要求，以所固定 Sandbox 公开版本和验证报告判断。</p>
+<p id="code-14">Provider 内部接口由 Sandbox 的 <code>docs/backend-contract.md</code> 维护。</p>
+<p id="code-15">后端能力 Descriptor Schema 由同一份 Sandbox 内部设计维护。</p>
+<p id="code-16">Descriptor 示例属于 Sandbox 后端设计，不是 Loom 作者请求。</p>
+</div></details>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="harness-execution.html">← Harness 执行管理</a><a href="configuration.html">组件拼接与宿主配置 →</a></nav>
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>
 <dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>

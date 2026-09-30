@@ -4,134 +4,107 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>Durable 组合与接口边界 · Loom Design Book</title>
+<title>持久执行的实现 · Loom Design Book</title>
 <link rel="stylesheet" href="book.css">
 <script src="book.js" defer></script>
 </head>
 <body>
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
-<div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group"><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<div class="brand-sub">DESIGN BOOK / 实现与拼接</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a>
+<details class="nav-group"><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">12</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html">事件与输入</a>
 <a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html">模型访问</a>
-<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="sandbox.html">用户环境：Sandbox 调用</a>
 <a href="harness.html">Harness：推进逻辑与组合</a>
+<a href="harness-description.html">Harness 描述与作者入口</a>
 <a href="examples.html">参考 Harness</a>
+<a href="graphs.html">图结构与展示</a>
+<a href="author-types.html">接口类型与编码</a>
 <a href="verification.html">运行与契约验收</a>
 </div></details>
-<details class="nav-group is-current" open><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="implementation.html">实现接入与配置</a>
-<a href="author-types.html">接口类型与编码</a>
-<a href="nats.html">NATS／JetStream 接入</a>
-<a href="durable-bindings.html" class="active" aria-current="page">Durable 组合与接口边界</a>
-<a href="provider-contract.html">Provider 类型与命令载荷</a>
-<a href="providers.html">执行后端接入</a>
-<a href="configuration.html">配置、组件组织与版本</a>
-</div></details>
-<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="provider-srt.html">SRT 官方库</a>
-<a href="provider-apple.html">Apple container CLI</a>
-<a href="provider-podman.html">rootless Podman CLI</a>
-<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
-<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
-<a href="provider-e2b.html">E2B SDK</a>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">实现与拼接</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="implementation.html">实现与拼接总览</a>
+<a href="nats.html">事件与输入的实现</a>
+<a href="durable-bindings.html" class="active" aria-current="page">持久执行的实现</a>
+<a href="harness-execution.html">Harness 执行管理</a>
+<a href="provider-contract.html">Sandbox 调用与工作接合</a>
+<a href="configuration.html">组件拼接与宿主配置</a>
 </div></details>
 <details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</div></details></nav></details>
-<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</div></details>
+</nav></details>
+<div class="side-footer">契约与实现 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
 <main id="top">
-
-<section class="chapter"><h1 id="durable-adapters">A.3 Durable 组合与接口边界</h1>
-<p>本页比较持久执行的实现方式：哪一层保存控制状态，Harness 在哪里运行，以及哪些可靠性规则仍须由 Loom 衔接。选择引擎后，同一 Work 的恢复位置和后续待办以该组合的一份权威状态为准。</p>
-<div class="table-wrap" tabindex="0"><table>
-<thead>
-<tr>
-<th>组合</th>
-<th>作者入口</th>
-<th>执行权威</th>
-<th>还需由 Loom 衔接</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td data-label="组合"><strong>T：Temporal</strong></td>
-<td data-label="作者入口">Workflow／Activity；公共 SDK 提供模型、输入和执行等操作。</td>
-<td data-label="执行权威">Temporal History、输入状态、Timer 和 Task Queue。</td>
-<td data-label="还需由 Loom 衔接">请求内容绑定、输入关联、原操作核对、内容保留、授权、预算、业务历史读取。</td>
-</tr>
-<tr>
-<td data-label="组合"><strong>E：DSH／Cordis + 可嵌入内核</strong></td>
-<td data-label="作者入口">显式保存业务状态，每次调用完成有限推进；Cordis 管理运行中的组件实例。</td>
-<td data-label="执行权威">选定内核的一份控制状态与责任记录。</td>
-<td data-label="还需由 Loom 衔接">DSH 事件／投影／检查点的适配、未运行 Work 的唤醒、阶段提交、操作收据；不另留可独立推进的 JSONL 权威。</td>
-</tr>
-<tr>
-<td data-label="组合"><strong>R：Resonate</strong></td>
-<td data-label="作者入口">固定 SDK 的受管 run／rpc／sleep 和组合子。</td>
-<td data-label="执行权威">协议的 promise／task 与执行状态。</td>
-<td data-label="还需由 Loom 衔接">同键改内容检查、输入邮箱、订阅关联、结果未知与取消分层、预算和长期记录。</td>
-</tr>
-</tbody>
-</table></div>
-<h4>T 的实际运行位置</h4>
-<p>Temporal Service 保存历史和安排任务；由 Loom 部署的 Workflow Worker 运行 Harness，Activity Worker 运行模型／内容／执行接入。两种 Worker 角色可同进程或分部署，不是一 Work 一进程。相同队列须具有相容代码和实际资源访问能力；队列名不授予文件权限。</p>
-<p><code>proxyActivities</code> 安排标准 Activity；Worker 取得任务后通过受信 Runtime 端口访问 pi-ai、内容库或 Provider，保存结果再报告完成。Workflow 不绕过 Activity 裸读可变文件。Model Activity 只执行一次模型调用；再次调用模型或执行返回工具的决定属于 Harness。</p>
+<section class="chapter"><h1 id="durable-adapters">A.2 持久执行的实现</h1>
+<p>本页说明怎样用已有持久执行引擎落实<a href="durable.html#durable">恢复、等待与责任保留契约</a>：继续依据保存在哪里，输入和到期条件怎样唤醒工作，以及中断后怎样复用结果。Harness 的代码描述见<a href="harness-description.html#harness-code-types">描述契约</a>；代码装载、隔离、SDK 通道与临时进程管理见<a href="harness-execution.html#harness-execution">Harness 执行管理</a>。这些宿主接合不能另持一套推进状态。</p>
+<h3 id="durable-authority">A.2.1 一份继续依据与已有引擎</h3>
+<p>创建 Work 时固定一套持久控制组合，统一裁决所有 Harness 调用的受理、继续、输入交接、取消和关闭。Work 与 <code>run_id</code> 是逻辑身份；引擎运行实例更换不创建新的业务调用。控制状态和必要引用按选定组合保存，原始内容与收据按内容契约保留；NATS 消费位置、runner 内存和查询索引不独立决定下一步。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>组合</th><th>继续依据与作者形式</th><th>Loom 的接合责任</th></tr></thead><tbody>
+<tr><td data-label="组合"><strong>R：Resonate</strong></td><td data-label="继续依据与作者形式">原生 promise／task 协议与受管调用日志；优先验证动态受管顺序代码。</td><td data-label="Loom 的接合责任">调用与内容身份、输入邮箱、原 Operation 核对、限域 SDK、长期记录与责任交接。动态隔离组合尚未验证。</td></tr>
+<tr><td data-label="组合"><strong>T：Temporal</strong></td><td data-label="继续依据与作者形式">History、Workflow 状态、Timer 与任务安排；分别覆盖预装 Workflow 和动态显式状态推进。</td><td data-label="Loom 的接合责任">输入受理与调用身份、推进提交、请求绑定、原操作核对；有限推进不替代受管顺序作者入口。</td></tr>
+<tr><td data-label="组合"><strong>E：DSH／Cordis + 可嵌入内核</strong></td><td data-label="继续依据与作者形式">所选内核的一份控制状态与责任记录；按实际内核声明作者形式。</td><td data-label="Loom 的接合责任">DSH 事件／投影／检查点与内核的适配、离线唤醒、阶段提交、操作收据；候选范围仍须验证。</td></tr>
+</tbody></table></div>
+<p>受管顺序程序的控制位置由原生引擎恢复；显式状态程序的继续依据是已确认状态及后续待办。两种形式都不恢复任意进程栈或普通 Shell 内存。子调用可以选择其他获准运行环境，但必须接入本 Work 的同一控制组合；不相容时受理前返回 <code>unsupported_binding</code>。需要另一控制组合时，建立有独立责任的 Work，通过已有跨 Work 操作协作。</p>
+<h3 id="dynamic-harness-bindings">A.2.2 Harness 执行与持久控制的接缝</h3>
+<p><a href="author-types.html#harness-types">调用 DTO</a>确定一次请求，<a href="harness-execution.html#harness-prepare">执行管理的受理准备</a>确定其实际代码、依赖、SDK、环境和恢复绑定。本页的控制组合接管稳定 <code>run_id</code>、初始状态和后续责任后，才安排运行。调度不重新解析候选目录或当前 Profile；装载失败留下原调用及阻塞原因。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>控制边界</th><th>接合要求</th></tr></thead><tbody>
+<tr><td data-label="控制边界">操作受理与结果复用</td><td data-label="接合要求">受管步骤绑定稳定 Operation 及原请求；派发责任先保存。重入先查原回执，复用已确认结果；结果未知时核对原目的地，不能因引擎重试而换键重发。</td></tr>
+<tr><td data-label="控制边界">输入与等待</td><td data-label="接合要求">输入受理、处理权和等待状态在选定组合中保存。检查已有输入与登记等待之间不能丢唤醒；离线时受理的输入仍须安排继续。事件桥取得 <code>InputReceipt</code> 后 ACK，见<a href="nats.html#nats-adapter">事件实现</a>。</td></tr>
+<tr><td data-label="控制边界">Timer 与取消</td><td data-label="接合要求">首次确认固定到期时间和计划版本，恢复不重新计时；到期、取消与输入准入按同一控制顺序裁决。取消控制位置不证明外部动作已停止。</td></tr>
+<tr><td data-label="控制边界">执行所有权</td><td data-label="接合要求">由原生 task fence 或推进修订拒绝旧执行者提交。fence 保护控制状态；已派发命令的写入和停止仍由原 Operation 与执行设施核对。</td></tr>
+<tr><td data-label="控制边界">返回与交接</td><td data-label="接合要求">保存业务结果时，未结操作必须已结清或由有权承接者持久接管。引擎 promise／Workflow 终态不把未知效果改为成功。</td></tr>
+</tbody></table></div>
+<p>输入邮箱、同键内容冲突、取消竞争和责任交接是 Loom 的组合要求；引擎具有消息、Promise 或 Timer API 不等于这些接缝已经成立。输入处理权的转交由<a href="events.html#input-transfer">输入契约</a>定义，本页只负责用所选控制状态落实其原子确认与后续唤醒。</p>
+<h3 id="preloaded-temporal">A.2.3 T：预装 Workflow</h3>
+<p>Temporal Service 保存 History 并安排任务；Workflow Worker 执行预装 Harness Workflow，Activity Worker 接受单次模型、内容或用户环境操作。两种角色可同进程或分部署，不是一 Work 一进程。Worker 的固定代码、部署认证和可访问资源由<a href="harness-execution.html#harness-trust">执行接合</a>约束，队列名不授予文件权限。</p>
+<p>预装方式使用 Worker 创建时固定的 Workflow 代码，不能直接承诺执行运行时生成的 Harness B。也不能把 B 整体放入一个可重试 Activity，就声称内部的模型、工具、等待和子调用均已受管。<a href="research.html#src-temporal-worker">Worker 装载依据</a>。</p>
+<p><code>proxyActivities</code> 安排标准 Activity。Activity 通过 Runtime 的单次操作入口取得并保存结果后报告完成；Workflow 不裸读可变文件。Model Activity 不执行返回的 tool call，也不决定是否再次调用模型。</p>
 <figure class="diagram" id="temporal-seq"><figcaption><span>图 A2 · 一次模型／工具操作的实际调度</span><button aria-label="放大图 A2 · 一次模型／工具操作的实际调度" class="zoom" type="button">放大</button></figcaption><p class="diagram-scope">标准 Activity 的通信时序；Workflow 的逻辑 await 不画成直接调用后端。</p><div class="diagram-viewport" tabindex="0"><svg aria-labelledby="temporal-seq-title" role="img" viewbox="0 0 1160 1053" xmlns="http://www.w3.org/2000/svg"><title id="temporal-seq-title">图 A2 · 一次模型／工具操作的实际调度</title><defs><marker id="temporal-seq-a" markerheight="7" markerwidth="7" orient="auto-start-reverse" refx="9" refy="5" viewbox="0 0 10 10"><path d="M0 0 L10 5 L0 10Z" fill="#18675d"></path></marker></defs><rect fill="#fff" height="1053" width="1160"></rect><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="145.0" x2="145.0" y1="104" y2="1043"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="33.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="145.0" y="48.0">Workflow Worker</text><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="435.0" x2="435.0" y1="104" y2="1043"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="323.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="435.0" y="48.0">Temporal Service</text><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="725.0" x2="725.0" y1="104" y2="1043"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="613.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="725.0" y="48.0">Activity Worker</text><line stroke="#d1ddd7" stroke-dasharray="5 5" x1="1015.0" x2="1015.0" y1="104" y2="1043"></line><rect fill="#f0f5f1" height="77" rx="6" stroke="#c5d6cb" width="224" x="903.0" y="22"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="650" text-anchor="middle" x="1015.0" y="48.0">模型／执行后端</text><rect fill="#fff" height="34" rx="3" width="274.0" x="153.0" y="132"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="290.0" y="151.0">提交 ScheduleActivity 命令</text><line marker-end="url(#temporal-seq-a)" stroke="#18675d" stroke-width="1.7" x1="145.0" x2="435.0" y1="175" y2="175"></line><rect fill="#fff" height="34" rx="3" width="274.0" x="443.0" y="201"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="220.0">Poll Activity Task</text><line marker-end="url(#temporal-seq-a)" stroke="#18675d" stroke-width="1.7" x1="725.0" x2="435.0" y1="244" y2="244"></line><rect fill="#fff" height="56" rx="3" width="274.0" x="443.0" y="270"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="289.0">Activity Task + 原 operation_</text><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="311.0">id</text><line marker-end="url(#temporal-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="435.0" x2="725.0" y1="335" y2="335"></line><rect fill="#f6f3e9" height="64" rx="5" stroke="#c9d6cd" width="236" x="607.0" y="366"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="725.0" y="391.0">按原操作核对；只允许安全派发或</text><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="725.0" y="413.0">结果复用</text><rect fill="#fff" height="34" rx="3" width="274.0" x="733.0" y="455"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="870.0" y="474.0">首次获准派发／查询原对象</text><line marker-end="url(#temporal-seq-a)" stroke="#18675d" stroke-width="1.7" x1="725.0" x2="1015.0" y1="498" y2="498"></line><rect fill="#fff" height="34" rx="3" width="274.0" x="733.0" y="524"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="870.0" y="543.0">原生结果或明确未知</text><line marker-end="url(#temporal-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="1015.0" x2="725.0" y1="567" y2="567"></line><rect fill="#f6f3e9" height="64" rx="5" stroke="#c9d6cd" width="236" x="607.0" y="598"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="725.0" y="623.0">经 ContentPort 保存原文、必</text><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="725.0" y="645.0">要内容与收据</text><rect fill="#fff" height="34" rx="3" width="274.0" x="443.0" y="687"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="706.0">报告 Activity 完成</text><line marker-end="url(#temporal-seq-a)" stroke="#18675d" stroke-width="1.7" x1="725.0" x2="435.0" y1="730" y2="730"></line><rect fill="#fff" height="34" rx="3" width="274.0" x="153.0" y="756"></rect><text fill="#18675d" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="290.0" y="775.0">Poll 后续 Workflow Task</text><line marker-end="url(#temporal-seq-a)" stroke="#18675d" stroke-width="1.7" x1="145.0" x2="435.0" y1="799" y2="799"></line><rect fill="#fff" height="34" rx="3" width="274.0" x="153.0" y="825"></rect><text fill="#5a7072" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="290.0" y="844.0">已记录结果 + History</text><line marker-end="url(#temporal-seq-a)" stroke="#18675d" stroke-dasharray="7 5" stroke-width="1.7" x1="435.0" x2="145.0" y1="868" y2="868"></line><rect fill="#f6f3e9" height="42" rx="5" stroke="#c9d6cd" width="236" x="27.0" y="899"></rect><text fill="#193c42" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="14" font-weight="400" text-anchor="middle" x="145.0" y="924.0">继续控制流，决定下一步</text><rect fill="#edf3f0" height="42" rx="5" width="1120" x="20" y="971"></rect><text fill="#476365" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15" font-weight="400" text-anchor="middle" x="580.0" y="996.0">若 Activity 重入已找到原收据，直接返回；不会为了补日志再执行一次模型或命令。</text></svg></div></figure>
-<div class="table-wrap" tabindex="0"><table>
-<thead>
-<tr>
-<th>Loom 动作</th>
-<th>T 的映射与确认</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td data-label="Loom 动作">启动</td>
-<td data-label="T 的映射与确认">StartWorkflow，固定 Work／release／配置。禁止复用已关闭 Work 身份。</td>
-</tr>
-<tr>
-<td data-label="Loom 动作">输入／控制</td>
-<td data-label="T 的映射与确认">短 <code>loom.input</code>／<code>loom.control</code> Update；COMPLETED 才形成相应回执。handler 必须先安装，初始化未完成时返回 not_ready。</td>
-</tr>
-<tr>
-<td data-label="Loom 动作">next／complete</td>
-<td data-label="T 的映射与确认">Workflow 状态保存队列、处理身份、等待与处置；返回 delivery 的选择是已记录控制决定。</td>
-</tr>
-<tr>
-<td data-label="Loom 动作">单次操作</td>
-<td data-label="T 的映射与确认">每个稳定 operation_id 绑定已保存的请求；Activity 重入先查原回执，是否派发按原操作状态判断。</td>
-</tr>
-<tr>
-<td data-label="Loom 动作">Timer</td>
-<td data-label="T 的映射与确认">原生 Timer + 计划状态；到期、取消与输入登记由同一控制顺序裁决。</td>
-</tr>
-<tr>
-<td data-label="Loom 动作">运行滚动</td>
-<td data-label="T 的映射与确认">等 handler 完成，固定输入、回执、订阅与关闭标记、计划、未结操作和代码版本，再 Continue-As-New。</td>
-</tr>
-<tr>
-<td data-label="Loom 动作">状态读取</td>
-<td data-label="T 的映射与确认">Query 为应用当前状态；Describe 为引擎状态；历史读取通过官方 API + 内容引用。离线视图注明已覆盖的记录位置。</td>
-</tr>
-<tr>
-<td data-label="Loom 动作">关闭／清理</td>
-<td data-label="T 的映射与确认">最终受理／处置快照可读；独立清理任务被持久接管后，耗时回收不要求原 Harness 保持运行。</td>
-</tr>
-</tbody>
-</table></div>
-<p>切换到新的运行实例时，不能丢弃已处理身份及其回执。可将旧回执和订阅关闭标记封存为不可变索引、当前 Run 保留增量；加载失败不等于没有该输入。运行历史的保留期限必须覆盖导出与恢复要求，否则不可宣称完整历史长期可读。</p>
-<p>T 的模型／内容 TS Worker 通过受信 JSON-RPC 连接 Go Runtime 的 ContentPort／OperationPort；Sandbox Go Activity 可直接调用 Provider。通信认证、部署版本、数据转换器（converter）和资源范围均须固定。传输使用明确的数据类型，不直接序列化 Node 类实例或 SDK 私有异常。<a href="research.html#src-t-message">消息依据</a>；<a href="research.html#src-durable-determinism">重放依据</a>。</p>
-<h4>E 与 R 需要验证的交接点</h4>
-<p>E 复用 DSH 的语义事件、状态投影和检查点思想，持久确认必须位于派发之前；恢复中断的消息关系不代表原业务输入已经处理完成。无 Agent 在线时的到期与输入接续由共享内核承担，不能依赖 Cordis Fiber 持续存活。</p>
-<p>R 的 durable promise 表示可等待的返回值，Task 表示计算责任，Effect 记录外部动作与证据。原 Promise 终态不覆盖真实操作的迟到结果。协议中的任务隔离（task fencing）阻止旧执行者提交状态；撤销外部进程的写入能力仍需执行设施配合。<a href="research.html#src-resonate-semantics">状态机研究入口</a>。</p>
-<p>两条候选都必须完成 E01—H01 的同一组轨迹，才能评价是否保持相同契约；不能凭接口名称相似计为兼容。</p>
-</section><nav class="page-pagination" aria-label="阅读顺序"><a href="nats.html">← NATS／JetStream 接入</a><a href="provider-contract.html">Provider 类型与命令载荷 →</a></nav>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>Loom 动作</th><th>T 的映射与确认</th></tr></thead><tbody>
+<tr><td data-label="Loom 动作">启动</td><td data-label="T 的映射与确认"><code>StartWorkflow</code> 固定 Work、Workflow 版本与配置。Harness 调用保留稳定 <code>run_id</code>，绑定记录保存引擎身份映射。禁止复用已关闭 Work 身份。</td></tr>
+<tr><td data-label="Loom 动作">输入／控制</td><td data-label="T 的映射与确认">短 <code>loom.input</code>／<code>loom.control</code> Update；COMPLETED 后才返回对应回执。handler 必须先安装，初始化未完成时返回 <code>not_ready</code>。</td></tr>
+<tr><td data-label="Loom 动作">next／complete</td><td data-label="T 的映射与确认">Workflow 状态保存队列、处理身份、等待及处置；返回 delivery 的选择是已记录控制决定。</td></tr>
+<tr><td data-label="Loom 动作">单次操作</td><td data-label="T 的映射与确认">稳定 <code>operation_id</code> 绑定已保存请求；Activity 重入查原回执，是否派发由原操作状态决定。</td></tr>
+<tr><td data-label="Loom 动作">Timer</td><td data-label="T 的映射与确认">原生 Timer 加计划状态；到期、取消与输入登记按同一控制顺序裁决。</td></tr>
+<tr><td data-label="Loom 动作">读取</td><td data-label="T 的映射与确认">Query 读取应用状态，Describe 读取引擎状态；历史通过官方 API 与内容引用读取。离线视图声明覆盖位置。</td></tr>
+</tbody></table></div>
+<p>消息及重放的上游依据分别见<a href="research.html#src-t-message">Temporal 消息接口</a>和<a href="research.html#src-durable-determinism">确定性约束</a>。Update 受理输入不等待模型或业务完成；详细传输确认线保留在<a href="nats.html#nats-adapter">事件实现</a>。</p>
+<h3 id="dynamic-temporal">A.2.4 T：动态显式状态推进</h3>
+<p>固定版本的 <code>genericWorkWorkflow</code> 保存 Work 的调用关系、各 <code>run_id</code> 的状态与责任，调度固定 <code>advanceHarness</code> Activity。Activity 通过<a href="harness-execution.html#harness-run">隔离装载接合</a>调用原绑定的有限推进函数；候选代码不进入可信 Workflow Worker。</p>
+<p>推进输入与输出遵守<a href="harness-description.html#state-step-abi">显式状态入口 ABI</a>。通用 Workflow 检查 <code>base_revision</code> 和执行 fence，再把新状态、输入处置、稳定操作身份、等待及子调用责任作为一次控制决定登记；后续独立 Operation／Activity 才派发外部动作。过期修订或旧推进者的迟到结果拒绝提交。</p>
+<p>有限推进不直接产生模型、工具、网络或子调用效果。重复计算没有外部效果，首次接受的结果进入 History 后恢复复用。后续 Activity 可能已经执行外部动作但未报告时，只核对原 Operation，不能生成新键。History 是继续权威，runner 内存和本地 JSONL 不是。</p>
+<p>该接法覆盖显式状态作者形式。受管顺序作者不应自行拆 continuation 或手写状态机；不支持其形式的绑定在受理前返回 <code>unsupported_binding</code>，不能降低目标契约。</p>
+<h3 id="dynamic-resonate">A.2.5 R：受管顺序代码的优先验证组合</h3>
+<p>Resonate 官方 TypeScript SDK 提供 generator 与 async／await 两种受管形式；async 形式通过 <code>@resonatehq/sdk/async</code> 与 <code>ctx.run</code> 取得 DurablePromise，普通外部 Promise 的 await 不自动记录。<a href="research.html#src-resonate-current">SDK 与约束依据</a>。以下是待验证的组合接法，不是已完成支持的声明。</p>
+<ol>
+<li>以稳定 <code>run_id</code> 建立原生持久调用，参数保存代码、入口、固定输入与实际绑定摘要。执行任务重新分配不改变这次逻辑调用。</li>
+<li>原生 Context／SDK 保存受管调用日志、子调用结果和等待。Loom 的 model、tool、content、input、event 和 harness 入口接受管步骤，以日志中的逻辑调用身份派生稳定 Operation 键，恢复不使用新随机键。</li>
+<li>隔离装载与 SDK 传输入口由<a href="harness-execution.html#harness-sdk">执行管理</a>提供；接合须保留原生日志、task fence 与挂起协议。普通 RPC Promise 不能代替持久等待，不另写重放解释器或 journal。</li>
+<li>原生任务挂起后由共享调度设施承接输入、结果与到期唤醒；重新取得任务时按已保存日志重建到原步骤。输入邮箱、检查后登记等待及无在线 runner 的唤醒必须单独验证。</li>
+<li>受管外部步骤接到 Loom 稳定 Operation。原生 promise 的取消或终态不覆盖原效果未知、费用未知或迟到结果；返回前须确认未结责任的承接。</li>
+</ol>
+<p>先验证 A→B→C、部分并行完成、回执丢失、等待释放及原任务恢复，再确认这一组合可用。失败时修正接合，不能通过只支持预装函数或有限推进降低动态受管顺序代码目标。<a href="verification.html#acceptance">统一验收</a>。</p>
+<h3 id="embedded-durable">A.2.6 E：可嵌入内核的候选接合</h3>
+<p>DSH 的模型适配、上下文转换、工具 schema、响应分类与策略可作为 Harness 零件。完整 loop 的模型、工具、输入、等待与子调用改接受管原语；语义事件、投影和检查点接入所选内核。私有 Persistence／JSONL 不另成为能独立推进的权威，恢复消息关系也不证明业务输入已处理。</p>
+<p>Cordis 可管理进程内依赖、scope 和装卸；无 Harness 在线时的输入与到期接续由持久内核承担，不能依赖 Fiber 存活。卸载中的进程资源由执行管理回收，已经开始的 Operation 仍由 Runtime 保留。只提供有限推进的内核须声明其覆盖显式状态，不能据此缩减顺序作者目标。</p>
+<p>可嵌入内核仍是候选；其状态接合及唤醒、阶段确认和 fence 均须按相同轨迹验收。<a href="research.html#src-resonate-semantics">状态机研究入口</a>。</p>
+<h3 id="durable-rollover">A.2.7 历史滚动与故障接续</h3>
+<p>限制单次引擎历史长度时，先固定未结调用及代码绑定、输入和处理权、订阅关闭标记、计划、原回执、未结 Operation 与必要状态，再确认新运行实例接管。T 等 handler 完成后执行 <code>Continue-As-New</code>；R/E 必须用各自已验证的原生接续方式落实同一交接，不能只重启进程并清空日志。</p>
+<p>旧回执和关闭标记可封存为不可变索引，当前运行保留增量；加载失败不等于不存在。引擎保留、内容 GC 与导出范围必须协调；历史已缺失时返回 <code>history_gap</code> 或明确阻塞，不能宣称完整恢复。业务关闭后，原回执、未知操作核对及持久清理接管仍可查询。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>故障位置</th><th>继续责任</th></tr></thead><tbody>
+<tr><td data-label="故障位置">已确认状态，尚未取得执行任务</td><td data-label="继续责任">选定引擎保留任务并重新安排；不等待额外消息碰巧唤醒。</td></tr>
+<tr><td data-label="故障位置">部分并行结果已保存</td><td data-label="继续责任">日志或状态复用完成项，其余项分别继续或核对原操作；不重跑整个批次。</td></tr>
+<tr><td data-label="故障位置">旧执行者迟到</td><td data-label="继续责任">原生 fence／修订拒绝控制提交；Runtime 继续核对已经派发的外部动作。</td></tr>
+<tr><td data-label="故障位置">滚动回执或目标状态无法确认</td><td data-label="继续责任">核对原交接身份，保留未结责任；不能启动另一份独立推进权威。</td></tr>
+</tbody></table></div>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="nats.html">← 事件与输入的实现</a><a href="harness-execution.html">Harness 执行管理 →</a></nav>
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>
 <dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>

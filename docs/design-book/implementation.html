@@ -4,53 +4,91 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>实现接入与配置 · Loom Design Book</title>
+<title>实现与拼接总览 · Loom Design Book</title>
 <link rel="stylesheet" href="book.css">
 <script src="book.js" defer></script>
 </head>
 <body>
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
-<div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group"><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<div class="brand-sub">DESIGN BOOK / 实现与拼接</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a>
+<details class="nav-group"><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">12</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html">事件与输入</a>
 <a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html">模型访问</a>
-<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="sandbox.html">用户环境：Sandbox 调用</a>
 <a href="harness.html">Harness：推进逻辑与组合</a>
+<a href="harness-description.html">Harness 描述与作者入口</a>
 <a href="examples.html">参考 Harness</a>
+<a href="graphs.html">图结构与展示</a>
+<a href="author-types.html">接口类型与编码</a>
 <a href="verification.html">运行与契约验收</a>
 </div></details>
-<details class="nav-group is-current" open><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="implementation.html" class="active" aria-current="page">实现接入与配置</a>
-<a href="author-types.html">接口类型与编码</a>
-<a href="nats.html">NATS／JetStream 接入</a>
-<a href="durable-bindings.html">Durable 组合与接口边界</a>
-<a href="provider-contract.html">Provider 类型与命令载荷</a>
-<a href="providers.html">执行后端接入</a>
-<a href="configuration.html">配置、组件组织与版本</a>
-</div></details>
-<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="provider-srt.html">SRT 官方库</a>
-<a href="provider-apple.html">Apple container CLI</a>
-<a href="provider-podman.html">rootless Podman CLI</a>
-<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
-<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
-<a href="provider-e2b.html">E2B SDK</a>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">实现与拼接</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="implementation.html" class="active" aria-current="page">实现与拼接总览</a>
+<a href="nats.html">事件与输入的实现</a>
+<a href="durable-bindings.html">持久执行的实现</a>
+<a href="harness-execution.html">Harness 执行管理</a>
+<a href="provider-contract.html">Sandbox 调用与工作接合</a>
+<a href="configuration.html">组件拼接与宿主配置</a>
 </div></details>
 <details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</div></details></nav></details>
-<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</div></details>
+</nav></details>
+<div class="side-footer">契约与实现 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
 <main id="top">
 
-<section aria-labelledby="implementation" class="chapter"><h1 id="implementation">附录 A. 实现接入与配置</h1>
-<p>本附录面向 Runtime 和适配器的实现者，说明如何用具体组件落实前文契约。事件服务选择 NATS／JetStream；持久执行以 Temporal 为参考组合 T，另比较 DSH／Cordis 与可嵌入内核的组合 E，以及 Resonate 组合 R。每个 Work 只能由一套选定的执行状态决定如何恢复，不能让多个引擎各自推进。</p>
-<p>先查作者接口与编码，再按所选执行组合和 Provider 阅读接入页。示例描述目标接法；是否已实现、支持哪些运行和故障场景，须由对应版本的验收报告确认。</p>
-<ul class="chapter-links"><li><a href="author-types.html#author-types">接口类型与编码</a></li><li><a href="nats.html#nats-adapter">NATS／JetStream 接入</a></li><li><a href="durable-bindings.html#durable-adapters">Durable 组合与接口边界</a></li><li><a href="provider-contract.html#provider-contract">Provider 类型与命令载荷</a></li><li><a href="providers.html#provider-adapters">执行后端接入</a></li><li><a href="configuration.html#configuration">配置、组件组织与版本</a></li></ul></section><nav class="page-pagination" aria-label="阅读顺序"><a href="verification.html">← 运行与契约验收</a><a href="author-types.html">接口类型与编码 →</a></nav>
+<section aria-labelledby="implementation" class="chapter"><h1 id="implementation">实现与拼接总览</h1>
+<p>前半部定义 Loom 要交付的目标：作者提交什么、能调用什么、什么结果可信，以及中断后仍须履行哪些责任。本部分面向 Runtime 实现者与部署者，说明怎样用已有事件服务、持久执行引擎、代码运行设施和适配器兑现这些目标。公开接口的字段和成功／失败含义仍由工作契约维护；这里维护组件之间的接合。</p>
+<h3 id="implementation-map">按实现问题进入</h3>
+<div class="table-wrap" tabindex="0"><table>
+<thead><tr><th>要解决的问题</th><th>实现责任与接合</th><th>入口</th></tr></thead><tbody>
+<tr><td data-label="要解决的问题">事件怎样成为可靠的工作输入？</td><td data-label="实现责任与接合">保存发布和来源位置，恢复订阅，向目标 Work 交付；以目标持久受理回执确认移交，再确认消息传输。</td><td data-label="入口"><a href="nats.html#nats-adapter">事件与输入的实现</a></td></tr>
+<tr><td data-label="要解决的问题">没有进程在线时，怎样等待、恢复和继续？</td><td data-label="实现责任与接合">选定引擎保存控制状态、受管步骤结果、等待、Timer 和执行所有权；把输入准入、推进决定和后续责任接入同一控制组合。</td><td data-label="入口"><a href="durable-bindings.html#durable-adapters">持久执行的实现</a></td></tr>
+<tr><td data-label="要解决的问题">一份 Harness 的代码如何被执行和管理？</td><td data-label="实现责任与接合">核验作者描述，固定代码和实际绑定，安排有限资源，装载隔离环境并提供 SDK；挂起时释放、唤醒后重建，取消和退出时继续处理原责任。</td><td data-label="入口"><a href="harness-execution.html#harness-execution">Harness 执行管理</a></td></tr>
+<tr><td data-label="要解决的问题">模型、用户命令和文件操作怎样取得真实结果？</td><td data-label="实现责任与接合">模型 Operation 接到模型能力，命令 Operation 接到 Sandbox 的完整任务入口；按原公开绑定核对结果与停止，接管必要内容后交回控制组合。</td><td data-label="入口"><a href="#operation-assembly">模型与外部操作</a>、<a href="provider-contract.html#provider-contract">Sandbox 调用与工作接合</a></td></tr>
+<tr><td data-label="要解决的问题">组件如何固定成一套可用组合？</td><td data-label="实现责任与接合">把公开逻辑资源解析到宿主服务、Profile、SDK、引擎和适配版本；检查兼容性、权限、资源与完整故障轨迹后启用。</td><td data-label="入口"><a href="configuration.html#configuration">组件拼接与宿主配置</a></td></tr>
+<tr><td data-label="要解决的问题">运行记录怎样展示成图？</td><td data-label="实现责任与接合">按 Harness 定义取得获准记录并生成完整快照，将来源信封接到既有 Content／Event，再把通用快照交给图工作台。</td><td data-label="入口"><a href="#display-assembly">展示接合</a></td></tr>
+</tbody></table></div>
+<p>“Harness 如何描述”属于作者目标接口，见<a href="harness-description.html#harness-description">第 8 章</a>；“一份描述如何被检查、装载和运行”属于这里的执行管理。描述中的需求不授权执行，也不预先指定实际 Worker 或服务端点。</p>
+<h3 id="assembly-authority">拼接时的状态归属</h3>
+<div class="table-wrap" tabindex="0"><table>
+<thead><tr><th>需要保留的事实</th><th>负责保存与确认</th><th>其他组件怎样使用</th></tr></thead><tbody>
+<tr><td data-label="需要保留的事实">发布事件、来源位置与传输积压</td><td data-label="负责保存与确认">事件服务和固定内容。</td><td data-label="其他组件怎样使用">事件桥按原身份交付；收到消息不等于目标已经接管输入。</td></tr>
+<tr><td data-label="需要保留的事实">目标输入、处理权、订阅关闭、继续位置与等待</td><td data-label="负责保存与确认">Work 选定的一套持久控制组合。</td><td data-label="其他组件怎样使用">桥、SDK 和 runner 请求同一控制提交；临时进程、consumer 与私有会话文件不能另决定如何推进。</td></tr>
+<tr><td data-label="需要保留的事实">本次调用的代码、依赖、SDK、环境和权限范围</td><td data-label="负责保存与确认">首次受理固定的调用记录及其受保护材料。</td><td data-label="其他组件怎样使用">执行管理据原绑定装载；配置修改只用于相容的新调用，不能用当前文件覆盖原运行。</td></tr>
+<tr><td data-label="需要保留的事实">外部模型／命令结果、实际停止、费用与未结责任</td><td data-label="负责保存与确认">原 Operation 记录和原目的地证据；必要原文通过内容契约保护。</td><td data-label="其他组件怎样使用">持久引擎保存被采用的结果引用；任务重试、进程退出或取消回执不能替代实际效果核对。</td></tr>
+<tr><td data-label="需要保留的事实">图、统计和本地查询索引</td><td data-label="负责保存与确认">按覆盖范围生成的派生视图。</td><td data-label="其他组件怎样使用">读取和解释原记录，不取得另一份控制权。</td></tr>
+</tbody></table></div>
+<p>上述是 Loom 的控制与消费责任，不要求每项另建服务或独立进程。Sandbox 独立维护实际执行与资源状态，通过公开回执同 Loom 接合。跨组件的关键交接必须留下可核对的回执；具体准入与恢复规则分别引用<a href="work-model.html#common-contract">共同契约</a>和对应实现篇。</p>
+<h3 id="assembly-path">一次动态调用的拼接路径</h3>
+<ol>
+<li>作者已保存代码描述和固定业务输入，提交启动请求。执行管理解析并保留实际绑定，Work 控制组合确认原调用责任。</li>
+<li>持久引擎安排可运行调用；执行管理取得当前执行所有权，按原代码和依赖装载环境，并连接限域 SDK。</li>
+<li>受管顺序入口通过 SDK 提出模型、工具或子 Harness 操作，以原生受管步骤确定稳定身份；显式状态入口返回操作意图，由控制组合确认新状态和稳定身份后安排操作。Runtime 保存有效请求和原 Operation，再由对应适配器派发。</li>
+<li>适配器取得并保存实际结果；控制组合记录所采用结果。等待时保留继续依据，执行管理释放闲置专属进程；唤醒后按原版本重建。</li>
+<li>新事件经桥移交到目标持久输入，或原操作／Timer 满足已保存等待；控制组合安排继续，不能在入队和登记等待之间留下漏唤醒窗口。</li>
+<li>Harness 交付业务结果。控制组合与执行管理完成或确认接管原操作、子调用和清理责任，再结束调用；临时资源释放不代替责任确认。</li>
+</ol>
+<p>发布回执丢失由事件实现核对原发布；输入已受理而 ACK 丢失由桥重投、目标返回原输入回执；runner 退出由持久组合保留继续位置、执行管理重建；外部效果未知由原 Operation 向原目的地核对。组合验证覆盖这些交接，不能以单个组件的绿色测试替代。判据见<a href="verification.html#acceptance">契约验收</a>。</p>
+<h3 id="operation-assembly">模型与外部操作</h3>
+<p>单次模型供应商适配复用 pi-ai；工具操作按<a href="provider-contract.html#provider-contract">Sandbox 调用与工作接合</a>调用公开 TaskExecutor 或会话入口。环境准备、就绪、命令、稳定产物与物理回收由 Sandbox 完整承担，Loom 不再组织具体设施步骤或导入供应商 SDK。可信侧在派发前核对原 Operation 的请求、目的地、执行许可与预算，固定采用的默认值和模型能力。恢复先查原回执；已可能派发而不能确认结果时保留未知，不能因为引擎重试而重新执行一次。</p>
+<p>模型请求与原始响应、选定尝试和用量经 Content 保存；Sandbox 返回命令结果与稳定产物，Loom 耐久接管并确认原交付集合，Sandbox 再按原保留条件回收。结果与清理剩余责任分别交回持久控制组合。流式片段和供应商取消分别按<a href="model.html#model-results">模型结果契约</a>处理。模型适配器只完成一次请求，完整 Agent loop 仍属于 Harness，决定是否再次推理或执行返回工具。</p>
+<h3 id="sdk-transport">SDK 与可信侧的通信</h3>
+<p>受管 SDK 暴露<a href="author-types.html#author-types">第 11 章的目标接口</a>。同进程可以调用同一受信端口；跨进程的参考接法采用 JSON-RPC 2.0，并固定通信认证、数据转换和适配版本。JSON-RPC 的 id 只关联一次请求和响应；稳定 request_key 与受管步骤身份用于跨连接核对业务操作。通信载荷使用明确 JSON 类型和 Content 引用，不直接序列化 Node 类实例或供应商私有异常。</p>
+<p>身份、Work／run 范围及执行所有权从受信连接取得，管理凭据留在可信侧。传输重试复用原操作身份；通信成功不独立确认持久受理或外部效果。隔离进程中的普通 RPC Promise 也不自动保存继续位置，必须接到<a href="durable-bindings.html#durable-adapters">原生持久执行机制</a>。</p>
+<h3 id="reuse-components">从已有组件取得零件</h3>
+<p>事件与输入实现选用 NATS／JetStream；动态顺序代码优先验证 Resonate 组合 R，Temporal 组合 T 提供预装 Workflow 与动态显式状态接法，DSH／Cordis 与可嵌入内核的组合 E 保留候选范围。各选件如何兑现同一目标，由相应实现篇说明，不能反过来缩减作者接口。</p>
+<p>Pi／DSH 的上下文转换、工具 schema、响应分类与推进策略可以成为 Harness 库；完整 loop 要把每次模型、工具、输入和等待接到受管入口。Cordis 可选地管理进程内依赖、scope 和装卸；卸载先完成或确认交接在途责任。Loom 维护必要的不可变代码装载、受信范围、原操作核对和内容保留接合，不复制模型循环或持久执行 journal。选件依据与未验证范围见<a href="research.html#choices">选型与证据</a>。</p>
+<h3 id="display-assembly">展示接合</h3>
+<p>Harness 或已有语义适配器按<a href="graphs.html#graph-snapshot">图来源信封契约</a>生成快照，用现有 Content／Event 保存和发布。获准展示接收层校验来源、版本与完整快照后，将内层交给 graph-workbench 的公开校验入口，再用 <code>mountWorkbench(element, snapshot)</code> 挂载、用 <code>replace(snapshot)</code> 更新。接收层负责乱序、权限和未保存人工编辑的处理，工作台负责通用展示；不另建图存储、消息总线或 Harness 专用前端。</p>
+<p>模型输入的直接信息关系校验与转换按需复用 context-information-graph；采集实际采用输入与来源属于 Loom 的接合。业务含义及规则留在所属 Harness／语义能力，组件契约来源见<a href="research.html#src-graph-workbench">图工作台</a>和<a href="research.html#src-context-graph">上下文信息图</a>。</p>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="verification.html">← 运行与契约验收</a><a href="nats.html">事件与输入的实现 →</a></nav>
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>
 <dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>

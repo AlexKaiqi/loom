@@ -12,44 +12,40 @@
 <aside class="sidebar">
 <a class="brand" href="../loom-design-book.html">LOOM</a>
 <div class="brand-sub">DESIGN BOOK / 工作契约</div>
-<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a><details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">9</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">12</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="goals.html">目标与范围</a>
 <a href="work-model.html">工作模型与共同约定</a>
 <a href="events.html">事件与输入</a>
 <a href="durable.html">持久执行：恢复、等待与内容</a>
 <a href="model.html">模型访问</a>
-<a href="sandbox.html">Sandbox 与任务内容</a>
+<a href="sandbox.html">用户环境：Sandbox 调用</a>
 <a href="harness.html">Harness：推进逻辑与组合</a>
+<a href="harness-description.html">Harness 描述与作者入口</a>
 <a href="examples.html">参考 Harness</a>
+<a href="graphs.html">图结构与展示</a>
+<a href="author-types.html">接口类型与编码</a>
 <a href="verification.html" class="active" aria-current="page">运行与契约验收</a>
 </div></details>
-<details class="nav-group"><summary><span class="nav-group-title">实现接入</span><span class="nav-group-count" aria-hidden="true">7</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="implementation.html">实现接入与配置</a>
-<a href="author-types.html">接口类型与编码</a>
-<a href="nats.html">NATS／JetStream 接入</a>
-<a href="durable-bindings.html">Durable 组合与接口边界</a>
-<a href="provider-contract.html">Provider 类型与命令载荷</a>
-<a href="providers.html">执行后端接入</a>
-<a href="configuration.html">配置、组件组织与版本</a>
-</div></details>
-<details class="nav-group"><summary><span class="nav-group-title">Provider 接入</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
-<a href="provider-srt.html">SRT 官方库</a>
-<a href="provider-apple.html">Apple container CLI</a>
-<a href="provider-podman.html">rootless Podman CLI</a>
-<a href="provider-opensandbox.html">OpenSandbox SDK／API</a>
-<a href="provider-cloudflare.html">Cloudflare Sandbox Bridge</a>
-<a href="provider-e2b.html">E2B SDK</a>
+<details class="nav-group"><summary><span class="nav-group-title">实现与拼接</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="implementation.html">实现与拼接总览</a>
+<a href="nats.html">事件与输入的实现</a>
+<a href="durable-bindings.html">持久执行的实现</a>
+<a href="harness-execution.html">Harness 执行管理</a>
+<a href="provider-contract.html">Sandbox 调用与工作接合</a>
+<a href="configuration.html">组件拼接与宿主配置</a>
 </div></details>
 <details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
 <a href="research.html">选型依据与验证范围</a>
-</div></details></nav></details>
-<div class="side-footer">契约与接入 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</div></details>
+</nav></details>
+<div class="side-footer">契约与实现 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
 </aside>
 <main id="top">
-<nav class="page-toc" aria-label="本页目录"><button class="toc-toggle" type="button" aria-label="展开本页目录" aria-expanded="false" aria-controls="page-outline"><span aria-hidden="true">⋮</span></button><div class="toc-links" id="page-outline"><a href="#management"><span>9.1 管理入口</span></a><a href="#acceptance"><span>9.2 可执行判据</span></a><a href="#evidence"><span>9.3 证据范围</span></a></div></nav>
-<section aria-labelledby="verification" class="chapter"><h1 id="verification">09. 运行与契约验收</h1>
+<nav class="page-toc" aria-label="本页目录"><button class="toc-toggle" type="button" aria-label="展开本页目录" aria-expanded="false" aria-controls="page-outline"><span aria-hidden="true">⋮</span></button><div class="toc-links" id="page-outline"><a href="#management"><span>12.1 管理入口</span></a><a href="#acceptance"><span>12.2 可执行判据</span></a><a href="#evidence"><span>12.3 证据范围</span></a></div></nav>
+<section aria-labelledby="verification" class="chapter"><h1 id="verification">12. 运行与契约验收</h1>
 <p>运行管理控制工作何时接收输入、推进、暂停和关闭。验收则检查这些操作在正常运行、中断及恢复后是否仍满足前文契约；不能仅凭一次任务回答正确就判定 Runtime 可靠。</p>
-<h3 id="management">9.1 管理入口</h3>
+<h3 id="management">12.1 管理入口</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -60,11 +56,15 @@
 <tbody>
 <tr>
 <td data-label="管理动作">注册／启动 Work</td>
-<td data-label="确认语义">固定工作身份、配置、Harness release 与初始输入；重复请求取得原结果。</td>
+<td data-label="确认语义">固定工作身份、配置、授权、预算及初始输入，受理初始 Harness 调用并保存其实际代码和执行绑定；重复请求取得原结果。</td>
+</tr>
+<tr>
+<td data-label="管理动作">启动／查询／取消 Harness 调用</td>
+<td data-label="确认语义">在获准 Work 内使用 <code>harness.start/result/inspect/cancel</code>；启动固定原调用，查询返回原 <code>run_id</code> 的真实状态，取消明确本调用或同 Work 调用树范围。子调用不自动取得更多授权、预算或输入处置权。</td>
 </tr>
 <tr>
 <td data-label="管理动作">查询</td>
-<td data-label="确认语义">返回生命周期、未处理输入、在途操作、等待、预算和内容引用；离线视图注明已覆盖的记录位置和更新时间。</td>
+<td data-label="确认语义">返回生命周期、所属 Harness 调用、未处理输入、在途操作、等待、预算和内容引用；离线视图注明已覆盖的记录位置和更新时间。</td>
 </tr>
 <tr>
 <td data-label="管理动作">暂停／继续</td>
@@ -72,7 +72,7 @@
 </tr>
 <tr>
 <td data-label="管理动作">关闭</td>
-<td data-label="确认语义">停止新准入，处置输入和计划，完成／取消／转交操作与清理后关闭。</td>
+<td data-label="确认语义">进入 closing 后，所有所属调用停止新业务意图；处置输入和计划，完成／取消核对／转交 Harness 调用、操作与清理后关闭。原回执、未知效果和迟到结果继续保留。</td>
 </tr>
 <tr>
 <td data-label="管理动作">Fork</td>
@@ -80,8 +80,8 @@
 </tr>
 </tbody>
 </table></div>
-<p>Runtime 启动先验证存储、部署与能力绑定，再恢复未结责任和订阅；停机先停止新的派发，保存／交接在途责任。Work 存在期间不要求专属进程常驻。多节点接管、断电与存储丢失需分别声明支持范围。</p>
-<h3 id="acceptance">9.2 可执行判据</h3>
+<p>Runtime 启动先验证存储、部署与能力绑定，再恢复所有未结调用、操作和订阅；停机先停止新的派发，保存／交接在途责任。Work 存在期间不要求专属进程常驻；Harness 的持续等待由共享持久内核保存，运行时按需装载原版本。多节点接管、断电与存储丢失需分别声明支持范围。</p>
+<h3 id="acceptance">12.2 可执行判据</h3>
 <div class="table-wrap" tabindex="0"><table>
 <thead>
 <tr>
@@ -167,16 +167,81 @@
 <td data-label="必须观察到的结果">获准操作返回实际结果；越界操作被拒绝，受保护资源未被修改，不回退到不受限执行。</td>
 </tr>
 <tr>
+<td data-label="编号">S03</td>
+<td data-label="测试轨迹">Sandbox 派发后通信中断；公开检查点保存失败，或产物已接管但确认丢失；期间改变当前 Profile。</td>
+<td data-label="必须观察到的结果">Loom 保存原 Operation 与绑定，先耐久保存再确认交接；恢复仍查询原任务，重复接管复用原回执。唯一必要产物在确认前保留，未知时不改后端重放。</td>
+</tr>
+<tr>
+<td data-label="编号">S04</td>
+<td data-label="测试轨迹">一次普通命令要求输入文件、稳定产物和清理；另在保持公开契约的前提下更换 Sandbox 内部后端实现。</td>
+<td data-label="必须观察到的结果">Loom 只调用完整任务能力并接管公开结果，不导入供应商 SDK 或组装准备／冻结／导出／销毁。Sandbox 独立验收完整交付，Loom 验收授权、记录、内容与恢复的接合；内部变化不要求消费侧重写这些步骤。</td>
+</tr>
+<tr>
+<td data-label="编号">S05</td>
+<td data-label="测试轨迹">Agent 用 Bash 写入文件，确认结果后读取／测试它；在两次调用之间重建环境；另在同一环境先运行 cd/export 再执行第二条独立命令。</td>
+<td data-label="必须观察到的结果">下一条使用前次已确认内容，重建后不退回旧基线；独立命令使用本次固定 cwd/env，不继承前次 Shell 状态。仅声明环境会话不能标成支持持久 Shell／PTY。</td>
+</tr>
+<tr>
 <td data-label="编号">H01</td>
 <td data-label="测试轨迹">Basic 换 Worksurface、增加验证或更换版本。</td>
 <td data-label="必须观察到的结果">只改对应策略；共享输入、操作和恢复契约保持。</td>
 </tr>
+<tr>
+<td data-label="编号">H02</td>
+<td data-label="测试轨迹">同一 Work 的 A 通过模型生成 B 并启动，B 启动 C；分别采用受管顺序代码和显式状态形式，让 A、B 进入纯等待，再恢复。</td>
+<td data-label="必须观察到的结果">三个稳定调用身份与原代码、依赖、SDK、执行绑定可查；预授权隔离环境内可运行生成代码，无需逐次人工发布。纯等待不保留专属进程、模型连接或闲置环境，条件满足后自动继续；不要求把顺序代码改成手写状态机。</td>
+</tr>
+<tr>
+<td data-label="编号">H03</td>
+<td data-label="测试轨迹">B 已受理而启动回执丢失，A 重启重试原键；再以原键改代码或调用输入。</td>
+<td data-label="必须观察到的结果">重试取得原 <code>run_id</code> 与原启动回执，只有一个 B；同键改内容返回 <code>identity_conflict</code>，不得按最新候选代码创建第二次调用。</td>
+</tr>
+<tr>
+<td data-label="编号">H04</td>
+<td data-label="测试轨迹">B 对固定 100 项启动 C，37 项结果已保存后退出；C 内部另在模型返回、工具开始前中断。</td>
+<td data-label="必须观察到的结果">复用已完成 37 项及对应 C，未完成项按原调用／操作分别继续或核对；C 复用原模型结果，不重跑整批或整个模型工具循环。</td>
+</tr>
+<tr>
+<td data-label="编号">H05</td>
+<td data-label="测试轨迹">A／B 等待期间修改同名源码、依赖与环境配置；再撤销原权限或使原依赖不可取得。</td>
+<td data-label="必须观察到的结果">恢复装载原代码和原绑定，新版本只用于新调用；缺失或撤权返回可修复的阻塞原因，不覆盖状态、不使用最新版本或降级到不受限执行。</td>
+</tr>
+<tr>
+<td data-label="编号">H06</td>
+<td data-label="测试轨迹">B 请求越权资源／额外预算，试图抢取 A 的 Work 输入；随后以原 <code>processing_ref</code> 显式交接，再让 A 使用已失效的处置权。</td>
+<td data-label="必须观察到的结果">子调用不自动扩权或另获预算，默认只读固定调用输入；交接有唯一有效承接者且可恢复，A 的旧处置权不能重复完成输入。进入共享受信 Worker 或提升权限按授权规则批准。</td>
+</tr>
+<tr>
+<td data-label="编号">H07</td>
+<td data-label="测试轨迹">等待超时／race 后 B、C 尚未结；取消 <code>self</code> 与 <code>tree</code>，再让 Work 关闭与 B 新启动、原操作迟到结果竞争。</td>
+<td data-label="必须观察到的结果">超时／race 不自动取消，父调用结清前完成等待、取消核对或确认转交；Runtime 接管后可返回业务结果，但未结责任与承接回执必须保留。取消范围可查且不默认关闭独立子 Work。按提交顺序阻止 closing 后的新意图，原操作、未知结果与费用继续核对，不因父进程退出或收到取消回执假报关闭。</td>
+</tr>
+<tr>
+<td data-label="编号">H08</td>
+<td data-label="测试轨迹">A 等待 B、B 等待 C，释放执行进程后继续增加调用，超出 Work／祖先上限或绝对深度；另请求不相容的持久控制绑定。</td>
+<td data-label="必须观察到的结果">等待仍占逻辑调用名额，根深度为 0，子调用不能重置祖先上限；超限返回 <code>call_limit_exceeded</code>，不相容绑定返回 <code>unsupported_binding</code>，受理前拒绝不留第二份调用责任。同 Work 的受理、交接、取消与关闭保持一个控制提交顺序。</td>
+</tr>
+<tr>
+<td data-label="编号">G01</td>
+<td data-label="测试轨迹">把 A→B→C 与操作／内容关系构图，折叠、展开结构并改变布局。</td>
+<td data-label="必须观察到的结果">原记录身份与边关系不丢失，折叠结构可追到成员与跨结构关系；展示交互不改变执行状态或调用责任。</td>
+</tr>
+<tr>
+<td data-label="编号">G02</td>
+<td data-label="测试轨迹">Harness 按两个版本的规则识别、命名相同运行记录中的结构，并加入推导或解释。</td>
+<td data-label="必须观察到的结果">图保留固定记录范围、结构定义版本及事实来源；原始事实与 Harness 解释可分辨、可追溯，同名结构不成为权限或运行状态的额外权威。</td>
+</tr>
+<tr>
+<td data-label="编号">G03</td>
+<td data-label="测试轨迹">展示连接断开期间继续执行；恢复时旧范围不可增量读取，且部分操作结果未知。</td>
+<td data-label="必须观察到的结果">明确已覆盖位置、缺口和未知状态，按新授权快照重新构图后追上；不漏报成完成，不靠展示连接存活才能提交业务结果。</td>
+</tr>
 </tbody>
 </table></div>
-<h3 id="evidence">9.3 证据范围</h3>
+<h3 id="evidence">12.3 证据范围</h3>
 <p>状态模型检查、组件测试、真实组件组合和产品验收分别报告。每份报告注明源码版本、依赖、配置、运行时间和覆盖的故障场景；失败、跳过或未运行的项目不能计为通过。接口映射说明如何接入，不能证明接入已满足契约。</p>
-<p>参考模型的检查结论只适用于它覆盖的假设与状态转移。各执行后端仍须提供自身及组合验证证据；报告和文档检查要求见<a href="research.html#document-checks">附录 B.4</a>。</p>
-</section><nav class="page-pagination" aria-label="阅读顺序"><a href="examples.html">← 参考 Harness</a><a href="implementation.html">实现接入与配置 →</a></nav>
+<p>参考模型的检查结论只适用于它覆盖的假设与状态转移。Sandbox 负责实际隔离、稳定来源、执行停止和物理清理的组件证据；Loom 核对公开版本及这些前提，并验收 Work 授权、原 Operation、检查点、内容接管和恢复的组合。S01／S02 的实际环境证据由 Sandbox 提供，不能由消费记录或替身代偿。报告和文档检查要求见<a href="research.html#document-checks">附录 B.4</a>。</p>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="author-types.html">← 接口类型与编码</a><a href="implementation.html">实现与拼接总览 →</a></nav>
 <footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
 </main>
 <dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>

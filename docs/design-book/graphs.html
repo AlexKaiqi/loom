@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>图结构与展示 · Loom Design Book</title>
+<link rel="stylesheet" href="book.css">
+<script src="book.js" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+<a class="brand" href="../loom-design-book.html">LOOM</a>
+<div class="brand-sub">DESIGN BOOK / 工作契约</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">12</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="goals.html">目标与范围</a>
+<a href="work-model.html">工作模型与共同约定</a>
+<a href="events.html">事件与输入</a>
+<a href="durable.html">持久执行：恢复、等待与内容</a>
+<a href="model.html">模型访问</a>
+<a href="sandbox.html">用户环境：Sandbox 调用</a>
+<a href="harness.html">Harness：推进逻辑与组合</a>
+<a href="harness-description.html">Harness 描述与作者入口</a>
+<a href="examples.html">参考 Harness</a>
+<a href="graphs.html" class="active" aria-current="page">图结构与展示</a>
+<a href="author-types.html">接口类型与编码</a>
+<a href="verification.html">运行与契约验收</a>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">实现与拼接</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="implementation.html">实现与拼接总览</a>
+<a href="nats.html">事件与输入的实现</a>
+<a href="durable-bindings.html">持久执行的实现</a>
+<a href="harness-execution.html">Harness 执行管理</a>
+<a href="provider-contract.html">Sandbox 调用与工作接合</a>
+<a href="configuration.html">组件拼接与宿主配置</a>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="research.html">选型依据与验证范围</a>
+</div></details>
+</nav></details>
+<div class="side-footer">契约与实现 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</aside>
+<main id="top">
+<nav class="page-toc" aria-label="本页目录"><button class="toc-toggle" type="button" aria-label="展开本页目录" aria-expanded="false" aria-controls="page-outline"><span aria-hidden="true">⋮</span></button><div class="toc-links" id="page-outline"><a href="#graph-responsibility"><span>10.1 运行事实、结构含义与展示</span></a><a href="#graph-structures"><span>10.2 定义与命名图结构</span></a><a href="#graph-snapshot"><span>10.3 完整快照与来源</span></a><a href="#graph-update"><span>10.4 保存、发布与更新</span></a><a href="#graph-example"><span>10.5 示例：A 调用 B，B 调用 C</span></a><a href="#context-graphs"><span>10.6 模型输入的信息关系</span></a><a href="#graph-failures"><span>10.7 校验与失败处理</span></a></div></nav>
+<section aria-labelledby="graphs" class="chapter"><h1 id="graphs">10. 图结构与展示</h1>
+<p>Harness 可以把运行记录、内容与当前理解组织成图，定义哪些节点和关系构成一种结构，再为它命名、描述并展示。图结构的含义随 Harness 或专用语义适配器维护；Loom 无需先把所有可能的组织方式列为 Runtime 实体。通用图展示复用 graph-workbench，不另建 Harness 专用图前端。</p>
+<h3 id="graph-responsibility">10.1 运行事实、结构含义与展示</h3>
+<div class="table-wrap" tabindex="0"><table>
+<thead><tr><th>责任方</th><th>交付</th><th>确认边界</th></tr></thead>
+<tbody>
+<tr><td data-label="责任方">Runtime</td><td data-label="交付">按授权读取的原记录、固定内容引用与记录覆盖范围。</td><td data-label="确认边界">原记录描述实际受理、尝试、结果或未知；不会因节点标签或连接线而改变操作状态、权限及责任。</td></tr>
+<tr><td data-label="责任方">Harness／语义适配器</td><td data-label="交付">映射规则、结构定义、确定版本的图快照与依据。</td><td data-label="确认边界">说明图中每种关系与结构的含义，区分观测、推导和未知；采集、映射和递送是 Loom 的接合工作。</td></tr>
+<tr><td data-label="责任方">graph-workbench</td><td data-label="交付">节点、边、结构集合的通用展示，以及描述、布局、折叠、展开和导出。</td><td data-label="确认边界">校验通用图结构并保留原身份及连接；不理解业务标签，不自动采集 Runtime，不验证领域关系。</td></tr>
+</tbody></table></div>
+<p>图是带来源的表达，不成为第二份执行状态库。坐标、参考线、显示行和折叠形状不独立证明时间、因果、权限或完成。展示“已完成”必须能定位实际结果记录；发布图快照只确认内容已保存与通知责任已受理。</p>
+<p>图工作台的准确格式、入口与限制以<a href="research.html#src-graph-workbench">其公开契约</a>为准。这里定义 Loom 的来源信封与接合要求，不复制布局或图会话的内部规则。</p>
+<h3 id="graph-structures">10.2 定义与命名图结构</h3>
+<p>结构定义作为 Harness 版本材料保存，固定节点映射、边的含义、候选结构的判定范围、命名和描述方式。例如，一份 Harness 可将获准的调用记录映射为节点，将两次调用之间的已记录操作映射为边，再把满足某规则的节点集合命名为一段评审结构。这样的名称属于该定义，不要求 Runtime 或图工作台新增同名实体。</p>
+<p>一份定义必须说明：需要哪些原记录或内容、如何形成稳定 ID、怎样区分直接记录与推导关系、缺少输入时返回什么未知项，以及版本变化如何影响原结构。自动识别由 Harness 或已有语义能力执行；图快照只携带结果和规则引用，不携带交给浏览器运行的任意规则脚本。</p>
+<p><code>regions</code> 的 <code>members</code> 始终是明确的节点 ID 快照。人工圈选并命名是一项解释；自动识别须保留规则与依据。后续新增节点不会自动进入原结构，重新识别或人工调整须明确提交新的成员快照。结构可以嵌套；部分交叠的结构可以各自描述，但按图工作台契约不能同时折叠。</p>
+<p>节点、边和结构使用稳定 ID，说明与坐标变化不换 ID。多个模型调用、代码版本或尝试可以按定义显示为不同节点，也可以在节点数据中汇总；汇总须保留原引用，不把不同尝试合成一条虚假的成功记录。</p>
+<h3 id="graph-snapshot">10.3 完整快照与来源</h3>
+<p>第一版采用完整快照：外层是 Loom 展示信封，<code>snapshot</code> 原样采用图工作台的 <code>format: "graph-workbench", version: 1, graph, view</code> 格式。类型见<a href="author-types.html#graph-types">第 11 章</a>；接收层先校验信封和来源，再将内层交给图工作台公开校验入口。不能将整个 Loom 信封误当作图工作台输入。</p>
+<div class="table-wrap" tabindex="0"><table class="api-table">
+<thead><tr><th>信封字段</th><th>固定语义</th></tr></thead>
+<tbody>
+<tr><td data-label="信封字段"><code>format / version</code></td><td data-label="固定语义"><code>"loom.graph" / 1</code>。只接受当前明确支持的版本，未知版本保留原内容并拒绝载入。</td></tr>
+<tr><td data-label="信封字段"><code>source.work_id / producer_ref / view_id</code></td><td data-label="固定语义">所属 Work、产出者的固定运行记录引用和非空展示标识。三者确定一条图快照序列；产出者可以提供多个展示。实际来源由 Runtime 的发布记录绑定，正文自报身份不能授权或冒充其他产出者。</td></tr>
+<tr><td data-label="信封字段"><code>source.definition_ref</code></td><td data-label="固定语义">不可变的映射与结构定义引用，包含其选择范围、版本和使用的规则引用。读取该引用不能获取额外权限；规则版本切换须明确采用，不自动把旧图解释为新规则的结果。</td></tr>
+<tr><td data-label="信封字段"><code>source.revision</code></td><td data-label="固定语义">正安全整数，由同一 Work／产出者／展示的持久状态递增并绑定快照内容。相同 revision 的不同内容是冲突；未发布编号可以有空缺，不要求补齐所有中间图。</td></tr>
+<tr><td data-label="信封字段"><code>source.records</code></td><td data-label="固定语义"><code>{after?, through, coverage}</code>：after 排他，through 包含，游标沿用来源及存储世代。<code>complete</code> 只表示定义选择且获准读取的这一范围已完整取得；<code>partial</code> 表示存在缺口。不能按游标字符串比较新旧，也不能把完整读取当作真实世界事实齐全。</td></tr>
+<tr><td data-label="信封字段"><code>snapshot</code></td><td data-label="固定语义">通用图工作台 v1 快照；图中的节点、边、结构、描述及其他调用方数据遵守其公开契约。<code>view.collapsed</code> 只是显示状态。</td></tr>
+</tbody></table></div>
+<p>节点、边与结构的 <code>data</code> 保存原 <code>record_refs</code>、<code>content_refs</code> 及解释。<code>record_refs</code> 使用所属来源可核对的稳定记录 ID；<code>content_refs</code> 与规则引用使用<a href="author-types.html#event-types">第 11 章的 <code>Ref</code></a>，<code>basis_refs</code> 可包含这两种依据。Loom 的 <code>data.claim</code> 约定为 <code>{kind, statement, basis_refs, rule_ref?}</code>：<code>observed</code> 必须有足以支持 statement 的原记录或固定内容；<code>derived</code> 必须同时有依据和确定的规则引用；<code>unknown</code> 保留已有依据及缺少项，不能靠空白标签表达。组件只保留和显示这些普通数据，语义校验由产出者负责。人工描述应注明解释或假设；尚未核实的声明使用 unknown，不伪装为观测。</p>
+<p>完整快照不要求完整呈现所有记录；选择和省略由 <code>definition_ref</code> 说明。接收层显示产出者、定义版本、已覆盖范围及是否有缺口；具体未知项在图内以普通说明呈现。若图是人工样本，须明确注明样本来源，不能声明为真实运行观测。</p>
+<h3 id="graph-update">10.4 保存、发布与更新</h3>
+<ol>
+<li>Harness 通过现有 history／content 入口读取获准的固定范围，按确定的定义映射并校验图。恢复时复用原读取结果；重新读取当前记录属于新观察。</li>
+<li>用现有 <code>content.save</code> 保存完整信封；先固定必要字节及保留责任，再确认快照引用。图依赖的原材料按既有内容生命周期保护。</li>
+<li>通过现有 <code>events.publish</code> 发布 <code>loom.graph.snapshot.v1</code>，<code>data.body_ref</code> 指向信封内容；稳定 request_key 绑定原展示与 revision。正文不另塞一份图数据，回执丢失时取得原发布回执。</li>
+<li>获准接收方按发布来源核对信封，读取并校验完整内容，再更新展示。较旧 revision 不覆盖当前图，同 revision 同内容可忽略，冲突明确拒绝。工作台的具体挂载与更新见<a href="implementation.html#display-assembly">展示接合</a>。</li>
+</ol>
+<p>需要持久接收更新的 Work 使用第 3 章的订阅与输入交付；普通展示页面通过已有获准查询读取发布记录和内容，不因打开图而自动创建 Work。接合不新增图消息总线、图状态存储或一套 RPC。断线、通知遗漏或已清理中间快照时，接收方从获准的既有发布记录取得该展示的新完整快照即可；不要求补放所有增量。事件历史缺口仍按 <code>history_gap</code> 报告，缺少依据或权限撤销时保留上次图并明确显示其覆盖位置与不可继续原因，不假装它是当前事实。</p>
+<p>图读取与原 Content／Event 的可见范围一致。引用不是权限凭据；图的标签、描述和数据若复制了受限内容，也必须处于相应授权范围。不得用图通知向无权读原材料的接收者披露秘密。拒绝或缺失须保留具体原因，不能以隐藏节点或空图伪装“没有该事实”。</p>
+<p>人工描述、布局、折叠或编辑仅修改图解释与视图。工作台原生导出的 JSON 是 graph-workbench 快照，不携带 Loom 的来源确认；再次发布为 Loom 展示时，获准产出者须校验并保存新的 revision，注明人工解释及原覆盖范围，不能冒用原发布回执。编辑不回写原记录、不触发执行，也不自动获得业务验证；运行事实需要从实际记录重新生成。更新规则或自动快照时，接收方明确保留、舍弃或重新应用人工视图，不能无声覆盖尚未保存的编辑。</p>
+<p>离线检查复用现有 CLI：将 <code>snapshot</code> 交给 <code>node graph-workbench.mjs validate snapshot.json</code> 或 <code>render snapshot.json --output graph.html</code>。独立 HTML 无需后台或网络，但不是 Runtime 实时视图；交付时同时保留来源信封与覆盖说明。采集和递送由调用方负责，组件不会因打开页面而自动连接 Loom。</p>
+<h3 id="graph-example">10.5 示例：A 调用 B，B 调用 C</h3>
+<p>以下是<a href="examples.html#generated-harness">生成与调用示例</a>的一个展示快照。此 Harness 的定义把一次调用映射为一个节点，把原调用操作映射为边，并把 B 与 C 命名为“检查结构”。<code>invokes</code> 是这份定义的数据标签，不新增 Runtime 的全局图关系枚举。样例中的摘要和记录 ID 只演示格式，不指向真实内容；F106 是本次观察的待核对记录，不能确认 C 的最终结果。</p>
+<div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="graph-example-code" type="button">复制</button><pre id="graph-example-code"><code class="language-json">{
+  "format": "loom.graph",
+  "version": 1,
+  "source": {
+    "work_id": "W-review",
+    "producer_ref": {"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                     "size_bytes":"384","media_type":"application/json"},
+    "view_id": "review-calls",
+    "definition_ref": {"sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                       "size_bytes":"1024","media_type":"application/json"},
+    "revision": 3,
+    "records": {"after": "F100", "through": "F106", "coverage": "complete"}
+  },
+  "snapshot": {
+    "format": "graph-workbench",
+    "version": 1,
+    "graph": {
+      "title": "评审调用 · 覆盖至 F106；C 结果未知",
+      "nodes": [
+        {"id":"run:a","label":"A：生成检查程序","x":120,"y":130,
+         "data":{"record_refs":["record:run-a-start"],
+                 "content_refs":[{"sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                                  "size_bytes":"768","media_type":"application/json"}],
+                 "claim":{"kind":"observed","statement":"A 已保存 B 的代码版本",
+                          "basis_refs":["record:F102"]}}},
+        {"id":"run:b","label":"B：调用专项检查","x":390,"y":130,
+         "data":{"record_refs":["record:run-b-start"],
+                 "claim":{"kind":"observed","statement":"B 已受理并调用 C",
+                          "basis_refs":["record:F103","record:F105"]}}},
+        {"id":"run:c","label":"C：结果待核对","x":660,"y":130,
+         "description":"本次读取范围只有受理与待核对记录；尚无可确认的最终结果。",
+         "data":{"record_refs":["record:run-c-start"],
+                 "claim":{"kind":"unknown","statement":"C 的最终结果未知",
+                          "basis_refs":["record:F105","record:F106"]}}}
+      ],
+      "edges": [
+        {"id":"invoke:ab","source":"run:a","target":"run:b","label":"调用 B",
+         "data":{"relation":"invokes",
+                 "claim":{"kind":"observed","statement":"A 发起的原操作启动了 B",
+                          "basis_refs":["record:F103"]}}},
+        {"id":"invoke:bc","source":"run:b","target":"run:c","label":"调用 C",
+         "data":{"relation":"invokes",
+                 "claim":{"kind":"observed","statement":"B 发起的原操作启动了 C",
+                          "basis_refs":["record:F105","record:F106"]}}}
+      ],
+      "regions": [
+        {"id":"structure:checks","label":"检查结构","members":["run:b","run:c"],
+         "description":"按此 Harness 的结构规则，将专项检查与其子调用一起描述。",
+         "data":{"claim":{"kind":"derived","statement":"B、C 构成本定义中的检查结构",
+                          "basis_refs":["record:F103","record:F105"],
+                          "rule_ref":{"sha256":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                                      "size_bytes":"256","media_type":"application/json"}}}}
+      ]
+    },
+    "view": {"collapsed":["structure:checks"]}
+  }
+}</code></pre></div>
+<p>折叠后仍保留 B、C 的原节点 ID、B→C 的内部边，以及 A→B 的真实边界端点；展开能够核对全部原记录引用。它不表示 B 与 C 共享权限、不表示两者完成，也不把未来新增的调用纳入该结构。若 C 后来返回结果，新快照继续使用 <code>run:c</code>，修改说明和依据并提高 revision。</p>
+<h3 id="context-graphs">10.6 模型输入的信息关系</h3>
+<p>需要解释模型可见输入怎样追加、取用、摘要或改写时，复用<a href="research.html#src-context-graph">context-information-graph 的语义契约</a>。该能力校验模型输入之间的直接信息关系，按已有规则计算候选结构，再转换成同一个图工作台快照。它的源文档和通用展示快照是两种格式，不能互相冒充。</p>
+<p>Runtime 的调用、工具、文件、等待和授权关系可以按 Harness 的通用图定义展示；不应硬塞进上下文信息图的 append／transfer／compact／edit。上下文信息图只核对其约定的输入、来源与先后，前缀相符不独立证明直接来源，样本验证不证明真实模型请求被观测。</p>
+<p>Loom 接合时须提供实际模型请求采用的固定输入与来源记录，保留 observed／hypothesis／unknown 的语义和未核实提示。图工作台中的描述、折叠和编辑不会回写上下文源文档，也不会重新验证信息关系；修改业务含义需先修改源数据，再经该能力校验和转换。映射后的显示行、候选名称不能自行确立新的业务概念。</p>
+<h3 id="graph-failures">10.7 校验与失败处理</h3>
+<div class="table-wrap" tabindex="0"><table>
+<thead><tr><th>输入或操作</th><th>要求</th></tr></thead>
+<tbody>
+<tr><td data-label="输入或操作">未知信封／快照版本，重复 ID，缺少端点或结构成员</td><td data-label="要求">拒绝载入并给出定位；保留原图与未保存编辑，不能部分替换。</td></tr>
+<tr><td data-label="输入或操作">旧 revision、相同 revision 不同内容、来源不符</td><td data-label="要求">旧图不覆盖新图；内容冲突或冒充来源明确拒绝。切换产出者、展示或定义时重新确认比较域。</td></tr>
+<tr><td data-label="输入或操作">未覆盖记录、原文缺失或权限变化</td><td data-label="要求">展示缺口、未知和原覆盖位置，或拒绝读取；不能推断“没有调用”“已经结束”。</td></tr>
+<tr><td data-label="输入或操作">折叠、展开、布局和结构调整</td><td data-label="要求">保持原 ID、原边及实际端点；人工 members 是快照，新节点不会自动纳入。无效交叠折叠拒绝，不能靠修改原连接修复外观。</td></tr>
+<tr><td data-label="输入或操作">缺少推导规则或依据，人工样本冒充观测</td><td data-label="要求">语义层拒绝相应事实声明或明确降为未知／假设；通用图校验通过不表示业务语义成立。</td></tr>
+<tr><td data-label="输入或操作">交互编辑或离线导出</td><td data-label="要求">不产生 Runtime 操作、不修改原事实；保存来源与覆盖范围，关闭前导出尚未保存内容。</td></tr>
+</tbody></table></div>
+<p>组合验收须同时核对原记录、信封、图工作台导出的快照与显示投影，覆盖 A→B→C、原图折叠往返、断线后完整替换、旧版本拒绝和未知事实。图能打开、通用校验通过或布局整齐都不能单独证明映射正确；系统判据见<a href="verification.html#acceptance">运行与契约验收</a>。</p>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="examples.html">← 参考 Harness</a><a href="author-types.html">接口类型与编码 →</a></nav>
+<footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
+</main>
+<dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>
+</body>
+</html>

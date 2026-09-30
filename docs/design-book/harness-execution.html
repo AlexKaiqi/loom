@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Harness 执行管理 · Loom Design Book</title>
+<link rel="stylesheet" href="book.css">
+<script src="book.js" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+<a class="brand" href="../loom-design-book.html">LOOM</a>
+<div class="brand-sub">DESIGN BOOK / 实现与拼接</div>
+<details class="nav-holder" open><summary>目录</summary><nav aria-label="设计书分篇"><a href="../loom-design-book.html">设计书总览</a>
+<details class="nav-group"><summary><span class="nav-group-title">工作契约</span><span class="nav-group-count" aria-hidden="true">12</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="goals.html">目标与范围</a>
+<a href="work-model.html">工作模型与共同约定</a>
+<a href="events.html">事件与输入</a>
+<a href="durable.html">持久执行：恢复、等待与内容</a>
+<a href="model.html">模型访问</a>
+<a href="sandbox.html">用户环境：Sandbox 调用</a>
+<a href="harness.html">Harness：推进逻辑与组合</a>
+<a href="harness-description.html">Harness 描述与作者入口</a>
+<a href="examples.html">参考 Harness</a>
+<a href="graphs.html">图结构与展示</a>
+<a href="author-types.html">接口类型与编码</a>
+<a href="verification.html">运行与契约验收</a>
+</div></details>
+<details class="nav-group is-current" open><summary><span class="nav-group-title">实现与拼接</span><span class="nav-group-count" aria-hidden="true">6</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="implementation.html">实现与拼接总览</a>
+<a href="nats.html">事件与输入的实现</a>
+<a href="durable-bindings.html">持久执行的实现</a>
+<a href="harness-execution.html" class="active" aria-current="page">Harness 执行管理</a>
+<a href="provider-contract.html">Sandbox 调用与工作接合</a>
+<a href="configuration.html">组件拼接与宿主配置</a>
+</div></details>
+<details class="nav-group"><summary><span class="nav-group-title">选型与证据</span><span class="nav-group-count" aria-hidden="true">1</span><span class="nav-group-chevron" aria-hidden="true"></span></summary><div class="nav-group-links">
+<a href="research.html">选型依据与验证范围</a>
+</div></details>
+</nav></details>
+<div class="side-footer">契约与实现 · 按职责阅读<button id="print" type="button">打印本页 / 保存 PDF</button></div>
+</aside>
+<main id="top">
+<section class="chapter"><h1 id="harness-execution">A.3 Harness 执行管理</h1>
+<p>本页说明 Runtime 怎样取得、装载并运行一份 Harness，并在挂起或进程丢失后重建它。作者的调用、限额和结果要求由<a href="harness.html#harness-call">Harness 契约</a>定义，代码与入口的描述由<a href="harness-description.html#harness-code-types">描述契约</a>定义；继续位置、等待与结果复用由<a href="durable-bindings.html#durable-adapters">选定持久执行组合</a>负责。此处只维护宿主装载、SDK 通道、权限与临时资源的接合，不另建调度引擎或执行 journal。</p>
+<h3 id="harness-prepare">A.3.1 从候选描述到固定调用</h3>
+<p>模型可以在获准用户环境编写、构建并保存 Harness B 或 C；源码仍是候选材料。启动时提交不可变 <code>code_ref</code>、许可入口、固定输入与逻辑环境，Runtime 才把这些材料解析为可恢复的一次调用。修改候选文件不会替换正在执行的代码。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>准备与确认</th><th>Runtime 做什么</th></tr></thead><tbody>
+<tr><td data-label="准备与确认">读取描述</td><td data-label="Runtime 做什么">按<a href="harness-description.html#harness-code-types">代码描述格式</a>核验来源内容、入口、作者形式、SDK 和依赖要求。requirements 只表达要求，不能自授权限；未知格式、非法入口或不可用形式明确拒绝。</td></tr>
+<tr><td data-label="准备与确认">固定材料与环境</td><td data-label="Runtime 做什么">解析确定源码、依赖快照、实际 SDK 与运行时 Profile；需要编译时固定工具链和实际 <code>compiled_ref</code>。解析引用核对摘要，不从当前目录、<code>latest</code> 或未固定网络安装重新选版。</td></tr>
+<tr><td data-label="准备与确认">连接控制组合</td><td data-label="Runtime 做什么">核对环境能接受该作者形式，并接到本 Work 已选定的唯一持久控制组合。T 的有限推进、T 预装 Workflow 与 R 原生受管顺序分别使用相容绑定；不相容时返回 <code>unsupported_binding</code>。</td></tr>
+<tr><td data-label="准备与确认">收窄权限及限额</td><td data-label="Runtime 做什么">按当前宿主授权与 Work／父调用范围确定实际能力、内容和限额，保存 <code>effective_scope_ref</code>。并发名额、深度和预算的确认遵守<a href="harness.html#harness-limits">调用限额契约</a>，子调用不获得额外自授权。</td></tr>
+<tr><td data-label="准备与确认">持久受理</td><td data-label="Runtime 做什么">保存原启动 Operation、稳定 <code>run_id</code>、完整实际绑定，并保护恢复需要的材料；选定控制组合接管执行责任后形成启动回执。回执丢失核对原 Operation，不生成第二次调用。</td></tr>
+</tbody></table></div>
+<p>实际绑定采用<a href="author-types.html#harness-types">调用 DTO</a>中的 <code>HarnessBinding</code>，固定代码、入口、输入、运行时、SDK、依赖、编译产物、执行接合与有效范围。准备中取得内容、分配构建环境等已开始操作仍按原身份保留责任；检查失败不运行候选入口，也不能留下无记录的环境。启动回执确认责任受理，不证明第一条业务语句已经执行。</p>
+<h3 id="harness-runtime">A.3.2 首个参考运行环境</h3>
+<p>首个动态代码参考环境是 Linux 中固定版本的 Node 与 JS／TS SDK。Runtime 按宿主已授权 Profile 提供环境，先取得不可变依赖快照和编译产物，再装载调用。macOS 或 Linux 宿主都可使用满足这一要求的 Linux 执行设施；宿主原生命令 Target 不自动成为 Harness runner。其他语言或受信宿主入口需明确其 SDK、隔离与恢复绑定，并经过对应组合验收。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>宿主提供</th><th>执行接合</th></tr></thead><tbody>
+<tr><td data-label="宿主提供">固定装载</td><td data-label="执行接合">装载原调用的源码或编译产物、实际 SDK 和依赖；缺失或摘要不符时拒绝或阻塞。运行中不修改固定材料。</td></tr>
+<tr><td data-label="宿主提供">工作内容与临时空间</td><td data-label="执行接合">按授权提供固定内容或获准工作副本、候选材料和临时空间。必要字节沿用内容与版本契约；内存、临时文件和未交付盘不成为唯一继续依据。</td></tr>
+<tr><td data-label="宿主提供">物理资源与隔离</td><td data-label="执行接合">落实确定 CPU、内存、进程、文件与网络限制；逻辑调用限制由 Runtime 原子管理。环境不取得引擎管理、宿主控制或其他 Work 私有状态。</td></tr>
+<tr><td data-label="宿主提供">原绑定重建</td><td data-label="执行接合">临时 runner 或 Allocation 可更换，逻辑调用和固定材料不变。新实例先取得有效任务及执行所有权，再接到原引擎继续位置。</td></tr>
+</tbody></table></div>
+<p>Sandbox 的公开环境能力可为 Harness 提供获准执行域、隔离、文件交付和原资源收尾，消费接合见<a href="provider-contract.html">Sandbox 调用与工作接合</a>。Loom 仍负责 Harness 的描述、装载、调用身份、SDK 受管语义和恢复绑定，不能把整份 Harness 作为一条普通命令提交就宣称持久执行成立。设施提供哪些能力、稳定来源和原对象查询须按实际部署核验，不能仅凭环境名称宣称隔离或恢复成立。</p>
+<h3 id="harness-run">A.3.3 调度、装载与执行</h3>
+<p>调用受理后，选定引擎安排执行任务，受信 Worker 按任务的原 <code>run_id</code>、绑定和执行所有权准备 runner。相同队列中的 Worker 必须具备相容代码与实际资源访问能力。runner 装载候选入口的权限由受信绑定决定，队列、镜像名、源码名称或环境参数不授予额外权限。</p>
+<p>R 的可信通用入口以固定代码参数建立原生受管调用，隔离 Node runner 装载顺序程序并连接相容原生 SDK；原生受管步骤及日志的规则见<a href="durable-bindings.html#dynamic-resonate">R 接合</a>。隔离与 SDK 传输能否在 runner 退出后保留原生日志、task fence 和挂起语义，仍须先验证，不能把任意子进程运行成功作为证明。</p>
+<p>T 的动态显式状态接合由固定 <code>advanceHarness</code> Activity 在受约束 Linux runner 装载有限推进入口，提供固定业务输入与<a href="harness-description.html#state-step-abi">推进 frame</a>。该 runner 不接收可直接产生外部效果的 SDK 通道；返回值交给通用 Workflow 检查和确认，接受规则见<a href="durable-bindings.html#dynamic-temporal">T 推进接合</a>。预装 Workflow 的代码在可信 Worker 部署时固定；新候选代码不因此获得共享 Worker 信任。</p>
+<p>共享调度设施和 Worker 可服务多个 Work，运行形态无需一 Work 一进程。各调用的数据、权限和 SDK 身份必须隔离；同一设施可共用，不能混淆同一次调用、任务世代和物理进程身份。</p>
+<h3 id="harness-sdk">A.3.4 受管 SDK 与受信通道</h3>
+<p>顺序程序通过调用范围内的 Loom SDK 使用模型、工具、内容、事件、输入、等待和子 Harness。受信端从连接与当前任务确认 Work、调用身份和执行所有权；代码不能在载荷中自报另一个 Work 或有效 fence。SDK 请求沿用受管日志的逻辑调用身份及原 Operation，请求改内容时按同键冲突处理。</p>
+<p>宿主 SDK 通道接到原生 durable SDK 的受管步骤、日志与挂起协议，网络 RPC 只承担运输。仅给隔离进程提供一组返回普通 Promise 的远程方法，不足以恢复顺序代码；宿主不得补造另一套重放日志来伪装接合。原生 Context／Workflow 如何保存和恢复由<a href="durable-bindings.html#durable-adapters">持久实现页</a>说明。</p>
+<p>模型与内容 TS Worker 可经受信 JSON-RPC 连接 Go Runtime 的 ContentPort／OperationPort；用户环境操作通过 Sandbox 的公开 TaskExecutor／会话入口交付，不从 Loom 导入后端 SDK。部署必须固定认证、组件版本、数据转换器与资源范围；运输使用明确 DTO，不序列化 Node 类实例或 SDK 私有异常。管理凭据、引擎端点和供应商连接由可信侧持有，不注入候选代码环境。</p>
+<h3 id="harness-trust">A.3.5 宿主信任、Bash 与 CLI</h3>
+<p>已授权范围内的候选代码可由动态隔离接合自动受理；将其装入共享可信 Worker、扩大宿主权限或启用未获准能力，则必须取得对应宿主授权。代码描述和父子关系都不能扩大信任。文件、网络、CPU 和内存限制由执行设施落实，是否允许某个模型工具由 Harness 策略决定。</p>
+<p>模型可以只看到 Bash；在明确获准的 Work 工具环境中，可提供范围内 <code>loom</code> CLI，把启动、查询、取消等请求交给同一 Runtime。CLI 和 SDK 使用同一调用契约及授权检查，不获得管理连接，也不维护自己的状态。外部 CLI／RPC 使用稳定请求键；受管 SDK 由原生日志派生稳定键。</p>
+<p>构建候选代码的 Bash 属于受控工具执行，其原操作和必要产物必须保存。调用 CLI 不使 Shell 栈、局部变量或后台进程获得持久语义。用户项目命令环境不接收 Harness SDK 通道；可复用环境设施，入口与范围仍分别核验。命令与文件接口见<a href="sandbox.html#exec-api">用户环境契约</a>。</p>
+<h3 id="harness-resume">A.3.6 等待释放与原绑定重建</h3>
+<p>引擎先确认等待和必要继续记录，执行管理再释放本次调用专属进程、模型连接及临时环境。父调用等待子调用时不要求父进程在线，也不终止仍在推进的子调用。等待逻辑归持久组合，专属资源释放归执行接合；共享 Worker 与独立 Userspace 的生命周期分别管理。</p>
+<p>输入、结果或到期条件使原任务可以继续时，取得新的有效执行所有权，按原绑定重建 runner、固定内容和 SDK 通道。顺序形式由原生 SDK 重建控制位置并复用日志结果；显式状态形式重新装载有限推进入口并取得上一份已确认状态。已转交输入的处理身份及后续交付由<a href="events.html#input-transfer">原输入交接记录</a>恢复，重建 runner 不重新认领另一份 Work 输入。</p>
+<p>每个未结调用需要的代码、依赖、SDK、状态格式、编译产物和绑定受保留保护。内容可以从固定摘要来源重新取得，不能以最新版本代替。更新宿主 Profile 只影响相容的新调用；原材料缺失、原环境不可用或当前权限撤销时保留原责任并报告 <code>blocked</code>。恢复能力不足不能靠放宽隔离解决。</p>
+<h3 id="harness-finish">A.3.7 结果、取消与责任接管</h3>
+<p>程序返回后先保存结果及必要内容，并确认子调用和未结 Operation 已结清或已被有权承接者持久接管，再形成<a href="author-types.html#harness-types">调用结果回执</a>。业务结果、取消观测、责任状态和资源回收分别表达；runner 退出码、原生 promise 终态或模型回答结束不能替代这些确认。</p>
+<p>取消请求保存后停止本次范围的新业务意图，并请求终止或隔离原 runner。迟到提交由引擎 fence／修订拒绝；已派发模型或用户命令继续按原身份核对。进程退出或被杀不证明所有外部效果已停止，费用未知也不自动退还预算。tree 范围及 closing 的准入要求沿用 Harness 契约。</p>
+<p>必要内容接管后，耗时环境清理可交给独立持久任务；其回执保护剩余责任，使原 Harness 可以结束。清理失败单独报告，不覆盖已确认业务结果，不删除独立 Userspace。临时盘尚含唯一必要字节时保留环境或阻塞释放。</p>
+<div class="table-wrap" tabindex="0"><table><thead><tr><th>故障</th><th>负责人及恢复动作</th></tr></thead><tbody>
+<tr><td data-label="故障">准备失败或回执丢失</td><td data-label="负责人及恢复动作">执行接合拒绝非法描述或绑定；已开始准备操作按原身份核对。控制组合已受理则返回原调用，不另启动一份。</td></tr>
+<tr><td data-label="故障">runner 丢失或不相容</td><td data-label="负责人及恢复动作">引擎保留原任务；执行管理按原绑定重建，缺失或不相容时报阻塞。</td></tr>
+<tr><td data-label="故障">SDK 断线或结果迟到</td><td data-label="负责人及恢复动作">重连核对原任务及请求身份；引擎拒绝旧所有权，Runtime 保留原 Operation 及已取得结果。</td></tr>
+<tr><td data-label="故障">外部动作停止或清理无法确认</td><td data-label="负责人及恢复动作">原操作执行设施提供观测，Runtime 保持 unknown 与剩余责任；不以 runner 退出或取消回执填成功。</td></tr>
+</tbody></table></div>
+<h3 id="harness-storage">A.3.8 Work 材料与私有存储</h3>
+<p>下面是实现可以采用的局部布局，不是作者必须读取的控制协议。公开配置与候选材料可以呈现给作者；私有记录、物理路径和索引由 Runtime 管理。只有实际需要的目录才创建。</p>
+<div class="code-wrap"><button aria-label="复制代码" class="copy" data-copy="code-4" type="button">复制</button><pre id="code-4"><code class="language-text">work/
+  work.toml          逻辑配置、Harness 入口和资源声明；不含秘密
+  harness/           可编辑候选材料；已受理调用使用固定内容引用
+  surface/           可选，仅文件策略使用
+  .loom/             Runtime 私有布局，不整体向模型开放
+    durable.json     原执行绑定的导出记录，不是可复制的执行许可
+    records/         原文、请求、结果与受保留的历史内容引用
+    versions.git/    内容版本；不独立决定程序继续位置
+    views/           固定范围的只读事实视图
+    state.sqlite     可选派生查询索引，可重建；不是推进权威
+
+Userspace            独立项目、用户资料与产物，由资源绑定决定位置
+Runtime 私有存储      事件设施、所选引擎状态、权限、凭据与必要收据
+</code></pre></div>
+<p>源码、依赖、输入和图定义沿用已有内容保存与版本契约，不按调用另建版本库。引擎状态存于该引擎要求的持久设施，不能以本地 <code>durable.json</code> 或 <code>state.sqlite</code> 代替；复制 Work 目录不创建第二个有效执行者。Surface 不是完整历史副本，Userspace 不随 Work 关闭删除。部署者通过<a href="configuration.html#configuration">组件拼接与宿主配置</a>固定实际存储、Worker、SDK、环境和凭据。</p>
+<p>动态组合须用<a href="examples.html#generated-harness">A→B→C 示例</a>及<a href="verification.html#acceptance">统一验收</a>验证不可变装载、受管调用、等待释放、原绑定恢复与剩余责任；文档和局部 runner 成功都不证明组合已实现。</p>
+</section><nav class="page-pagination" aria-label="阅读顺序"><a href="durable-bindings.html">← 持久执行的实现</a><a href="provider-contract.html">Sandbox 调用与工作接合 →</a></nav>
+<footer><span>LOOM · Design Book</span><a href="#top">返回顶部</a></footer>
+</main>
+<dialog id="diagram-dialog"><div class="dialog-bar"><strong id="dialog-title"></strong><button id="dialog-close" type="button">关闭</button></div><div id="dialog-content"></div></dialog>
+</body>
+</html>
