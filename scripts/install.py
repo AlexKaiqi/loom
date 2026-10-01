@@ -68,7 +68,7 @@ def assemble(release, docker, installation, roots, state):
         run([docker, 'exec', container, 'loom-runtime', '--help'], stdout=subprocess.DEVNULL)
         run([docker, 'exec', container, 'node', '--input-type=module', '-e',
              'await import("/opt/loom/components/worksurface/driver/agent.mjs"); '
-             'const {apiFor}=await import("/opt/loom/components/model-resource-hub/model-invocation/pi/pi.mjs"); '
+             'const {apiFor}=await import("/opt/loom/components/model-service/model-invocation/pi/pi.mjs"); '
              'if(typeof (await apiFor({api:"openai-completions"})).streamSimple!=="function")process.exit(2)'])
         (release / 'bin').mkdir()
         shutil.copyfile(SOURCE / 'scripts/launcher.py', release / 'bin/loom')

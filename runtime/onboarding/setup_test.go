@@ -15,7 +15,7 @@ import (
 
 func TestCustomProviderOptionsDoNotInheritContainerPreset(t *testing.T) {
 	root := t.TempDir()
-	for _, name := range []string{"components/model-resource-hub/model-invocation/pi", "bin", "deploy"} {
+	for _, name := range []string{"components/model-service/model-invocation/pi", "bin", "deploy"} {
 		if err := os.MkdirAll(filepath.Join(root, name), 0700); err != nil {
 			t.Fatal(err)
 		}
@@ -29,7 +29,7 @@ func TestCustomProviderOptionsDoNotInheritContainerPreset(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	for name, raw := range map[string]string{"components/model-resource-hub/model-invocation/pi/worker.mjs": "", "bin/loom-model": "#!/bin/sh\nexit 0\n", "model.json": `{"id":"fixture","api":"openai-completions","provider":"fixture"}`, "options.json": `{"pool":"prepared"}`} {
+	for name, raw := range map[string]string{"components/model-service/model-invocation/pi/worker.mjs": "", "bin/loom-model": "#!/bin/sh\nexit 0\n", "model.json": `{"id":"fixture","api":"openai-completions","provider":"fixture"}`, "options.json": `{"pool":"prepared"}`} {
 		if err := os.WriteFile(filepath.Join(root, name), []byte(raw), 0700); err != nil {
 			t.Fatal(err)
 		}

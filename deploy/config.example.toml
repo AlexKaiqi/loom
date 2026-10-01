@@ -5,7 +5,7 @@
 endpoint = "https://your-provider.example/v1"
 api_key_env = "LOOM_MODEL_API_KEY"
 # Or api_key_file = "/private/credentials/model.key" (0600); choose only one.
-worker = ["node", "/absolute/path/to/loom/components/model-resource-hub/model-invocation/pi/worker.mjs"]
+worker = ["node", "/absolute/path/to/loom/components/model-service/model-invocation/pi/worker.mjs"]
 
 # Optional secret headers map header names to environment variable names.
 # [models.primary.headers_env]

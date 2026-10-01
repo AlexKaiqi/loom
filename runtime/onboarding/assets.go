@@ -13,7 +13,7 @@ func Assets() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		if regular(filepath.Join(root, "components/model-resource-hub/model-invocation/pi/worker.mjs")) {
+		if regular(filepath.Join(root, "components/model-service/model-invocation/pi/worker.mjs")) {
 			return root, nil
 		}
 		return "", errors.New("installed Loom components are missing; run install.sh again")
@@ -29,7 +29,7 @@ func Assets() (string, error) {
 		return "", err
 	}
 	candidate := filepath.Clean(filepath.Join(filepath.Dir(exe), "../.."))
-	if regular(filepath.Join(candidate, "components/model-resource-hub/model-invocation/pi/worker.mjs")) {
+	if regular(filepath.Join(candidate, "components/model-service/model-invocation/pi/worker.mjs")) {
 		return candidate, nil
 	}
 	return "", errors.New("cannot locate installed components; use the installed loom launcher")
@@ -50,7 +50,7 @@ func ModelWorker(root string) ([]string, error) {
 		}
 		return []string{"loom-model"}, nil
 	}
-	return []string{"node", filepath.Join(root, "components/model-resource-hub/model-invocation/pi/worker.mjs")}, nil
+	return []string{"node", filepath.Join(root, "components/model-service/model-invocation/pi/worker.mjs")}, nil
 }
 
 func DriverWorker(root string) []string {

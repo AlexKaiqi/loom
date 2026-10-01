@@ -54,7 +54,7 @@ class WorkerClient:
 
     def __init__(self, command: list[str] | None = None, role="model"):
         if command is None:
-            worker = Path(__file__).resolve().parents[2] / "components" / "model-resource-hub" / "model-invocation" / "pi" / "worker.mjs"
+            worker = Path(__file__).resolve().parents[2] / "components" / "model-service" / "model-invocation" / "pi" / "worker.mjs"
             if not worker.is_file():
                 raise FileNotFoundError(f"Independent worker fixture is missing: {worker}")
             command = ["node", str(worker.resolve())]

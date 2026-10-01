@@ -4,10 +4,10 @@ The [HTML design book](loom-design-book.html) is the sole specification. Its ent
 
 ## Build individual components
 
-Use Go 1.25+, Node 24, Git and Python 3.11+. The production dependency inputs are `runtime/go.mod`, `runtime/go.sum`, `components/model-resource-hub/model-invocation/pi/package-lock.json` and `components/worksurface/harness/requirements.lock`. The Go SQLite driver verifies the actual engine version and WAL/FULL settings when opening each database.
+Use Go 1.25+, Node 24, Git and Python 3.11+. The production dependency inputs are `runtime/go.mod`, `runtime/go.sum`, `components/model-service/model-invocation/pi/package-lock.json` and `components/worksurface/harness/requirements.lock`. The Go SQLite driver verifies the actual engine version and WAL/FULL settings when opening each database.
 
 ```sh
-npm ci --prefix components/model-resource-hub/model-invocation/pi
+npm ci --prefix components/model-service/model-invocation/pi
 (cd runtime && go build -o bin/loom ./cmd/loom)
 python3 -m venv .venv
 .venv/bin/pip install --require-hashes -r components/worksurface/harness/requirements.lock
@@ -129,14 +129,14 @@ Keep every failed run and record its source/image/dependency identities. Rerun c
 
 ## 固定能力版本的开发验证
 
-先 `git submodule update --init --recursive`，具备私有子仓库读取权限；Go 命令需要 `GOPRIVATE=github.com/AlexKaiqi/ondemand-sandbox`。使用 Node 24，在根目录、`components/worksurface` 和 `components/model-resource-hub/model-invocation/pi` 分别执行 `npm ci`。根 Python 测试环境使用 `tests/requirements.txt`。
+先 `git submodule update --init --recursive`，具备私有子仓库读取权限；Go 命令需要 `GOPRIVATE=github.com/AlexKaiqi/ondemand-sandbox`。使用 Node 24，在根目录、`components/worksurface` 和 `components/model-service/model-invocation/pi` 分别执行 `npm ci`。根 Python 测试环境使用 `tests/requirements.txt`。
 
 ```sh
 (cd runtime && go test ./...)
 python -m unittest discover -s tests/model -v
 python -m unittest discover -s components/worksurface/tests -v
 (cd components/worksurface && npm test)
-python -m unittest discover -s components/model-resource-hub/model-invocation/pi/tests -v
+python -m unittest discover -s components/model-service/model-invocation/pi/tests -v
 (cd components/sandbox/execution && go test ./...)
 ```
 

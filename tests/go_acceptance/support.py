@@ -188,7 +188,7 @@ c.listen();
         return path
 
     def configure(self, server=None, *, worker=None, sandbox_endpoint="http://127.0.0.1:1", model_endpoint=None, headers_env=None):
-        worker = worker or [shutil.which("node"), str(ROOT / "components/model-resource-hub/model-invocation/pi/worker.mjs")]
+        worker = worker or [shutil.which("node"), str(ROOT / "components/model-service/model-invocation/pi/worker.mjs")]
         endpoint = model_endpoint or server.base_url
         lines = ['[drivers]', '"worksurface/v1"=' + json.dumps([shutil.which('node'), str(ROOT / 'components/worksurface/driver/worker.mjs')]), '[models.model-main]', 'api_key_env="LOOM_TEST_MODEL_KEY"', 'worker=' + json.dumps(worker),
             'endpoint=' + json.dumps(endpoint), '[sandboxes.sandbox-main]', 'provider="opensandbox/v1"',

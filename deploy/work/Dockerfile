@@ -20,9 +20,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 COPY components/worksurface/harness/requirements.lock /tmp/loom-requirements.lock
 RUN python3 -m venv /usr/local/loom-python && /usr/local/loom-python/bin/pip install --no-cache-dir --require-hashes -r /tmp/loom-requirements.lock && rm /tmp/loom-requirements.lock
-COPY components/model-resource-hub/model-invocation/pi/package.json components/model-resource-hub/model-invocation/pi/package-lock.json /opt/loom/components/model-resource-hub/model-invocation/pi/
-RUN cd /opt/loom/components/model-resource-hub/model-invocation/pi && npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
-COPY components/model-resource-hub/model-invocation/pi /opt/loom/components/model-resource-hub/model-invocation/pi
+COPY components/model-service/model-invocation/pi/package.json components/model-service/model-invocation/pi/package-lock.json /opt/loom/components/model-service/model-invocation/pi/
+RUN cd /opt/loom/components/model-service/model-invocation/pi && npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
+COPY components/model-service/model-invocation/pi /opt/loom/components/model-service/model-invocation/pi
 COPY components/worksurface /opt/loom/components/worksurface
 RUN cd /opt/loom/components/worksurface && npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 COPY components/sandbox /opt/loom/components/sandbox
@@ -33,7 +33,7 @@ COPY docs/capability-migration.md /opt/loom/docs/capability-migration.md
 COPY --from=build /usr/local/bin/nsjail /usr/local/bin/nsjail
 COPY --from=build /usr/local/bin/loom-runtime /usr/local/bin/loom-runtime
 COPY --from=build /usr/local/share/loom-nsjail-submodules.lock /usr/local/share/loom-nsjail-submodules.lock
-RUN mkdir -p /opt/loom/bin && printf '#!/bin/sh\nexec node /opt/loom/components/model-resource-hub/model-invocation/pi/worker.mjs "$@"\n' > /opt/loom/bin/loom-model && chmod 755 /opt/loom/bin/loom-model \
+RUN mkdir -p /opt/loom/bin && printf '#!/bin/sh\nexec node /opt/loom/components/model-service/model-invocation/pi/worker.mjs "$@"\n' > /opt/loom/bin/loom-model && chmod 755 /opt/loom/bin/loom-model \
     && printf '#!/bin/sh\nexec node /opt/loom/components/worksurface/driver/worker.mjs "$@"\n' > /opt/loom/bin/loom-worksurface && chmod 755 /opt/loom/bin/loom-worksurface \
     && dpkg-query -W > /usr/local/share/loom-work-packages.lock
 ENV HOME=/var/lib/loom-host LOOM_INSTALL_ROOT=/opt/loom LOOM_EXECUTION_CONFIG=/run/loom/execution.toml

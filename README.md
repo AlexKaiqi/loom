@@ -86,7 +86,7 @@ loom fork . CHECKPOINT_ID ~/Loom/exploration
 | 能力 | 唯一实现归属 | Loom 使用的公开交接 |
 | --- | --- | --- |
 | 持久工作 | 本仓库 `runtime/` | 输入、授权、事实、检查点、文件保管与恢复 |
-| 模型访问 | [Model Resource Hub](components/model-resource-hub/model-invocation/pi/README.md) | 一次原生模型请求／结果；无 Agent 循环 |
+| 模型访问 | [Model Service](components/model-service/model-invocation/pi/README.md) | 一次原生模型请求／结果；无 Agent 循环 |
 | 隔离执行 | [OnDemand Sandbox](components/sandbox/execution/README.md) | 执行／查询／取消／释放、原生身份与测得的工作目录 |
 | 参考工作策略 | [Worksurface](components/worksurface/README.md) | 投影、继续判断、Surface 修复、Pi 循环；通过宿主调用模型和工具 |
 

@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import subprocess
 
-ASSETS = ('runtime', 'deploy', 'components/model-resource-hub/model-invocation/pi',
+ASSETS = ('runtime', 'deploy', 'components/model-service/model-invocation/pi',
           'components/worksurface', 'components/sandbox/linux_process_execution',
           'components/sandbox/linux_container_execution/loom-profile')
 

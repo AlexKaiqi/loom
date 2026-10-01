@@ -25,7 +25,7 @@ func TestModelCustodyIsOwnedByHostBeforeAndAfterDispatch(t *testing.T) {
 		fmt.Fprintf(w, "data: %s\n\ndata: [DONE]\n\n", raw)
 	}))
 	defer server.Close()
-	worker, _ := filepath.Abs("../../components/model-resource-hub/model-invocation/pi/worker.mjs")
+	worker, _ := filepath.Abs("../../components/model-service/model-invocation/pi/worker.mjs")
 	c.runtime.ModelCommand = []string{"node", worker}
 	c.runtime.APIKey = "test-only-key"
 	c.runtime.Model = Object{"id": "fixture", "api": "openai-completions", "provider": "fixture", "input": []string{"text"}, "reasoning": false, "baseUrl": server.URL, "maxTokens": 64, "contextWindow": 4096, "cost": Object{"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0}}

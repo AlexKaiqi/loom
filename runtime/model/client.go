@@ -1,4 +1,4 @@
-// Package model invokes one model request. Provider adaptation belongs to model-resource-hub.
+// Package model invokes one model request. Provider adaptation belongs to model-service.
 package model
 
 import (

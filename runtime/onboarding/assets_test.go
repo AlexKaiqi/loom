@@ -14,7 +14,7 @@ func TestModelWorkerSourceAndInstalledDeployment(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("LOOM_INSTALL_ROOT", "")
 	worker, err := ModelWorker(root)
-	if err != nil || !reflect.DeepEqual(worker, []string{"node", filepath.Join(root, "components/model-resource-hub/model-invocation/pi/worker.mjs")}) {
+	if err != nil || !reflect.DeepEqual(worker, []string{"node", filepath.Join(root, "components/model-service/model-invocation/pi/worker.mjs")}) {
 		t.Fatalf("source deployment = %v, %v", worker, err)
 	}
 	t.Setenv("LOOM_INSTALL_ROOT", root)

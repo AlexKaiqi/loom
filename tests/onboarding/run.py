@@ -177,7 +177,7 @@ class InstalledUser:
 
     def install(self):
         before = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
-                  for base in ("runtime", "components/model-resource-hub/model-invocation/pi", "components/worksurface", "deploy", "scripts", "tests/onboarding", "tests/model", "tests/go_acceptance", "tests/install", "components/sandbox", "docs/design-book")
+                  for base in ("runtime", "components/model-service/model-invocation/pi", "components/worksurface", "deploy", "scripts", "tests/onboarding", "tests/model", "tests/go_acceptance", "tests/install", "components/sandbox", "docs/design-book")
                   for p in (ROOT / base).rglob("*") if p.is_file() and not any(part in {"node_modules", "bin", "__pycache__"} for part in p.parts)}
         for name in ("docs/loom-design-book.html", "AGENTS.md", "install.sh"):
             before[name] = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()

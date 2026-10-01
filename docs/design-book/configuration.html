@@ -109,7 +109,7 @@ requirements_ref = "requirements:command-and-stable-files@locked"
 <p>TaskExecutor 的固定公开 Binding 由 Sandbox 部署或受信装配取得，包含实际非秘密目的地与配置。Loom 保存该 Binding 及必要公开检查点，恢复时回到同一公开 Query／Cancel／Release 入口；不从工厂导入供应商 SDK，不推断文件路径，也不按最新 Profile 换后端。凭据通过受信部署注入，任务环境不取得管理身份。</p>
 <p><span id="code-24"></span><span id="code-25"></span>原后端配置设计归 <a href="https://github.com/AlexKaiqi/ondemand-sandbox">Sandbox</a> 的 <code>docs/backend-configuration.md</code>。调用者只声明要求和许可范围；实际隔离、稳定文件及资源释放由 Sandbox 完整兑现。组合必须固定公开契约版本、调用组件与 Sandbox 实际部署，能力不足或未验证时保持 <code>not_ready</code>。</p>
 <section id="capability-ownership"><h3>能力归属与组合版本</h3>
-<p>Loom 拥有持续工作的受理、Harness 调用、固定代码装载、进度、等待、操作托管、内容接管、授权与恢复；模型访问由 Model Resource Hub 维护，受约束任务执行由 OnDemand Sandbox 维护，参考 Worksurface Harness 独立维护策略、循环、模板和测试。graph 维护通用图操作与展示，Harness 定义并校验图中关系、结构和状态的含义。每项能力的实现、专用契约、依赖、部署与验证随所属仓库维护。公开消费者绑定留在调用方，不能跨仓库读写私有状态。</p>
+<p>Loom 拥有持续工作的受理、Harness 调用、固定代码装载、进度、等待、操作托管、内容接管、授权与恢复；模型访问由 Model Service 维护，受约束任务执行由 OnDemand Sandbox 维护，参考 Worksurface Harness 独立维护策略、循环、模板和测试。graph 维护通用图操作与展示，Harness 定义并校验图中关系、结构和状态的含义。每项能力的实现、专用契约、依赖、部署与验证随所属仓库维护。公开消费者绑定留在调用方，不能跨仓库读写私有状态。</p>
 <p>各能力通过已声明的公开接口接合。单次模型／工具结果怎样进入控制组合见<a href="implementation.html#operation-assembly">操作拼接</a>；环境后端的请求、内容与原对象核对见<a href="provider-contract.html">Sandbox 调用接合</a>。适配器的私有变化由所属能力吸收，公开契约变化则更新受影响的消费者和组合验证。</p>
 <p>组合通过固定版本的公开包与源码依赖构建，独立获取 Loom 后也能按声明取得依赖。正常模型／工具循环、调用结果未知、文件交付失败、恢复原绑定和独立安装必须分别验证。参考组合的目标 API 与验收由本书定义；实现和重构计划另由所属仓库维护，不能反向降低这些要求。</p></section>
 <div class="table-wrap" tabindex="0"><table>

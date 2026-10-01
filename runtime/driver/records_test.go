@@ -67,7 +67,7 @@ func TestLargeNativeContextsAndResultsUseRecordsAcrossRealPi(t *testing.T) {
 	ctx := Object{"systemPrompt": "Use the supplied context", "messages": []Object{{"role": "user", "content": input, "timestamp": 0}}}
 	callbacks := Callbacks{Invoke: func(callctx context.Context, p Object) (Object, error) {
 		admitted.Add(1)
-		modelWorker, _ := filepath.Abs("../../components/model-resource-hub/model-invocation/pi/worker.mjs")
+		modelWorker, _ := filepath.Abs("../../components/model-service/model-invocation/pi/worker.mjs")
 		return model.Invoke(callctx, []string{node, modelWorker}, model.Request{Session: rpc.Session{RecordDirectory: records}, Context: p["context"].(map[string]any), Model: native, APIKey: "private-model-key", Options: p["options"].(map[string]any), Timeout: 30 * time.Second})
 	}, Event: func(event Object) error {
 		if event["type"] == "model_request" {

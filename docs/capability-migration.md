@@ -10,6 +10,8 @@ OnDemand Sandbox owns execution contracts, archive delivery, provider implementa
 prepared-process deployment and provider tests. Worksurface owns the reference
 projection policy, Agent loop, initial template and strategy tests.
 
+Current model access is supplied by [Model Service](../components/model-service/model-invocation/pi/CAPABILITY.md).
+
 A driver is a host-approved deployment selected by the fixed Harness manifest. It
 receives no model credentials and can only invoke host operations. A model call is
 recorded before dispatch; its native result is recorded before delivery to the driver.
